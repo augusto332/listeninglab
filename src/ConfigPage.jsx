@@ -4,8 +4,9 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import KeywordTable from "@/components/KeywordTable"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, HelpCircle } from "lucide-react"
 import { supabase } from "@/lib/supabaseClient"
 
 export default function ConfigPage({
@@ -50,6 +51,10 @@ export default function ConfigPage({
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsMessage, setSettingsMessage] = useState(null)
   const [isLoadingSettings, setIsLoadingSettings] = useState(false)
+  const [collectionPreference, setCollectionPreference] = useState("recent")
+  const [countryFilter, setCountryFilter] = useState("all")
+  const filtersDisclaimer =
+    "Algunas plataformas no permiten aplicar estos filtros. Los utilizaremos únicamente en aquellas donde estén disponibles."
 
   useEffect(() => {
     if (!accountId) {
@@ -193,6 +198,59 @@ export default function ConfigPage({
                 ))}
               </div>
             </div>
+
+            <TooltipProvider>
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-200">Preferencia de recolección</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-4 h-4 text-slate-500 hover:text-slate-300 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-slate-800/95 border border-slate-700/70 text-slate-200 max-w-xs">
+                        <p>{filtersDisclaimer}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Select value={collectionPreference} onValueChange={setCollectionPreference}>
+                    <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
+                      <SelectValue placeholder="Selecciona una preferencia" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
+                      <SelectItem value="popular">Priorizar menciones más populares</SelectItem>
+                      <SelectItem value="recent">Priorizar menciones más recientes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-slate-200">Filtro por país</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-4 h-4 text-slate-500 hover:text-slate-300 cursor-pointer" />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-slate-800/95 border border-slate-700/70 text-slate-200 max-w-xs">
+                        <p>{filtersDisclaimer}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <Select value={countryFilter} onValueChange={setCountryFilter}>
+                    <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
+                      <SelectValue placeholder="Selecciona un país" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
+                      <SelectItem value="all">Todos los países</SelectItem>
+                      <SelectItem value="mx">México</SelectItem>
+                      <SelectItem value="ar">Argentina</SelectItem>
+                      <SelectItem value="co">Colombia</SelectItem>
+                      <SelectItem value="es">España</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </TooltipProvider>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Button
