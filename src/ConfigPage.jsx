@@ -52,13 +52,15 @@ export default function ConfigPage({
   const [settingsMessage, setSettingsMessage] = useState(null)
   const [isLoadingSettings, setIsLoadingSettings] = useState(false)
   const [collectionPreference, setCollectionPreference] = useState("recent")
-  const [countryFilter, setCountryFilter] = useState("all")
-  const filtersDisclaimer =
-    "Algunas plataformas no permiten aplicar estos filtros. Los utilizaremos únicamente en aquellas donde estén disponibles."
+  const [countryFilter, setCountryFilter] = useState("")
+  const collectionPreferenceHelpText =
+    "Algunas plataformas no permiten aplicar esta preferencia; se utilizará solo en aquellas donde esté disponible."
 
   useEffect(() => {
     if (!accountId) {
       setActiveSources(defaultActiveSources)
+      setCollectionPreference("recent")
+      setCountryFilter("")
       return
     }
 
@@ -71,7 +73,7 @@ export default function ConfigPage({
       const { data, error } = await supabase
         .from("account_settings")
         .select(
-          "is_youtube_active, is_twitter_active, is_reddit_active, is_instagram_active, is_tiktok_active, is_facebook_active, is_others_active",
+          "is_youtube_active, is_twitter_active, is_reddit_active, is_instagram_active, is_tiktok_active, is_facebook_active, is_others_active, sorting_preference, country_filter",
         )
         .eq("account_id", accountId)
         .maybeSingle()
@@ -91,8 +93,12 @@ export default function ConfigPage({
           facebook: !!data.is_facebook_active,
           others: !!data.is_others_active,
         })
+        setCollectionPreference(data.sorting_preference || "recent")
+        setCountryFilter((data.country_filter || "").toUpperCase())
       } else {
         setActiveSources(defaultActiveSources)
+        setCollectionPreference("recent")
+        setCountryFilter("")
       }
 
       setIsLoadingSettings(false)
@@ -126,6 +132,8 @@ export default function ConfigPage({
       is_tiktok_active: !!activeSources.tiktok,
       is_facebook_active: !!activeSources.facebook,
       is_others_active: !!activeSources.others,
+      sorting_preference: collectionPreference,
+      country_filter: countryFilter ? countryFilter.toUpperCase() : null,
     }
 
     const { data, error } = await supabase
@@ -170,84 +178,76 @@ export default function ConfigPage({
         <Card className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50">
           <CardContent className="p-6 space-y-6">
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold text-white">Límites y preferencias de uso</h3>
+              <h3 className="text-lg font-semibold text-white">Preferencias y límites de uso</h3>
               <p className="text-sm text-slate-400">
-                Ajusta tus preferencias y decide cómo repartir tus menciones entre plataformas.
+                Define cómo priorizamos las menciones, aplica filtros opcionales y elige las fuentes activas.
               </p>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-200">Fuentes activas</span>
-                <span className="text-xs text-slate-400">
-                  {totalActiveSources} / {availableSources.length} activas
-                </span>
-              </div>
-              <div className="grid gap-3 md:grid-cols-2">
-                {availableSources.map((source) => (
-                  <div
-                    key={source.id}
-                    className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/40 px-4 py-3"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-slate-200">{source.label}</p>
-                      <p className="text-xs text-slate-500">Incluye menciones de {source.label}</p>
-                    </div>
-                    <Switch checked={!!activeSources[source.id]} onCheckedChange={() => toggleSource(source.id)} />
-                  </div>
-                ))}
-              </div>
-            </div>
-
             <TooltipProvider>
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-200">Preferencia de recolección</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="w-4 h-4 text-slate-500 hover:text-slate-300 cursor-pointer" />
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-slate-800/95 border border-slate-700/70 text-slate-200 max-w-xs">
-                        <p>{filtersDisclaimer}</p>
-                      </TooltipContent>
-                    </Tooltip>
+              <div className="space-y-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-slate-200">Preferencia de recolección</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-slate-500 hover:text-slate-300 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-slate-800/95 border border-slate-700/70 text-slate-200 max-w-xs">
+                          <p>{collectionPreferenceHelpText}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Select value={collectionPreference} onValueChange={setCollectionPreference}>
+                      <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
+                        <SelectValue placeholder="Selecciona una preferencia" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
+                        <SelectItem value="recent">Recientes</SelectItem>
+                        <SelectItem value="popular">Populares</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <Select value={collectionPreference} onValueChange={setCollectionPreference}>
-                    <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
-                      <SelectValue placeholder="Selecciona una preferencia" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
-                      <SelectItem value="popular">Priorizar menciones más populares</SelectItem>
-                      <SelectItem value="recent">Priorizar menciones más recientes</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                  <div className="space-y-2">
+                    <span className="text-sm font-medium text-slate-200">Filtro por país</span>
+                    <Select value={countryFilter} onValueChange={setCountryFilter}>
+                      <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
+                        <SelectValue placeholder="Selecciona un país (opcional)" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
+                        <SelectItem value="">Todos los países</SelectItem>
+                        <SelectItem value="MX">México</SelectItem>
+                        <SelectItem value="AR">Argentina</SelectItem>
+                        <SelectItem value="CO">Colombia</SelectItem>
+                        <SelectItem value="ES">España</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-200">Filtro por país</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="w-4 h-4 text-slate-500 hover:text-slate-300 cursor-pointer" />
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-slate-800/95 border border-slate-700/70 text-slate-200 max-w-xs">
-                        <p>{filtersDisclaimer}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-slate-200">Fuentes activas</span>
+                    <span className="text-xs text-slate-400">
+                      {totalActiveSources} / {availableSources.length} activas
+                    </span>
                   </div>
-                  <Select value={countryFilter} onValueChange={setCountryFilter}>
-                    <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
-                      <SelectValue placeholder="Selecciona un país" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
-                      <SelectItem value="all">Todos los países</SelectItem>
-                      <SelectItem value="mx">México</SelectItem>
-                      <SelectItem value="ar">Argentina</SelectItem>
-                      <SelectItem value="co">Colombia</SelectItem>
-                      <SelectItem value="es">España</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {availableSources.map((source) => (
+                      <div
+                        key={source.id}
+                        className="flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/40 px-4 py-3"
+                      >
+                        <div>
+                          <p className="text-sm font-medium text-slate-200">{source.label}</p>
+                          <p className="text-xs text-slate-500">Incluye menciones de {source.label}</p>
+                        </div>
+                        <Switch checked={!!activeSources[source.id]} onCheckedChange={() => toggleSource(source.id)} />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </TooltipProvider>
