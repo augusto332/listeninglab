@@ -217,7 +217,7 @@ export default function ConfigPage({
                         <SelectValue placeholder="Selecciona un país (opcional)" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
-                        <SelectItem value="">Todos los países</SelectItem>
+                        <SelectItem value="ALL">Todos los países</SelectItem>
                         <SelectItem value="MX">México</SelectItem>
                         <SelectItem value="AR">Argentina</SelectItem>
                         <SelectItem value="CO">Colombia</SelectItem>
