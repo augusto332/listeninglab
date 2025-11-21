@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react"
+import { useState, useEffect, useMemo, useRef, useReducer } from "react"
 import { useNavigate, useLocation, NavLink, Routes, Route, Navigate } from "react-router-dom"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
@@ -19,6 +19,7 @@ import SentimentKPI from "@/components/SentimentKPI"
 import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/context/AuthContext"
 import ConfigPage from "./ConfigPage"
+import SidebarNavigation from "./components/SidebarNavigation"
 import {
   Search,
   CircleUser,
@@ -165,7 +166,50 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const params = new URLSearchParams(window.location.search)
     return params.get("tab") || "home"
   })
-  const [search, setSearch] = useState("")
+  const filterReducer = (state, action) => {
+    switch (action.type) {
+      case "SET_SEARCH":
+        return { ...state, search: action.payload }
+      case "SET_SOURCES":
+        return { ...state, sourcesFilter: action.payload }
+      case "SET_KEYWORDS":
+        return { ...state, keywordsFilter: action.payload }
+      case "SET_TAGS":
+        return { ...state, tagsFilter: action.payload }
+      case "SET_AI_TAGS":
+        return { ...state, aiTagsFilter: action.payload }
+      case "SET_SENTIMENT":
+        return { ...state, sentimentFilter: action.payload }
+      case "SET_ORDER":
+        return { ...state, order: action.payload }
+      case "SET_ONLY_FAVORITES":
+        return { ...state, onlyFavorites: action.payload }
+      default:
+        return state
+    }
+  }
+
+  const [filterState, dispatchFilter] = useReducer(filterReducer, {
+    search: "",
+    sourcesFilter: [],
+    keywordsFilter: ["all"],
+    tagsFilter: [],
+    aiTagsFilter: [],
+    sentimentFilter: [],
+    order: "recent",
+    onlyFavorites: false,
+  })
+  const { search, sourcesFilter, keywordsFilter, tagsFilter, aiTagsFilter, sentimentFilter, order, onlyFavorites } =
+    filterState
+  const setSearch = (value) => dispatchFilter({ type: "SET_SEARCH", payload: value })
+  const setSourcesFilter = (value) => dispatchFilter({ type: "SET_SOURCES", payload: value })
+  const setKeywordsFilter = (value) => dispatchFilter({ type: "SET_KEYWORDS", payload: value })
+  const setTagsFilter = (value) => dispatchFilter({ type: "SET_TAGS", payload: value })
+  const setAiTagsFilter = (value) => dispatchFilter({ type: "SET_AI_TAGS", payload: value })
+  const setSentimentFilter = (value) => dispatchFilter({ type: "SET_SENTIMENT", payload: value })
+  const setOrder = (value) => dispatchFilter({ type: "SET_ORDER", payload: value })
+  const setOnlyFavorites = (value) => dispatchFilter({ type: "SET_ONLY_FAVORITES", payload: value })
+
   const [mentions, setMentions] = useState([])
   const [mentionsLoading, setMentionsLoading] = useState(true)
   const [dashLoading, setDashLoading] = useState(false)
@@ -185,14 +229,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const helpMenuRef = useRef(null)
   const userMenuRef = useRef(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [sourcesFilter, setSourcesFilter] = useState([])
-  const [keywordsFilter, setKeywordsFilter] = useState(["all"])
-  const [tagsFilter, setTagsFilter] = useState([])
-  const [aiTagsFilter, setAiTagsFilter] = useState([])
-  const [sentimentFilter, setSentimentFilter] = useState([])
   const [allAiTagOptions, setAllAiTagOptions] = useState([])
   const [allSentimentOptions, setAllSentimentOptions] = useState([])
-  const [order, setOrder] = useState("recent")
   const [hiddenMentions, setHiddenMentions] = useState([])
   const [keywords, setKeywords] = useState([])
   const [selectedDashboardKeywords, setSelectedDashboardKeywords] = useState(["all"])
@@ -206,7 +244,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const [accountSettingsVersion, setAccountSettingsVersion] = useState(0)
   const navigate = useNavigate()
   const location = useLocation()
-  const [onlyFavorites, setOnlyFavorites] = useState(false)
   const [reportStartDate, setReportStartDate] = useState("")
   const [reportEndDate, setReportEndDate] = useState("")
   const [reportPlatform, setReportPlatform] = useState("")
@@ -1392,71 +1429,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setHelpMenuOpen(false)
   }
 
-  const SidebarContent = ({ onTabSelect, onConfigNavigate, isAdmin }) => (
-    <>
-      <nav className="space-y-1">
-        <button
-          onClick={() => onTabSelect("home")}
-          className={cn(
-            "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
-            currentTab === "home"
-              ? "bg-gradient-to-r from-blue-500/20 to-purple-600/20 text-white border border-blue-500/30"
-              : "text-slate-400 hover:text-white hover:bg-slate-700/50",
-          )}
-        >
-          <Home className="w-4 h-4" />
-          Inicio
-        </button>
-
-        <button
-          onClick={() => onTabSelect("dashboard")}
-          className={cn(
-            "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
-            currentTab === "dashboard"
-              ? "bg-gradient-to-r from-blue-500/20 to-purple-600/20 text-white border border-blue-500/30"
-              : "text-slate-400 hover:text-white hover:bg-slate-700/50",
-          )}
-        >
-          <BarChart2 className="w-4 h-4" />
-          Dashboard
-        </button>
-
-        <button
-          onClick={() => onTabSelect("reportes")}
-          className={cn(
-            "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
-            currentTab === "reportes"
-              ? "bg-gradient-to-r from-blue-500/20 to-purple-600/20 text-white border border-blue-500/30"
-              : "text-slate-400 hover:text-white hover:bg-slate-700/50",
-          )}
-        >
-          <FileChartLine className="w-4 h-4" />
-          Reportes
-        </button>
-      </nav>
-
-      <div className="flex-1" />
-
-      {isAdmin && (
-        <NavLink
-          to="/app/config"
-          className={({ isActive }) =>
-            cn(
-              "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
-              isActive
-                ? "bg-gradient-to-r from-blue-500/20 to-purple-600/20 text-white border border-blue-500/30"
-                : "text-slate-400 hover:text-white hover:bg-slate-700/50",
-            )
-          }
-          onClick={onConfigNavigate}
-        >
-          <Settings className="w-4 h-4" />
-          Configuración
-        </NavLink>
-      )}
-    </>
-  )
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Modern Header */}
@@ -1562,7 +1534,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
       <div className="flex flex-col lg:flex-row">
         {/* Modern Sidebar */}
         <aside className="hidden md:flex lg:flex lg:w-64 bg-slate-800/50 backdrop-blur-xl border-r border-slate-700/50 p-6 flex-col space-y-2 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
-          <SidebarContent
+          <SidebarNavigation
+            currentTab={currentTab}
             onTabSelect={handleTabChange}
             onConfigNavigate={handleConfigNavigate}
             isAdmin={isAdmin}
@@ -1580,7 +1553,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
                 className="relative h-full w-72 max-w-[80vw] bg-slate-900/95 backdrop-blur-xl border-r border-slate-700/50 p-6 flex flex-col space-y-2 overflow-y-auto"
                 onClick={(e) => e.stopPropagation()}
               >
-                <SidebarContent
+                <SidebarNavigation
+                  currentTab={currentTab}
                   onTabSelect={handleTabChange}
                   onConfigNavigate={handleConfigNavigate}
                   isAdmin={isAdmin}
