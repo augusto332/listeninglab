@@ -3,23 +3,18 @@ import { useNavigate, useLocation, NavLink, Routes, Route, Navigate } from "reac
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import DatePickerInput from "@/components/DatePickerInput"
-import { Card, CardContent } from "@/components/ui/card"
 import MentionCard from "@/components/MentionCard"
-import WordCloud from "@/components/WordCloud"
-import TagMentionsBarChart from "@/components/TagMentionsBarChart"
-import ActiveSourcesBarChart from "@/components/ActiveSourcesBarChart"
-import MentionsLineChart from "@/components/MentionsLineChart"
-import MultiSelect from "@/components/MultiSelect"
 import { Button } from "@/components/ui/button"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import RightSidebar from "@/components/RightSidebar"
-import SentimentKPI from "@/components/SentimentKPI"
 import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/context/AuthContext"
 import ConfigPage from "./ConfigPage"
 import SidebarNavigation from "./components/SidebarNavigation"
+import DashboardSection from "./components/DashboardSection"
+import useDashboardData from "./hooks/useDashboardData"
 import {
   Search,
   CircleUser,
@@ -36,18 +31,13 @@ import {
   Sparkles,
   LogOut,
   Headset,
-  Loader2,
-  Smile,
-  Frown,
   Menu,
 } from "lucide-react"
 import { formatDistanceToNow, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
 import KeywordTable from "@/components/KeywordTable"
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import ReportsTable from "@/components/ReportsTable"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import AISummary from "@/components/AISummary"
 
@@ -160,8 +150,6 @@ const passMinAbs = (m) => {
 
 export default function ModernSocialListeningApp({ onLogout }) {
   // All your existing state variables remain the same
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(window.location.search)
     return params.get("tab") || "home"
@@ -212,13 +200,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
 
   const [mentions, setMentions] = useState([])
   const [mentionsLoading, setMentionsLoading] = useState(true)
-  const [dashLoading, setDashLoading] = useState(false)
-  const [kpiTotal, setKpiTotal] = useState(0)
-  const [kpiMoM, setKpiMoM] = useState({ curr_cnt: 0, prev_cnt: 0, pct_change: 0 })
-  const [series, setSeries] = useState([])
-  const [topWords, setTopWords] = useState([])
-  const [sourceTop, setSourceTop] = useState([])
-  const [tagCounts, setTagCounts] = useState([])
   const [cursor, setCursor] = useState(null)
   const [hasMore, setHasMore] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -233,10 +214,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const [allSentimentOptions, setAllSentimentOptions] = useState([])
   const [hiddenMentions, setHiddenMentions] = useState([])
   const [keywords, setKeywords] = useState([])
-  const [selectedDashboardKeywords, setSelectedDashboardKeywords] = useState(["all"])
-  const [selectedDashboardPlatforms, setSelectedDashboardPlatforms] = useState(["all"])
-  const [selectedDashboardSentiments, setSelectedDashboardSentiments] = useState([])
-  const [selectedDashboardAiTags, setSelectedDashboardAiTags] = useState([])
   const [newKeyword, setNewKeyword] = useState("")
   const [addKeywordMessage, setAddKeywordMessage] = useState(null)
   const [saveKeywordMessage, setSaveKeywordMessage] = useState(null)
@@ -264,6 +241,37 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const avatarLabel = avatarDisplayName ? avatarDisplayName.charAt(0).toUpperCase() : "U"
   const isConfigRoute = location.pathname.startsWith("/app/config")
   const currentTab = activeTab
+
+  const {
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
+    selectedDashboardKeywords,
+    setSelectedDashboardKeywords,
+    selectedDashboardPlatforms,
+    setSelectedDashboardPlatforms,
+    selectedDashboardSentiments,
+    setSelectedDashboardSentiments,
+    selectedDashboardAiTags,
+    setSelectedDashboardAiTags,
+    dashboardSentimentOptions,
+    dashboardAiTagOptions,
+    dashLoading,
+    kpiTotal,
+    kpiMoMDisplay,
+    sentimentKpiFilters,
+    topWords,
+    tagCounts,
+    sourceTop,
+    series,
+    clearDashboardFilters,
+  } = useDashboardData({
+    currentTab,
+    keywords,
+    allAiTagOptions,
+    allSentimentOptions,
+  })
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -330,28 +338,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
     })
     return stats
   }, [mentions])
-
-  const dashboardSentimentOptions = useMemo(
-    () =>
-      (allSentimentOptions || []).map((sentiment) => {
-        const normalized =
-          typeof sentiment === "string" ? sentiment : String(sentiment ?? "")
-        const label = normalized
-          ? normalized.charAt(0).toUpperCase() + normalized.slice(1)
-          : normalized
-        return { value: normalized, label }
-      }),
-    [allSentimentOptions],
-  )
-
-  const dashboardAiTagOptions = useMemo(
-    () =>
-      (allAiTagOptions || []).map((tag) => {
-        const normalized = typeof tag === "string" ? tag : String(tag ?? "")
-        return { value: normalized, label: normalized }
-      }),
-    [allAiTagOptions],
-  )
 
   const mentionsFilters = useMemo(() => {
     const normalizedSources = Array.isArray(sourcesFilter)
@@ -974,278 +960,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setSentimentFilter([])
   }
 
-  const clearDashboardFilters = () => {
-    setSelectedDashboardKeywords(["all"])
-    setSelectedDashboardPlatforms(["all"])
-    setSelectedDashboardSentiments([])
-    setSelectedDashboardAiTags([])
-    setStartDate("")
-    setEndDate("")
-  }
-
-  const buildDashboardParams = () => {
-    const from = startDate ? new Date(startDate).toISOString() : null
-    let to = null
-    if (endDate) {
-      const d = new Date(endDate)
-      d.setHours(23, 59, 59, 999)
-      to = d.toISOString()
-    }
-    const platforms = selectedDashboardPlatforms.includes("all")
-      ? null
-      : selectedDashboardPlatforms.map((p) => p.toLowerCase())
-    const keywordIds = selectedDashboardKeywords.includes("all")
-      ? null
-      : selectedDashboardKeywords
-          .map((kw) => keywords.find((k) => k.keyword === kw)?.keyword_id)
-          .filter((id) => typeof id === "string")
-
-    const sentimentList = selectedDashboardSentiments
-      .map((s) => (typeof s === "string" ? s.trim().toLowerCase() : ""))
-      .filter((s) => s.length > 0)
-    const sentiments = sentimentList.length ? sentimentList : null
-
-    const aiTagList = selectedDashboardAiTags
-      .map((tag) => (typeof tag === "string" ? tag.trim() : ""))
-      .filter((tag) => tag.length > 0)
-    const aiTags = aiTagList.length ? aiTagList : null
-
-    return { from, to, platforms, keywordIds, sentiments, aiTags }
-  }
-
-  const fetchDashboardKpis = async () => {
-    try {
-      const { from, to, platforms, keywordIds, sentiments, aiTags } = buildDashboardParams()
-      const { data: totalData, error: totalError } = await supabase.rpc(
-        "rpt_mentions_total",
-        {
-          p_from: from,
-          p_to: to,
-          p_platforms: platforms,
-          p_keywords: keywordIds,
-          p_ai_sentiment: sentiments,
-          p_ai_classification_tags: aiTags,
-        },
-      )
-      if (totalError) throw totalError
-      setKpiTotal(totalData?.[0]?.total || 0)
-
-      const toStartOfDay = (date) => {
-        const d = new Date(date)
-        d.setHours(0, 0, 0, 0)
-        return d
-      }
-
-      const toEndOfDay = (date) => {
-        const d = new Date(date)
-        d.setHours(23, 59, 59, 999)
-        return d
-      }
-
-      const getStartOfWeek = (date) => {
-        const d = new Date(date)
-        const day = d.getDay()
-        const diff = day === 0 ? -6 : 1 - day
-        d.setDate(d.getDate() + diff)
-        d.setHours(0, 0, 0, 0)
-        return d
-      }
-
-      let referenceDate = endDate ? new Date(endDate) : new Date()
-      if (endDate) {
-        referenceDate = toEndOfDay(referenceDate)
-      }
-      if (Number.isNaN(referenceDate?.getTime())) {
-        setKpiMoM({ curr_cnt: 0, prev_cnt: 0, pct_change: 0 })
-      } else {
-        let currentPeriodEnd = new Date(referenceDate)
-        let currentPeriodStart = getStartOfWeek(currentPeriodEnd)
-        const filterStart = startDate ? toStartOfDay(new Date(startDate)) : null
-        if (filterStart && !Number.isNaN(filterStart.getTime())) {
-          if (filterStart > currentPeriodEnd) {
-            currentPeriodStart = filterStart
-            currentPeriodEnd = new Date(filterStart)
-          } else if (filterStart > currentPeriodStart) {
-            currentPeriodStart = filterStart
-          }
-        }
-        currentPeriodStart = toStartOfDay(currentPeriodStart)
-        if (currentPeriodEnd < currentPeriodStart) {
-          currentPeriodEnd = new Date(currentPeriodStart)
-        }
-        const currentDuration = currentPeriodEnd.getTime() - currentPeriodStart.getTime()
-        const previousPeriodStart = new Date(currentPeriodStart)
-        previousPeriodStart.setDate(previousPeriodStart.getDate() - 7)
-        const previousPeriodEnd = new Date(previousPeriodStart.getTime() + currentDuration)
-
-        const { data: currentWeekData, error: currentWeekError } = await supabase.rpc(
-          "rpt_mentions_total",
-          {
-            p_from: currentPeriodStart.toISOString(),
-            p_to: currentPeriodEnd.toISOString(),
-            p_platforms: platforms,
-            p_keywords: keywordIds,
-          },
-        )
-        if (currentWeekError) throw currentWeekError
-
-        const { data: previousWeekData, error: previousWeekError } = await supabase.rpc(
-          "rpt_mentions_total",
-          {
-            p_from: previousPeriodStart.toISOString(),
-            p_to: previousPeriodEnd.toISOString(),
-            p_platforms: platforms,
-            p_keywords: keywordIds,
-            p_ai_sentiment: sentiments,
-            p_ai_classification_tags: aiTags,
-          },
-        )
-        if (previousWeekError) throw previousWeekError
-
-        const curr_cnt = Number(currentWeekData?.[0]?.total) || 0
-        const prev_cnt = Number(previousWeekData?.[0]?.total) || 0
-        const pct_change = prev_cnt === 0 ? (curr_cnt === 0 ? 0 : 100) : ((curr_cnt - prev_cnt) / prev_cnt) * 100
-
-        setKpiMoM({ curr_cnt, prev_cnt, pct_change })
-      }
-    } catch (err) {
-      console.error("Error fetching dashboard KPIs", err)
-    }
-  }
-
-  const fetchTopWords = async () => {
-    try {
-      const { from, to, platforms, keywordIds, sentiments, aiTags } = buildDashboardParams()
-      const { data, error } = await supabase.rpc("rpt_top_words", {
-        p_from: from,
-        p_to: to,
-        p_platforms: platforms,
-        p_keywords: keywordIds,
-        p_min_len: 3,
-        p_limit: 30,
-        p_ai_sentiment: sentiments,
-        p_ai_classification_tags: aiTags,
-      })
-      if (error) throw error
-      
-      setTopWords(
-        (data || []).map((item) => ({ text: item.word, value: Number(item.cnt) }))
-      )
-    } catch (err) {
-      console.error("Error fetching top words", err)
-    }
-    
-  }
-
-  const fetchTopSources = async () => {
-    try {
-      const { from, to, keywordIds, sentiments, aiTags } = buildDashboardParams()
-      const p_sources = null
-      const { data, error } = await supabase.rpc("rpt_mentions_by_source", {
-        p_from: from,
-        p_to: to,
-        p_sources,
-        p_keywords: keywordIds,
-        p_limit: 10,
-        p_ai_sentiment: sentiments,
-        p_ai_classification_tags: aiTags,
-      })
-      if (error) throw error
-      setSourceTop(
-        (data || []).map((item) => ({ name: item.source, count: Number(item.cnt) }))
-      )
-    } catch (err) {
-      console.error("Error fetching top sources", err)
-    }
-  }
-
-  const fetchTagMentions = async () => {
-    try {
-      const { from, to, platforms, keywordIds, sentiments, aiTags } = buildDashboardParams()
-      const { data, error } = await supabase.rpc("rpt_mentions_by_tag", {
-        p_from: from,
-        p_to: to,
-        p_sources: platforms,
-        p_keywords: keywordIds,
-        p_ai_sentiment: sentiments,
-        p_ai_classification_tags: aiTags,
-        p_limit: 20,
-      })
-      if (error) throw error
-      setTagCounts(
-        (data || []).map((item) => ({ tag: item.tag, count: Number(item.cnt) }))
-      )
-    } catch (err) {
-      console.error("Error fetching mentions by tag", err)
-    }
-  }
-
-  const fetchSeries = async () => {
-    try {
-      const { from, to, platforms, keywordIds, sentiments, aiTags } = buildDashboardParams()
-      let p_bucket = "day"
-      if (startDate && endDate) {
-        const diff =
-          (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)
-        if (diff > 180) p_bucket = "month"
-        else if (diff > 60) p_bucket = "week"
-      }
-      const { data, error } = await supabase.rpc("rpt_mentions_over_time", {
-        p_from: from,
-        p_to: to,
-        p_platforms: platforms,
-        p_keywords: keywordIds,
-        p_bucket,
-        p_ai_sentiment: sentiments,
-        p_ai_classification_tags: aiTags,
-      })
-      if (error) throw error
-      setSeries(
-        (data || []).map((item) => ({ date: item.ts, count: Number(item.cnt) }))
-      )
-    } catch (err) {
-      console.error("Error fetching mentions over time", err)
-    }
-  }
-
-  useEffect(() => {
-    if (currentTab !== "dashboard") return
-
-    let isSubscribed = true
-
-    const loadDashboardData = async () => {
-      setDashLoading(true)
-      try {
-        await Promise.all([
-          fetchDashboardKpis(),
-          fetchTopWords(),
-          fetchTopSources(),
-          fetchTagMentions(),
-          fetchSeries(),
-        ])
-      } finally {
-        if (isSubscribed) {
-          setDashLoading(false)
-        }
-      }
-    }
-
-    loadDashboardData()
-
-    return () => {
-      isSubscribed = false
-    }
-  }, [
-    currentTab,
-    startDate,
-    endDate,
-    selectedDashboardPlatforms,
-    selectedDashboardKeywords,
-    selectedDashboardSentiments,
-    selectedDashboardAiTags,
-    keywords,
-  ])
-
   const handleCreateReport = async () => {
     const { data: userData } = await supabase.auth.getUser()
     const { user } = userData || {}
@@ -1383,29 +1097,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
   }
 
   const activeKeywords = useMemo(() => keywords.filter((k) => k.active), [keywords])
-  const sentimentKpiFilters = useMemo(() => {
-    const { from, to, platforms, keywordIds, aiTags } = buildDashboardParams()
-    return {
-      p_from: from,
-      p_to: to,
-      p_platforms: platforms,
-      p_keywords: keywordIds,
-      p_ai_classification_tags: aiTags,
-    }
-  }, [
-    startDate,
-    endDate,
-    selectedDashboardPlatforms,
-    selectedDashboardKeywords,
-    selectedDashboardAiTags,
-    keywords,
-  ])
-  const kpiMoMDisplay = useMemo(() => {
-    const pct = kpiMoM.pct_change
-    if (pct == null) return "—%"
-    const value = Math.abs(pct) >= 1 ? pct.toFixed(0) : pct.toFixed(2)
-    return `${pct >= 0 ? "+" : ""}${parseFloat(value)}%`
-  }, [kpiMoM])
 
   const handleLogoClick = () => {
     setActiveTab("home")
@@ -1730,211 +1421,32 @@ export default function ModernSocialListeningApp({ onLogout }) {
           )}
 
           {!isConfigRoute && currentTab === "dashboard" && (
-            <section className="p-8">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent mb-2">
-                  Dashboard
-                </h1>
-                <p className="text-slate-400 mb-6">Revela tendencias y patrones de tus menciones y palabras clave</p>
-              </div>
-
-              <div className="relative z-10 flex gap-4 mb-8 p-6 bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl">
-                <div className="min-w-[12rem] w-[12rem]">
-                  <p className="text-sm font-medium mb-2 text-slate-300">Palabras clave</p>
-                  <MultiSelect
-                    className="w-full"
-                    options={[
-                      { value: "all", label: "Todas" },
-                      ...activeKeywords.map((k) => ({
-                        value: k.keyword,
-                        label: k.keyword,
-                      })),
-                    ]}
-                    value={selectedDashboardKeywords}
-                    onChange={setSelectedDashboardKeywords}
-                  />
-                </div>
-                <div className="min-w-[12rem] w-[12rem]">
-                  <p className="text-sm font-medium mb-2 text-slate-300">Rango de fechas</p>
-                  <div className="flex flex-col gap-2">
-                    <DatePickerInput value={startDate} onChange={setStartDate} placeholder="Desde" className="w-full" />
-                    <DatePickerInput value={endDate} onChange={setEndDate} placeholder="Hasta" className="w-full" />
-                  </div>
-                </div>
-                <div className="min-w-[12rem] w-[12rem]">
-                  <p className="text-sm font-medium mb-2 text-slate-300">Plataformas</p>
-                  <MultiSelect
-                    className="w-full"
-                    options={[
-                      { value: "all", label: "Todas" },
-                      { value: "youtube", label: "YouTube" },
-                      { value: "reddit", label: "Reddit" },
-                      { value: "twitter", label: "Twitter" },
-                    ]}
-                    value={selectedDashboardPlatforms}
-                    onChange={setSelectedDashboardPlatforms}
-                  />
-                </div>
-                <div className="min-w-[12rem] w-[12rem]">
-                  <p className="text-sm font-medium mb-2 text-slate-300 flex items-center gap-2">
-                    Sentimiento
-                    <span className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-purple-300 bg-gradient-to-r from-purple-500/10 to-blue-600/10 border border-purple-500/20 rounded-full">
-                      IA
-                    </span>
-                  </p>
-                  <MultiSelect
-                    className="w-full"
-                    options={dashboardSentimentOptions}
-                    value={selectedDashboardSentiments}
-                    onChange={setSelectedDashboardSentiments}
-                    placeholder="Todos"
-                  />
-                </div>
-                <div className="min-w-[12rem] w-[12rem]">
-                  <p className="text-sm font-medium mb-2 text-slate-300 flex items-center gap-2">
-                    Clasificación
-                    <span className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-purple-300 bg-gradient-to-r from-purple-500/10 to-blue-600/10 border border-purple-500/20 rounded-full">
-                      IA
-                    </span>
-                  </p>
-                  <MultiSelect
-                    className="w-full"
-                    options={dashboardAiTagOptions}
-                    value={selectedDashboardAiTags}
-                    onChange={setSelectedDashboardAiTags}
-                    placeholder="Todas"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" onClick={clearDashboardFilters}>
-                    Limpiar filtros
-                  </Button>
-                </div>
-              </div>
-
-              {mentionsLoading ? (
-                <div className="flex items-center justify-center h-64">
-                  <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <Card className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 border-slate-700/50 backdrop-blur-sm">
-                      <CardContent className="p-6">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="w-12 h-12 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-lg flex items-center justify-center">
-                            <MessageSquare className="w-6 h-6 text-blue-400" />
-                          </div>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-blue-500/10 text-blue-400 border-blue-500/20"
-                                >
-                                  {kpiMoMDisplay}
-                                </Badge>
-                              </TooltipTrigger>
-                              <TooltipContent>En comparación con la semana pasada</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <div className="text-2xl font-bold text-white mb-1">{kpiTotal.toLocaleString()}</div>
-                        <div className="text-sm text-slate-400">Total de menciones</div>
-                      </CardContent>
-                    </Card>
-
-                    <SentimentKPI
-                      sentiment="positive"
-                      icon={Smile}
-                      color="green"
-                      filters={sentimentKpiFilters}
-                    />
-
-                    <SentimentKPI
-                      sentiment="negative"
-                      icon={Frown}
-                      color="red"
-                      filters={sentimentKpiFilters}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <Card className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 border-slate-700/50 backdrop-blur-sm h-[400px]">
-                      <CardContent className="p-6 space-y-4 h-full flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          <p className="font-semibold text-white">Palabras más mencionadas</p>
-                        </div>
-                          <div className="flex-1">
-                            {dashLoading ? (
-                              <div className="flex items-center justify-center h-full">
-                                <Loader2 className="h-8 w-8 animate-spin" />
-                              </div>
-                            ) : (
-                              <WordCloud words={topWords} />
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                    <Card className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 border-slate-700/50 backdrop-blur-sm h-[400px]">
-                      <CardContent className="p-6 space-y-4 h-full flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                          <p className="font-semibold text-white">Menciones por categoría</p>
-                        </div>
-                        <div className="flex-1">
-                          {dashLoading ? (
-                            <div className="flex items-center justify-center h-full">
-                              <Loader2 className="h-8 w-8 animate-spin" />
-                            </div>
-                          ) : (
-                            <TagMentionsBarChart data={tagCounts} />
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 border-slate-700/50 backdrop-blur-sm h-[400px]">
-                      <CardContent className="p-6 space-y-4 h-full flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <p className="font-semibold text-white">Top 10 orígenes de menciones</p>
-                        </div>
-                        <div className="flex-1">
-                          {dashLoading ? (
-                            <div className="flex items-center justify-center h-full">
-                              <Loader2 className="h-8 w-8 animate-spin" />
-                            </div>
-                          ) : (
-                            <ActiveSourcesBarChart data={sourceTop} />
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 border-slate-700/50 backdrop-blur-sm h-[400px] lg:col-span-3">
-                      <CardContent className="p-6 space-y-4 h-full flex flex-col">
-                        <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                          <p className="font-semibold text-white">Evolución de menciones</p>
-                        </div>
-                        <div className="flex-1">
-                          {dashLoading ? (
-                            <div className="flex items-center justify-center h-full">
-                              <Loader2 className="h-8 w-8 animate-spin" />
-                            </div>
-                          ) : (
-                            <MentionsLineChart data={series} />
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </>
-              )}
-            </section>
+            <DashboardSection
+              activeKeywords={activeKeywords}
+              startDate={startDate}
+              endDate={endDate}
+              setStartDate={setStartDate}
+              setEndDate={setEndDate}
+              selectedDashboardKeywords={selectedDashboardKeywords}
+              setSelectedDashboardKeywords={setSelectedDashboardKeywords}
+              selectedDashboardPlatforms={selectedDashboardPlatforms}
+              setSelectedDashboardPlatforms={setSelectedDashboardPlatforms}
+              selectedDashboardSentiments={selectedDashboardSentiments}
+              setSelectedDashboardSentiments={setSelectedDashboardSentiments}
+              selectedDashboardAiTags={selectedDashboardAiTags}
+              setSelectedDashboardAiTags={setSelectedDashboardAiTags}
+              dashboardSentimentOptions={dashboardSentimentOptions}
+              dashboardAiTagOptions={dashboardAiTagOptions}
+              clearDashboardFilters={clearDashboardFilters}
+              dashLoading={dashLoading}
+              kpiTotal={kpiTotal}
+              kpiMoMDisplay={kpiMoMDisplay}
+              sentimentKpiFilters={sentimentKpiFilters}
+              topWords={topWords}
+              tagCounts={tagCounts}
+              sourceTop={sourceTop}
+              series={series}
+            />
           )}
 
           {!isConfigRoute && currentTab === "reportes" && (
