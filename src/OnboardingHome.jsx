@@ -1,6 +1,6 @@
 // REMOVIDO: "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -78,6 +78,29 @@ export default function ModernOnboardingHome() {
   }
 
 
+  useEffect(() => {
+    if (!accountId) return
+
+    const fetchLanguage = async () => {
+      const { data, error } = await supabase
+        .from("account_settings")
+        .select("language")
+        .eq("account_id", accountId)
+        .maybeSingle()
+
+      if (error) {
+        console.error("Error fetching account language", error)
+        return
+      }
+
+      if (data?.language) {
+        setLanguage(data.language)
+      }
+    }
+
+    fetchLanguage()
+  }, [accountId])
+
   const saveLanguage = async () => {
     if (!language) return
     if (!accountId) {
@@ -86,10 +109,9 @@ export default function ModernOnboardingHome() {
     }
     setSavingLanguage(true)
     const { error } = await supabase
-      .from("dim_keywords")
-      .update({ language })
-      .eq("account_id", accountId)
-      .in("keyword", keywords)
+      .from("account_settings")
+      .upsert({ account_id: accountId, language })
+      .select()
     setSavingLanguage(false)
     if (!error) {
       navigate("/app/mentions")

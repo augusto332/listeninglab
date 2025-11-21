@@ -203,9 +203,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const [addKeywordMessage, setAddKeywordMessage] = useState(null)
   const [saveKeywordMessage, setSaveKeywordMessage] = useState(null)
   const [keywordChanges, setKeywordChanges] = useState({})
-  const [showKeywordLangs, setShowKeywordLangs] = useState(false)
-  const [newKeywordLang, setNewKeywordLang] = useState("")
-  const [pendingKeyword, setPendingKeyword] = useState("")
   const [accountSettingsVersion, setAccountSettingsVersion] = useState(0)
   const navigate = useNavigate()
   const location = useLocation()
@@ -737,7 +734,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const { data, error } = await supabase
       .from("dim_keywords")
       .select(
-        "keyword, keyword_id, created_at, active, language, last_processed_at_yt, last_processed_at_rd, last_processed_at_tw",
+        "keyword, keyword_id, created_at, active, last_processed_at_yt, last_processed_at_rd, last_processed_at_tw",
       )
       .eq("account_id", accountId)
       .order("created_at", { ascending: false })
@@ -794,16 +791,9 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setSaveKeywordMessage({ type: "success", text: "Cambios guardados" })
   }
 
-  const openKeywordLangSelector = () => {
-    if (!newKeyword.trim()) return
-    setPendingKeyword(newKeyword.trim())
-    setShowKeywordLangs(true)
-    setNewKeywordLang("")
-    setAddKeywordMessage(null)
-  }
-
   const saveNewKeyword = async () => {
-    if (!pendingKeyword.trim() || !newKeywordLang) return
+    const keywordToSave = newKeyword.trim()
+    if (!keywordToSave) return
     setAddKeywordMessage(null)
     const { data: userData } = await supabase.auth.getUser()
     const { user } = userData || {}
@@ -818,11 +808,10 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const { data, error } = await supabase
       .from("dim_keywords")
       .insert({
-        keyword: pendingKeyword,
+        keyword: keywordToSave,
         account_id: accountId,
         created_at: new Date().toISOString(),
         active: false,
-        language: newKeywordLang,
       })
       .select()
     if (error || !data || data.length === 0) {
@@ -836,9 +825,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
 
       setKeywords((k) => [insertedKeyword, ...k])
       setNewKeyword("")
-      setPendingKeyword("")
-      setNewKeywordLang("")
-      setShowKeywordLangs(false)
 
       setAccountSettingsVersion((prev) => prev + 1)
       setAddKeywordMessage({ type: "success", text: "Keyword agregada" })
@@ -1614,11 +1600,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
                   <ConfigPage
                     newKeyword={newKeyword}
                     setNewKeyword={setNewKeyword}
-                    openKeywordLangSelector={openKeywordLangSelector}
-                    showKeywordLangs={showKeywordLangs}
-                    setShowKeywordLangs={setShowKeywordLangs}
-                    newKeywordLang={newKeywordLang}
-                    setNewKeywordLang={setNewKeywordLang}
                     saveNewKeyword={saveNewKeyword}
                     addKeywordMessage={addKeywordMessage}
                     keywords={keywords}

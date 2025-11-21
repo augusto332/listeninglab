@@ -12,11 +12,6 @@ import { supabase } from "@/lib/supabaseClient"
 export default function ConfigPage({
   newKeyword,
   setNewKeyword,
-  openKeywordLangSelector,
-  showKeywordLangs,
-  setShowKeywordLangs,
-  newKeywordLang,
-  setNewKeywordLang,
   saveNewKeyword,
   addKeywordMessage,
   keywords,
@@ -53,6 +48,7 @@ export default function ConfigPage({
   const [isLoadingSettings, setIsLoadingSettings] = useState(false)
   const [collectionPreference, setCollectionPreference] = useState("recent")
   const [countryFilter, setCountryFilter] = useState("")
+  const [accountLanguage, setAccountLanguage] = useState("")
   const collectionPreferenceHelpText =
     "Algunas plataformas no permiten aplicar esta preferencia; se utilizará solo en aquellas donde esté disponible."
 
@@ -73,7 +69,7 @@ export default function ConfigPage({
       const { data, error } = await supabase
         .from("account_settings")
         .select(
-          "is_youtube_active, is_twitter_active, is_reddit_active, is_instagram_active, is_tiktok_active, is_facebook_active, is_others_active, sorting_preference, country_filter",
+          "is_youtube_active, is_twitter_active, is_reddit_active, is_instagram_active, is_tiktok_active, is_facebook_active, is_others_active, sorting_preference, country_filter, language",
         )
         .eq("account_id", accountId)
         .maybeSingle()
@@ -95,10 +91,12 @@ export default function ConfigPage({
         })
         setCollectionPreference(data.sorting_preference || "recent")
         setCountryFilter((data.country_filter || "").toUpperCase())
+        setAccountLanguage(data.language || "")
       } else {
         setActiveSources(defaultActiveSources)
         setCollectionPreference("recent")
         setCountryFilter("")
+        setAccountLanguage("")
       }
 
       setIsLoadingSettings(false)
@@ -134,6 +132,7 @@ export default function ConfigPage({
       is_others_active: !!activeSources.others,
       sorting_preference: collectionPreference,
       country_filter: countryFilter ? countryFilter.toUpperCase() : null,
+      language: accountLanguage || null,
     }
 
     const { data, error } = await supabase
@@ -186,6 +185,20 @@ export default function ConfigPage({
 
             <TooltipProvider>
               <div className="space-y-6">
+                <div className="space-y-2">
+                  <span className="text-sm font-medium text-slate-200">Idioma</span>
+                  <Select value={accountLanguage} onValueChange={setAccountLanguage}>
+                    <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
+                      <SelectValue placeholder="Selecciona un idioma" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="es">Español</SelectItem>
+                      <SelectItem value="en">Inglés</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
@@ -284,44 +297,13 @@ export default function ConfigPage({
                 placeholder="Nueva keyword"
               />
               <Button
-                onClick={openKeywordLangSelector}
+                onClick={saveNewKeyword}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Agregar
               </Button>
             </div>
-            {showKeywordLangs && (
-              <div className="flex items-center gap-3 mt-4">
-                <Select value={newKeywordLang} onValueChange={setNewKeywordLang}>
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder="Selecciona un idioma" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
-                    <SelectItem value="en">Inglés</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button
-                  onClick={saveNewKeyword}
-                  disabled={!newKeywordLang}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50"
-                >
-                  Guardar
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowKeywordLangs(false)
-                    setNewKeywordLang("")
-                  }}
-                  className="border-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-700/50 bg-transparent"
-                >
-                  Cancelar
-                </Button>
-              </div>
-            )}
             {addKeywordMessage && (
               <p className={`text-sm ${addKeywordMessage.type === "error" ? "text-red-400" : "text-green-400"}`}>
                 {addKeywordMessage.text}
