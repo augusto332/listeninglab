@@ -934,21 +934,35 @@ export default function ModernSocialListeningApp({ onLogout }) {
   }
 
   const toggleSourceFilter = (id) => {
-    setSourcesFilter((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]))
+    const nextSources = sourcesFilter.includes(id)
+      ? sourcesFilter.filter((s) => s !== id)
+      : [...sourcesFilter, id]
+
+    setSourcesFilter(nextSources)
   }
 
   const toggleTagFilter = (id) => {
-    setTagsFilter((prev) => (prev.includes(id) ? prev.filter((t) => t !== id) : [...prev, id]))
+    const nextTags = tagsFilter.includes(id)
+      ? tagsFilter.filter((t) => t !== id)
+      : [...tagsFilter, id]
+
+    setTagsFilter(nextTags)
   }
 
   const toggleAiTagFilter = (tag) => {
-    setAiTagsFilter((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]))
+    const nextAiTags = aiTagsFilter.includes(tag)
+      ? aiTagsFilter.filter((t) => t !== tag)
+      : [...aiTagsFilter, tag]
+
+    setAiTagsFilter(nextAiTags)
   }
 
   const toggleSentimentFilter = (sentiment) => {
-    setSentimentFilter((prev) =>
-      prev.includes(sentiment) ? prev.filter((s) => s !== sentiment) : [...prev, sentiment],
-    )
+    const nextSentiments = sentimentFilter.includes(sentiment)
+      ? sentimentFilter.filter((s) => s !== sentiment)
+      : [...sentimentFilter, sentiment]
+
+    setSentimentFilter(nextSentiments)
   }
 
   const clearSidebarFilters = () => {
