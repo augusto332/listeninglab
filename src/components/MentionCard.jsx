@@ -457,6 +457,8 @@ export default function ModernMentionCard({
     )
   }
 
+  const mentionSentimentBadge = getMentionSentiment()
+
   return (
     <TooltipProvider>
       <Card
@@ -531,37 +533,39 @@ export default function ModernMentionCard({
 
             <div className="flex-1 space-y-3 min-w-0">
               {/* AI Classification Tags + Sentiment Badges - Top Position */}
-              <div className="flex items-center gap-2 flex-wrap">
-                {/* AI Tags */}
-                {aiTags.map((tag, i) => (
-                  <Badge
-                    key={`ai-${i}`}
-                    variant="secondary"
-                    className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-400 border border-amber-500/20 rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5"
-                  >
-                    <Sparkles className="w-3 h-3" />
-                    {tag}
-                  </Badge>
-                ))}
+              {aiTags.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* AI Tags */}
+                  {aiTags.map((tag, i) => (
+                    <Badge
+                      key={`ai-${i}`}
+                      variant="secondary"
+                      className="bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-400 border border-amber-500/20 rounded-lg px-3 py-1.5 text-xs font-medium flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      {tag}
+                    </Badge>
+                  ))}
 
-                {/* Mention Sentiment Badge */}
-                {getMentionSentiment()}
+                  {/* Mention Sentiment Badge */}
+                  {mentionSentimentBadge}
 
-                {/* Keyword Badge */}
-                {keyword && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-slate-700/50 text-slate-300 border-slate-600/50 text-xs px-2 py-1"
-                  >
-                    {keyword}
-                  </Badge>
-                )}
-              </div>
+                  {/* Keyword Badge */}
+                  {keyword && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-slate-700/50 text-slate-300 border-slate-600/50 text-xs px-2 py-1"
+                    >
+                      {keyword}
+                    </Badge>
+                  )}
+                </div>
+              )}
 
               {/* If no AI tags, show keyword and sentiment */}
-              {aiTags.length === 0 && (keyword || getMentionSentiment()) && (
+              {aiTags.length === 0 && (keyword || mentionSentimentBadge) && (
                 <div className="flex items-center gap-2 flex-wrap">
-                  {getMentionSentiment()}
+                  {mentionSentimentBadge}
                   {keyword && (
                     <Badge
                       variant="secondary"
