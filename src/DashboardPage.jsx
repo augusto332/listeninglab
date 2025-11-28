@@ -4,7 +4,7 @@ import useDashboardData from "./hooks/useDashboardData"
 import { supabase } from "./lib/supabaseClient"
 import { useAuth } from "./context/AuthContext"
 
-export default function DashboardPage() {
+export default function DashboardPage({ embedded = false }) {
   const { accountId } = useAuth()
   const [keywords, setKeywords] = useState([])
   const [allAiTagOptions, setAllAiTagOptions] = useState([])
@@ -112,36 +112,42 @@ export default function DashboardPage() {
     fetchSentimentOptions()
   }, [accountId])
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <div className="max-w-7xl mx-auto">
-        <DashboardSection
-          activeKeywords={activeKeywords}
-          startDate={startDate}
-          endDate={endDate}
-          setStartDate={setStartDate}
-          setEndDate={setEndDate}
-          selectedDashboardKeywords={selectedDashboardKeywords}
-          setSelectedDashboardKeywords={setSelectedDashboardKeywords}
-          selectedDashboardPlatforms={selectedDashboardPlatforms}
-          setSelectedDashboardPlatforms={setSelectedDashboardPlatforms}
-          selectedDashboardSentiments={selectedDashboardSentiments}
-          setSelectedDashboardSentiments={setSelectedDashboardSentiments}
-          selectedDashboardAiTags={selectedDashboardAiTags}
-          setSelectedDashboardAiTags={setSelectedDashboardAiTags}
-          dashboardSentimentOptions={dashboardSentimentOptions}
-          dashboardAiTagOptions={dashboardAiTagOptions}
-          clearDashboardFilters={clearDashboardFilters}
-          dashLoading={dashLoading}
-          kpiTotal={kpiTotal}
-          kpiMoMDisplay={kpiMoMDisplay}
-          sentimentKpiFilters={sentimentKpiFilters}
-          topWords={topWords}
-          tagCounts={tagCounts}
-          sourceTop={sourceTop}
-          series={series}
-        />
-      </div>
+  const content = (
+    <div className="max-w-7xl mx-auto">
+      <DashboardSection
+        activeKeywords={activeKeywords}
+        startDate={startDate}
+        endDate={endDate}
+        setStartDate={setStartDate}
+        setEndDate={setEndDate}
+        selectedDashboardKeywords={selectedDashboardKeywords}
+        setSelectedDashboardKeywords={setSelectedDashboardKeywords}
+        selectedDashboardPlatforms={selectedDashboardPlatforms}
+        setSelectedDashboardPlatforms={setSelectedDashboardPlatforms}
+        selectedDashboardSentiments={selectedDashboardSentiments}
+        setSelectedDashboardSentiments={setSelectedDashboardSentiments}
+        selectedDashboardAiTags={selectedDashboardAiTags}
+        setSelectedDashboardAiTags={setSelectedDashboardAiTags}
+        dashboardSentimentOptions={dashboardSentimentOptions}
+        dashboardAiTagOptions={dashboardAiTagOptions}
+        clearDashboardFilters={clearDashboardFilters}
+        dashLoading={dashLoading}
+        kpiTotal={kpiTotal}
+        kpiMoMDisplay={kpiMoMDisplay}
+        sentimentKpiFilters={sentimentKpiFilters}
+        topWords={topWords}
+        tagCounts={tagCounts}
+        sourceTop={sourceTop}
+        series={series}
+      />
     </div>
+  )
+
+  if (embedded) {
+    return content
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">{content}</div>
   )
 }

@@ -13,6 +13,7 @@ import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/context/AuthContext"
 import ConfigPage from "./ConfigPage"
 import SidebarNavigation from "./components/SidebarNavigation"
+import DashboardPage from "./DashboardPage"
 import {
   Search,
   CircleUser,
@@ -238,6 +239,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const avatarDisplayName = user?.user_metadata?.display_name || user?.email || ""
   const avatarLabel = avatarDisplayName ? avatarDisplayName.charAt(0).toUpperCase() : "U"
   const isConfigRoute = location.pathname.startsWith("/app/config")
+  const isDashboardRoute = location.pathname.startsWith("/app/dashboard")
   const currentTab = activeTab
 
   useEffect(() => {
@@ -1256,9 +1258,17 @@ export default function ModernSocialListeningApp({ onLogout }) {
                 )
               }
             />
+            <Route
+              path="dashboard"
+              element={
+                <div className="p-6 sm:p-8">
+                  <DashboardPage embedded />
+                </div>
+              }
+            />
             <Route path="*" element={<Navigate to="mentions" replace />} />
           </Routes>
-          {!isConfigRoute && currentTab === "home" && (
+          {!isConfigRoute && !isDashboardRoute && currentTab === "home" && (
             <section className="p-8">
               <div className="flex items-start gap-8 min-h-screen">
                 <div className="flex-1">
@@ -1396,7 +1406,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
             </section>
           )}
 
-          {!isConfigRoute && currentTab === "reportes" && (
+          {!isConfigRoute && !isDashboardRoute && currentTab === "reportes" && (
             <section className="p-8 space-y-8">
               <div className="mb-8">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent mb-2">
