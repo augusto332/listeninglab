@@ -13,13 +13,11 @@ import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/context/AuthContext"
 import ConfigPage from "./ConfigPage"
 import SidebarNavigation from "./components/SidebarNavigation"
-import DashboardSection from "./components/DashboardSection"
-import useDashboardData from "./hooks/useDashboardData"
+import DashboardPage from "./DashboardPage"
 import {
   Search,
   CircleUser,
   Home,
-  BarChart2,
   FileLineChartIcon as FileChartLine,
   Settings,
   Star,
@@ -152,7 +150,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
   // All your existing state variables remain the same
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(window.location.search)
-    return params.get("tab") || "home"
+    const tab = params.get("tab")
+    return tab === "reportes" ? "reportes" : "home"
   })
   const filterReducer = (state, action) => {
     switch (action.type) {
@@ -240,38 +239,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const avatarDisplayName = user?.user_metadata?.display_name || user?.email || ""
   const avatarLabel = avatarDisplayName ? avatarDisplayName.charAt(0).toUpperCase() : "U"
   const isConfigRoute = location.pathname.startsWith("/app/config")
+  const isDashboardRoute = location.pathname.startsWith("/app/dashboard")
   const currentTab = activeTab
-
-  const {
-    startDate,
-    endDate,
-    setStartDate,
-    setEndDate,
-    selectedDashboardKeywords,
-    setSelectedDashboardKeywords,
-    selectedDashboardPlatforms,
-    setSelectedDashboardPlatforms,
-    selectedDashboardSentiments,
-    setSelectedDashboardSentiments,
-    selectedDashboardAiTags,
-    setSelectedDashboardAiTags,
-    dashboardSentimentOptions,
-    dashboardAiTagOptions,
-    dashLoading,
-    kpiTotal,
-    kpiMoMDisplay,
-    sentimentKpiFilters,
-    topWords,
-    tagCounts,
-    sourceTop,
-    series,
-    clearDashboardFilters,
-  } = useDashboardData({
-    currentTab,
-    keywords,
-    allAiTagOptions,
-    allSentimentOptions,
-  })
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -862,15 +831,10 @@ export default function ModernSocialListeningApp({ onLogout }) {
   }, [accountId])
 
   useEffect(() => {
-    if (currentTab === "dashboard") {
-      setMentionsLoading(false)
-      return
-    }
-
     const view = onlyFavorites ? "total_mentions_highlighted_vw" : "mentions_display_vw"
     loadFirstPage(view, mentionsFilters)
     refreshGlobalFilterOptions(view, mentionsFilters)
-  }, [currentTab, onlyFavorites, mentionsFilters])
+  }, [onlyFavorites, mentionsFilters])
 
   useEffect(() => {
     const node = sentinelRef.current
@@ -880,8 +844,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       if (
         entry.isIntersecting &&
         hasMore &&
-        !isLoadingMore &&
-        currentTab !== "dashboard"
+        !isLoadingMore
       ) {
         const view =
           onlyFavorites
@@ -892,7 +855,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
     })
     observer.observe(node)
     return () => observer.disconnect()
-  }, [hasMore, isLoadingMore, currentTab, onlyFavorites, mentions, mentionsFilters])
+  }, [hasMore, isLoadingMore, onlyFavorites, mentions, mentionsFilters])
 
   const fetchSavedReports = async () => {
     if (!accountId) return
@@ -1121,14 +1084,15 @@ export default function ModernSocialListeningApp({ onLogout }) {
   }
 
   const handleTabChange = (tab) => {
+    const nextTab = tab === "reportes" ? "reportes" : "home"
     setIsSidebarOpen(false)
-    setActiveTab(tab)
+    setActiveTab(nextTab)
     if (location.pathname !== "/app/mentions") {
       navigate("/app/mentions")
     }
   }
 
-  const handleConfigNavigate = () => {
+  const handleNavigation = () => {
     setIsSidebarOpen(false)
     setMenuOpen(false)
     setHelpMenuOpen(false)
@@ -1242,7 +1206,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
           <SidebarNavigation
             currentTab={currentTab}
             onTabSelect={handleTabChange}
-            onConfigNavigate={handleConfigNavigate}
+            onNavigate={handleNavigation}
             isAdmin={isAdmin}
           />
         </aside>
@@ -1261,7 +1225,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
                 <SidebarNavigation
                   currentTab={currentTab}
                   onTabSelect={handleTabChange}
-                  onConfigNavigate={handleConfigNavigate}
+                  onNavigate={handleNavigation}
                   isAdmin={isAdmin}
                 />
               </div>
@@ -1294,9 +1258,15 @@ export default function ModernSocialListeningApp({ onLogout }) {
                 )
               }
             />
+            <Route
+              path="dashboard"
+              element={
+                <DashboardPage embedded />
+              }
+            />
             <Route path="*" element={<Navigate to="mentions" replace />} />
           </Routes>
-          {!isConfigRoute && currentTab === "home" && (
+          {!isConfigRoute && !isDashboardRoute && currentTab === "home" && (
             <section className="p-8">
               <div className="flex items-start gap-8 min-h-screen">
                 <div className="flex-1">
@@ -1434,36 +1404,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
             </section>
           )}
 
-          {!isConfigRoute && currentTab === "dashboard" && (
-            <DashboardSection
-              activeKeywords={activeKeywords}
-              startDate={startDate}
-              endDate={endDate}
-              setStartDate={setStartDate}
-              setEndDate={setEndDate}
-              selectedDashboardKeywords={selectedDashboardKeywords}
-              setSelectedDashboardKeywords={setSelectedDashboardKeywords}
-              selectedDashboardPlatforms={selectedDashboardPlatforms}
-              setSelectedDashboardPlatforms={setSelectedDashboardPlatforms}
-              selectedDashboardSentiments={selectedDashboardSentiments}
-              setSelectedDashboardSentiments={setSelectedDashboardSentiments}
-              selectedDashboardAiTags={selectedDashboardAiTags}
-              setSelectedDashboardAiTags={setSelectedDashboardAiTags}
-              dashboardSentimentOptions={dashboardSentimentOptions}
-              dashboardAiTagOptions={dashboardAiTagOptions}
-              clearDashboardFilters={clearDashboardFilters}
-              dashLoading={dashLoading}
-              kpiTotal={kpiTotal}
-              kpiMoMDisplay={kpiMoMDisplay}
-              sentimentKpiFilters={sentimentKpiFilters}
-              topWords={topWords}
-              tagCounts={tagCounts}
-              sourceTop={sourceTop}
-              series={series}
-            />
-          )}
-
-          {!isConfigRoute && currentTab === "reportes" && (
+          {!isConfigRoute && !isDashboardRoute && currentTab === "reportes" && (
             <section className="p-8 space-y-8">
               <div className="mb-8">
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent mb-2">

@@ -12,7 +12,7 @@ export default function WordCloud({ words = [] }) {
   useLayoutEffect(() => {
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect()
-      if (width >= 300 && height >= 200) {
+      if (width >= 200 && height >= 160) {
         setDimensions({
           width: Math.round(width),
           height: Math.round(height),
@@ -25,7 +25,7 @@ export default function WordCloud({ words = [] }) {
   useEffect(() => {
     const observer = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect
-      if (width >= 300 && height >= 200) {
+      if (width >= 200 && height >= 160) {
         setDimensions({
           width: Math.round(width),
           height: Math.round(height),
@@ -42,7 +42,7 @@ export default function WordCloud({ words = [] }) {
     const id = setTimeout(() => {
       if (containerRef.current) {
         const { width, height } = containerRef.current.getBoundingClientRect()
-        if (width >= 300 && height >= 200) {
+        if (width >= 200 && height >= 160) {
           setDimensions({
             width: Math.round(width),
             height: Math.round(height),
