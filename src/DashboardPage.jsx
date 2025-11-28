@@ -113,34 +113,32 @@ export default function DashboardPage({ embedded = false }) {
   }, [accountId])
 
   const content = (
-    <div className="max-w-7xl mx-auto">
-      <DashboardSection
-        activeKeywords={activeKeywords}
-        startDate={startDate}
-        endDate={endDate}
-        setStartDate={setStartDate}
-        setEndDate={setEndDate}
-        selectedDashboardKeywords={selectedDashboardKeywords}
-        setSelectedDashboardKeywords={setSelectedDashboardKeywords}
-        selectedDashboardPlatforms={selectedDashboardPlatforms}
-        setSelectedDashboardPlatforms={setSelectedDashboardPlatforms}
-        selectedDashboardSentiments={selectedDashboardSentiments}
-        setSelectedDashboardSentiments={setSelectedDashboardSentiments}
-        selectedDashboardAiTags={selectedDashboardAiTags}
-        setSelectedDashboardAiTags={setSelectedDashboardAiTags}
-        dashboardSentimentOptions={dashboardSentimentOptions}
-        dashboardAiTagOptions={dashboardAiTagOptions}
-        clearDashboardFilters={clearDashboardFilters}
-        dashLoading={dashLoading}
-        kpiTotal={kpiTotal}
-        kpiMoMDisplay={kpiMoMDisplay}
-        sentimentKpiFilters={sentimentKpiFilters}
-        topWords={topWords}
-        tagCounts={tagCounts}
-        sourceTop={sourceTop}
-        series={series}
-      />
-    </div>
+    <DashboardSection
+      activeKeywords={activeKeywords}
+      startDate={startDate}
+      endDate={endDate}
+      setStartDate={setStartDate}
+      setEndDate={setEndDate}
+      selectedDashboardKeywords={selectedDashboardKeywords}
+      setSelectedDashboardKeywords={setSelectedDashboardKeywords}
+      selectedDashboardPlatforms={selectedDashboardPlatforms}
+      setSelectedDashboardPlatforms={setSelectedDashboardPlatforms}
+      selectedDashboardSentiments={selectedDashboardSentiments}
+      setSelectedDashboardSentiments={setSelectedDashboardSentiments}
+      selectedDashboardAiTags={selectedDashboardAiTags}
+      setSelectedDashboardAiTags={setSelectedDashboardAiTags}
+      dashboardSentimentOptions={dashboardSentimentOptions}
+      dashboardAiTagOptions={dashboardAiTagOptions}
+      clearDashboardFilters={clearDashboardFilters}
+      dashLoading={dashLoading}
+      kpiTotal={kpiTotal}
+      kpiMoMDisplay={kpiMoMDisplay}
+      sentimentKpiFilters={sentimentKpiFilters}
+      topWords={topWords}
+      tagCounts={tagCounts}
+      sourceTop={sourceTop}
+      series={series}
+    />
   )
 
   if (embedded) {

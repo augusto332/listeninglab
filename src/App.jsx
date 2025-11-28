@@ -1261,9 +1261,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
             <Route
               path="dashboard"
               element={
-                <div className="p-6 sm:p-8">
-                  <DashboardPage embedded />
-                </div>
+                <DashboardPage embedded />
               }
             />
             <Route path="*" element={<Navigate to="mentions" replace />} />
