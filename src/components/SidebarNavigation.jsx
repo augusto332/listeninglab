@@ -2,7 +2,7 @@ import { NavLink } from "react-router-dom"
 import { Home, BarChart2, FileLineChartIcon as FileChartLine, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export default function SidebarNavigation({ currentTab, onTabSelect, onConfigNavigate, isAdmin }) {
+export default function SidebarNavigation({ currentTab, onTabSelect, onNavigate, isAdmin }) {
   return (
     <>
       <nav className="space-y-1">
@@ -19,18 +19,21 @@ export default function SidebarNavigation({ currentTab, onTabSelect, onConfigNav
           Inicio
         </button>
 
-        <button
-          onClick={() => onTabSelect("dashboard")}
-          className={cn(
-            "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
-            currentTab === "dashboard"
-              ? "bg-gradient-to-r from-blue-500/20 to-purple-600/20 text-white border border-blue-500/30"
-              : "text-slate-400 hover:text-white hover:bg-slate-700/50",
-          )}
+        <NavLink
+          to="/app/dashboard"
+          className={({ isActive }) =>
+            cn(
+              "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
+              isActive
+                ? "bg-gradient-to-r from-blue-500/20 to-purple-600/20 text-white border border-blue-500/30"
+                : "text-slate-400 hover:text-white hover:bg-slate-700/50",
+            )
+          }
+          onClick={onNavigate}
         >
           <BarChart2 className="w-4 h-4" />
           Dashboard
-        </button>
+        </NavLink>
 
         <button
           onClick={() => onTabSelect("reportes")}
@@ -59,7 +62,7 @@ export default function SidebarNavigation({ currentTab, onTabSelect, onConfigNav
                 : "text-slate-400 hover:text-white hover:bg-slate-700/50",
             )
           }
-          onClick={onConfigNavigate}
+          onClick={onNavigate}
         >
           <Settings className="w-4 h-4" />
           Configuración

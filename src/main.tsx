@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import OnboardingHome from './OnboardingHome'
 import Landing from './Landing' // 👈 NUEVA IMPORTACIÓN
 import Support from './Support'
+import DashboardPage from './DashboardPage'
 
 function Root() {
   const { session, loading } = useAuth()
@@ -43,6 +44,14 @@ function Root() {
             element={
               <ProtectedRoute>
                 <SocialListeningApp />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/app/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage />
               </ProtectedRoute>
             }
           />
