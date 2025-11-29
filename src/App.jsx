@@ -507,23 +507,23 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const popularityFormula =
       "coalesce(likes,0) + 2 * coalesce(comments,0) + 2 * coalesce(retweets,0) + 2 * coalesce(replies,0) + 2 * coalesce(quotes,0) + 0.5 * coalesce(views,0)"
 
-    let query = supabase
-      .from(view)
-      .select(orderMode === "popular" ? `*, popularity_score:${popularityFormula}` : "*")
+    const selectColumns =
+      orderMode === "popular" ? `*, popularity_score:${popularityFormula}` : "*"
+
+    let query = supabase.from(view).select(selectColumns)
+
+    query = applyMentionFilters(query, filters)
 
     if (orderMode === "popular") {
+      const offset = typeof afterCursor?.offset === "number" ? afterCursor.offset : 0
       query = query
         .order("popularity_score", { ascending: false, nullsLast: true })
         .order("created_at", { ascending: false })
         .order("mention_id", { ascending: false })
-
-      const offset = typeof afterCursor?.offset === "number" ? afterCursor.offset : 0
-      query = query.range(offset, offset + PAGE_SIZE - 1)
+        .range(offset, offset + PAGE_SIZE - 1)
     } else {
       query = query.order("created_at", { ascending: false }).order("mention_id", { ascending: false })
     }
-
-    query = applyMentionFilters(query, filters)
 
     if (afterCursor && orderMode === "recent") {
       const { created_at, mention_id } = afterCursor
