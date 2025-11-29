@@ -398,15 +398,9 @@ export default function ModernSocialListeningApp({ onLogout }) {
       return dateB.getTime() - dateA.getTime()
     }
     if (order === "popular") {
-      const erDiff = ER(b) - ER(a)
-      if (erDiff !== 0) return erDiff
-
-      const erHourDiff = ERperHour(b) - ERperHour(a)
-      if (erHourDiff !== 0) return erHourDiff
-
-      const convoA = (a.comments ?? 0) + convoCount(a)
-      const convoB = (b.comments ?? 0) + convoCount(b)
-      return convoB - convoA
+      const popularityA = Number(a.popularity_score) || 0
+      const popularityB = Number(b.popularity_score) || 0
+      return popularityB - popularityA
     }
 
     return 0
