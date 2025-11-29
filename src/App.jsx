@@ -311,8 +311,9 @@ export default function ModernSocialListeningApp({ onLogout }) {
       tags: normalizedTags,
       aiTags: normalizedAiTags,
       sentiment: normalizedSentiment,
+      order,
     }
-  }, [search, sourcesFilter, keywordsFilter, tagsFilter, aiTagsFilter, sentimentFilter])
+  }, [search, sourcesFilter, keywordsFilter, tagsFilter, aiTagsFilter, sentimentFilter, order])
 
   const getTagsForMention = (mention) => {
     const platform = mention.platform?.toLowerCase?.()
@@ -502,22 +503,37 @@ export default function ModernSocialListeningApp({ onLogout }) {
   }
 
   const fetchMentionsPage = async (view, filters = {}, afterCursor = null) => {
+    const orderMode = filters.order || "recent"
+    const popularityFormula =
+      "coalesce(likes,0) + 2 * coalesce(comments,0) + 2 * coalesce(retweets,0) + 2 * coalesce(replies,0) + 2 * coalesce(quotes,0) + 0.5 * coalesce(views,0)"
+
     let query = supabase
       .from(view)
-      .select("*")
-      .order("created_at", { ascending: false })
-      .order("mention_id", { ascending: false })
+      .select(orderMode === "popular" ? `*, popularity_score:${popularityFormula}` : "*")
+
+    if (orderMode === "popular") {
+      query = query
+        .order("popularity_score", { ascending: false, nullsLast: true })
+        .order("created_at", { ascending: false })
+        .order("mention_id", { ascending: false })
+
+      const offset = typeof afterCursor?.offset === "number" ? afterCursor.offset : 0
+      query = query.range(offset, offset + PAGE_SIZE - 1)
+    } else {
+      query = query.order("created_at", { ascending: false }).order("mention_id", { ascending: false })
+    }
 
     query = applyMentionFilters(query, filters)
 
-    if (afterCursor) {
+    if (afterCursor && orderMode === "recent") {
       const { created_at, mention_id } = afterCursor
       query = query.or(
         `created_at.lt.${created_at},and(created_at.eq.${created_at},mention_id.lt.${mention_id})`,
       )
     }
 
-    const { data: rows, error } = await query.limit(PAGE_SIZE)
+    const { data: rows, error } =
+      orderMode === "popular" ? await query : await query.limit(PAGE_SIZE)
     if (error) {
       console.error("Error fetching mentions page", error)
       return { rows: [], cursor: null, hasMore: false }
@@ -564,9 +580,12 @@ export default function ModernSocialListeningApp({ onLogout }) {
     }))
 
     const last = enriched[enriched.length - 1]
-    const nextCursor = last
-      ? { created_at: last.created_at, mention_id: last.mention_id }
-      : null
+    const nextCursor =
+      orderMode === "popular"
+        ? { offset: (typeof afterCursor?.offset === "number" ? afterCursor.offset : 0) + enriched.length }
+        : last
+          ? { created_at: last.created_at, mention_id: last.mention_id }
+          : null
 
     return {
       rows: enriched,
