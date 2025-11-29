@@ -109,7 +109,13 @@ const passMinAbs = (m) => {
   }
   if (platform === "twitter") {
     const convo = convoCount(m)
-    return (m.likes ?? 0) >= 5 || (m.retweets ?? 0) >= 2 || convo >= 2
+    return (m.likes ?? 0) >= 5 || (m.retweets ?? 0) >= 2 || convo >= 2 || (m.views ?? 0) >= 300
+  }
+  if (platform === "tiktok") {
+    return (m.likes ?? 0) >= 8 || (m.views ?? 0) >= 500 || (m.comments ?? 0) >= 3
+  }
+  if (platform === "instagram") {
+    return (m.likes ?? 0) >= 8 || (m.comments ?? 0) >= 3
   }
   return false
 }
@@ -318,14 +324,14 @@ export default function ModernSocialListeningApp({ onLogout }) {
     if (!passMinAbs(mention)) return tags
 
     // Approval based on likes component
-    const likeMin = platform === "youtube" ? 10 : 5
+    const likeMin = ["youtube", "tiktok"].includes(platform) ? 10 : 5
     if ((mention.likes ?? 0) >= likeMin && (zER >= 1.5 || er >= (stats.p90 ?? Infinity))) {
       tags.push("approval")
     }
 
     // Reach based on views (YT) or retweets (TW)
     if (
-      platform === "youtube" &&
+      ["youtube", "tiktok"].includes(platform) &&
       (mention.views ?? 0) >= 500 &&
       (zER >= 1.5 || er >= (stats.p90 ?? Infinity))
     ) {
@@ -333,7 +339,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
     }
     if (
       platform === "twitter" &&
-      (mention.retweets ?? 0) >= 2 &&
+      ((mention.retweets ?? 0) >= 2 || (mention.views ?? 0) >= 300) &&
       (zER >= 1.5 || er >= (stats.p90 ?? Infinity))
     ) {
       tags.push("reach")
