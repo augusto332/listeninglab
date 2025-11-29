@@ -198,6 +198,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const [newReportName, setNewReportName] = useState("")
   const [reportKeyword, setReportKeyword] = useState("")
   const [reportDateOption, setReportDateOption] = useState("range")
+  const mainContentRef = useRef(null)
   const [isReportScheduled, setIsReportScheduled] = useState(false)
   const [reportScheduleFrequency, setReportScheduleFrequency] = useState("weekly")
   const [reportScheduleDay, setReportScheduleDay] = useState("1")
@@ -210,6 +211,13 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const isConfigRoute = location.pathname.startsWith("/app/config")
   const isDashboardRoute = location.pathname.startsWith("/app/dashboard")
   const isReportsRoute = location.pathname.startsWith("/app/reportes")
+  const isMentionsRoute = location.pathname.startsWith("/app/mentions")
+
+  const scrollInicioToTop = () => {
+    mainContentRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+    const scrollingElement = document.scrollingElement || document.documentElement
+    scrollingElement?.scrollTo?.({ top: 0, behavior: "smooth" })
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -1052,7 +1060,11 @@ export default function ModernSocialListeningApp({ onLogout }) {
 
   const handleLogoClick = () => {
     handleNavigation()
-    navigate("/app/mentions")
+    if (isMentionsRoute) {
+      scrollInicioToTop()
+    } else {
+      navigate("/app/mentions")
+    }
   }
 
   const handleMentionsNavigation = () => {
@@ -1196,7 +1208,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
         )}
 
         {/* Main Content */}
-        <main className="w-full lg:flex-1 overflow-y-auto">
+        <main ref={mainContentRef} className="w-full lg:flex-1 overflow-y-auto">
           <Routes>
             <Route
               path="config"
