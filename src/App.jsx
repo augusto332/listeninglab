@@ -47,15 +47,26 @@ const getAgeBucket = (hours) => {
   return ">3d"
 }
 
+// Safely read numeric metrics, supporting alternate API field names
+const metricValue = (m, keys = []) => {
+  for (const key of keys) {
+    const raw = m?.[key]
+    const num = typeof raw === "number" ? raw : Number(raw)
+    if (!Number.isNaN(num)) return num
+  }
+  return 0
+}
+
 // Conversation count for Twitter (replies + quotes)
-const convoCount = (m) => (m.replies ?? 0) + (m.quotes ?? 0)
+const convoCount = (m) =>
+  metricValue(m, ["replies", "reply_count"]) + metricValue(m, ["quotes", "quote_count"])
 
 // Engagement Rate per platform
 const ER = (m) => {
-  const likes = m.likes ?? 0
-  const comments = m.comments ?? 0
-  const views = m.views ?? 0
-  const retweets = m.retweets ?? 0
+  const likes = metricValue(m, ["likes", "like_count"])
+  const comments = metricValue(m, ["comments", "comment_count"])
+  const views = metricValue(m, ["views", "view_count"])
+  const retweets = metricValue(m, ["retweets", "retweet_count"])
   const platform = m.platform?.toLowerCase?.()
   if (platform === "youtube") return likes + 2 * comments + 0.5 * views
   if (platform === "reddit") return likes + 2 * comments
@@ -102,20 +113,25 @@ const zScore = (value, stats = {}) => {
 const passMinAbs = (m) => {
   const platform = m.platform?.toLowerCase?.()
   if (platform === "youtube") {
-    return (m.likes ?? 0) >= 10 || (m.views ?? 0) >= 500 || (m.comments ?? 0) >= 3
+    return metricValue(m, ["likes", "like_count"]) >= 10 || metricValue(m, ["views", "view_count"]) >= 500 || metricValue(m, ["comments", "comment_count"]) >= 3
   }
   if (platform === "reddit") {
-    return (m.likes ?? 0) >= 5 || (m.comments ?? 0) >= 3
+    return metricValue(m, ["likes", "like_count"]) >= 5 || metricValue(m, ["comments", "comment_count"]) >= 3
   }
   if (platform === "twitter") {
     const convo = convoCount(m)
-    return (m.likes ?? 0) >= 5 || (m.retweets ?? 0) >= 2 || convo >= 2 || (m.views ?? 0) >= 300
+    return (
+      metricValue(m, ["likes", "like_count"]) >= 5 ||
+      metricValue(m, ["retweets", "retweet_count"]) >= 2 ||
+      convo >= 2 ||
+      metricValue(m, ["views", "view_count"]) >= 300
+    )
   }
   if (platform === "tiktok") {
-    return (m.likes ?? 0) >= 8 || (m.views ?? 0) >= 500 || (m.comments ?? 0) >= 3
+    return metricValue(m, ["likes", "like_count"]) >= 8 || metricValue(m, ["views", "view_count"]) >= 500 || metricValue(m, ["comments", "comment_count"]) >= 3
   }
   if (platform === "instagram") {
-    return (m.likes ?? 0) >= 8 || (m.comments ?? 0) >= 3
+    return metricValue(m, ["likes", "like_count"]) >= 8 || metricValue(m, ["comments", "comment_count"]) >= 3
   }
   return false
 }
@@ -332,29 +348,34 @@ export default function ModernSocialListeningApp({ onLogout }) {
     if (!passMinAbs(mention)) return tags
 
     // Approval based on likes component
+    const likes = metricValue(mention, ["likes", "like_count"])
+    const views = metricValue(mention, ["views", "view_count"])
+    const retweets = metricValue(mention, ["retweets", "retweet_count"])
+    const comments = metricValue(mention, ["comments", "comment_count"])
+
     const likeMin = ["youtube", "tiktok"].includes(platform) ? 10 : 5
-    if ((mention.likes ?? 0) >= likeMin && (zER >= 1.5 || er >= (stats.p90 ?? Infinity))) {
+    if (likes >= likeMin && (zER >= 1.5 || er >= (stats.p90 ?? Infinity))) {
       tags.push("approval")
     }
 
     // Reach based on views (YT) or retweets (TW)
     if (
       ["youtube", "tiktok"].includes(platform) &&
-      (mention.views ?? 0) >= 500 &&
+      views >= 500 &&
       (zER >= 1.5 || er >= (stats.p90 ?? Infinity))
     ) {
       tags.push("reach")
     }
     if (
       platform === "twitter" &&
-      ((mention.retweets ?? 0) >= 2 || (mention.views ?? 0) >= 300) &&
+      (retweets >= 2 || views >= 300) &&
       (zER >= 1.5 || er >= (stats.p90 ?? Infinity))
     ) {
       tags.push("reach")
     }
 
     // Conversation intensity using ER per hour
-    const convMetric = platform === "twitter" ? convoCount(mention) : mention.comments ?? 0
+    const convMetric = platform === "twitter" ? convoCount(mention) : comments
     if (
       convMetric >= 3 &&
       (zERph >= 1.5 || erph >= (stats.p90PH ?? Infinity))
