@@ -211,6 +211,13 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const isConfigRoute = location.pathname.startsWith("/app/config")
   const isDashboardRoute = location.pathname.startsWith("/app/dashboard")
   const isReportsRoute = location.pathname.startsWith("/app/reportes")
+  const isMentionsRoute = location.pathname.startsWith("/app/mentions")
+
+  const scrollInicioToTop = () => {
+    mainContentRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+    const scrollingElement = document.scrollingElement || document.documentElement
+    scrollingElement?.scrollTo?.({ top: 0, behavior: "smooth" })
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -1053,8 +1060,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
 
   const handleLogoClick = () => {
     handleNavigation()
-    if (location.pathname === "/app/mentions") {
-      mainContentRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+    if (isMentionsRoute) {
+      scrollInicioToTop()
     } else {
       navigate("/app/mentions")
     }
