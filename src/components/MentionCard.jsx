@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/context/AuthContext"
-import { FaTwitter, FaYoutube, FaRedditAlien, FaEllipsisV } from "react-icons/fa"
+import { FaTwitter, FaYoutube, FaRedditAlien, FaEllipsisV, FaInstagram } from "react-icons/fa"
+import { SiTiktok } from "react-icons/si"
 import {
   Star,
   X,
@@ -49,8 +50,10 @@ export default function ModernMentionCard({
     twitter: { Icon: FaTwitter, color: "#1DA1F2" },
     youtube: { Icon: FaYoutube, color: "#FF0000" },
     reddit: { Icon: FaRedditAlien, color: "#FFFFFF", bg: "#FF5700" },
+    tiktok: { Icon: SiTiktok, color: "#25F4EE", bg: "#000000" },
+    instagram: { Icon: FaInstagram, color: "#E4405F" },
   }
-  const platform = source?.toLowerCase?.()
+  const platform = (source || mention?.platform || "").toString().toLowerCase()
   const Icon = icons[platform]?.Icon || FaTwitter
   const iconColor = icons[platform]?.color || "#1DA1F2"
   const iconBg = icons[platform]?.bg
@@ -383,10 +386,20 @@ export default function ModernMentionCard({
         { key: "comments", icon: MessageCircle, label: "Comentarios" },
       ],
       twitter: [
+        { key: "views", icon: Eye, label: "Visualizaciones" },
         { key: "likes", icon: Heart, label: "Me gusta" },
         { key: "retweets", icon: Repeat2, label: "Retweets" },
         { key: "replies", icon: MessageCircle, label: "Respuestas" },
         { key: "quotes", icon: Quote, label: "Citas" },
+      ],
+      tiktok: [
+        { key: "likes", icon: Heart, label: "Me gusta" },
+        { key: "comments", icon: MessageCircle, label: "Comentarios" },
+        { key: "views", icon: Eye, label: "Visualizaciones" },
+      ],
+      instagram: [
+        { key: "likes", icon: Heart, label: "Me gusta" },
+        { key: "comments", icon: MessageCircle, label: "Comentarios" },
       ],
     }
 

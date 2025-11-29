@@ -48,6 +48,8 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
       youtube: "bg-red-500/20 text-red-300 border border-red-500/30",
       reddit: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
       twitter: "bg-blue-500/20 text-blue-300 border border-blue-500/30",
+      tiktok: "bg-slate-900/50 text-cyan-300 border border-slate-600/60",
+      instagram: "bg-pink-500/20 text-pink-200 border border-pink-500/30",
     }
     return colors[platform?.toLowerCase()] || "bg-slate-500/20 text-slate-300 border border-slate-500/30"
   }

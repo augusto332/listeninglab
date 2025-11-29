@@ -78,6 +78,8 @@ export default function DashboardSection({
               { value: "youtube", label: "YouTube" },
               { value: "reddit", label: "Reddit" },
               { value: "twitter", label: "Twitter" },
+              { value: "tiktok", label: "TikTok" },
+              { value: "instagram", label: "Instagram" },
             ]}
             value={selectedDashboardPlatforms}
             onChange={setSelectedDashboardPlatforms}
