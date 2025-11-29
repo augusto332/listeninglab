@@ -1,12 +1,9 @@
 import { useState, useEffect, useMemo, useRef, useReducer } from "react"
-import { useNavigate, useLocation, NavLink, Routes, Route, Navigate } from "react-router-dom"
+import { useNavigate, useLocation, Routes, Route, Navigate } from "react-router-dom"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
-import DatePickerInput from "@/components/DatePickerInput"
 import MentionCard from "@/components/MentionCard"
 import { Button } from "@/components/ui/button"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
-import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import RightSidebar from "@/components/RightSidebar"
 import { supabase } from "@/lib/supabaseClient"
@@ -14,16 +11,12 @@ import { useAuth } from "@/context/AuthContext"
 import ConfigPage from "./ConfigPage"
 import SidebarNavigation from "./components/SidebarNavigation"
 import DashboardPage from "./DashboardPage"
+import ReportsPage from "./ReportsPage"
 import {
   Search,
   CircleUser,
-  Home,
-  FileLineChartIcon as FileChartLine,
-  Settings,
   Star,
   CircleHelp,
-  Plus,
-  Minus,
   MessageSquare,
   ChevronDown,
   Sparkles,
@@ -38,31 +31,6 @@ import ReportsTable from "@/components/ReportsTable"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import AISummary from "@/components/AISummary"
-
-const WEEK_DAYS = [
-  { value: "1", label: "Lunes" },
-  { value: "2", label: "Martes" },
-  { value: "3", label: "Miércoles" },
-  { value: "4", label: "Jueves" },
-  { value: "5", label: "Viernes" },
-  { value: "6", label: "Sábado" },
-  { value: "7", label: "Domingo" },
-]
-
-const MONTH_DAYS = Array.from({ length: 31 }, (_, index) => {
-  const day = index + 1
-  return { value: String(day), label: `Día ${day}` }
-})
-
-const TIMEZONE_OPTIONS = [
-  { value: "-08:00", label: "UTC-8 (Pacífico)" },
-  { value: "-06:00", label: "UTC-6 (Centroamérica)" },
-  { value: "-05:00", label: "UTC-5 (CDMX / Bogotá)" },
-  { value: "-04:00", label: "UTC-4 (Santiago)" },
-  { value: "-03:00", label: "UTC-3 (Buenos Aires)" },
-  { value: "+00:00", label: "UTC" },
-  { value: "+01:00", label: "UTC+1 (Madrid)" },
-]
 
 // ===== Helpers for time buckets and engagement metrics =====
 // Hours elapsed since a given ISO date
@@ -148,11 +116,6 @@ const passMinAbs = (m) => {
 
 export default function ModernSocialListeningApp({ onLogout }) {
   // All your existing state variables remain the same
-  const [activeTab, setActiveTab] = useState(() => {
-    const params = new URLSearchParams(window.location.search)
-    const tab = params.get("tab")
-    return tab === "reportes" ? "reportes" : "home"
-  })
   const filterReducer = (state, action) => {
     switch (action.type) {
       case "SET_SEARCH":
@@ -240,7 +203,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const avatarLabel = avatarDisplayName ? avatarDisplayName.charAt(0).toUpperCase() : "U"
   const isConfigRoute = location.pathname.startsWith("/app/config")
   const isDashboardRoute = location.pathname.startsWith("/app/dashboard")
-  const currentTab = activeTab
+  const isReportsRoute = location.pathname.startsWith("/app/reportes")
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -1075,27 +1038,22 @@ export default function ModernSocialListeningApp({ onLogout }) {
 
   const activeKeywords = useMemo(() => keywords.filter((k) => k.active), [keywords])
 
-  const handleLogoClick = () => {
-    setActiveTab("home")
-    setMenuOpen(false)
-    setHelpMenuOpen(false)
-    setIsSidebarOpen(false)
-    navigate("/app/mentions")
-  }
-
-  const handleTabChange = (tab) => {
-    const nextTab = tab === "reportes" ? "reportes" : "home"
-    setIsSidebarOpen(false)
-    setActiveTab(nextTab)
-    if (location.pathname !== "/app/mentions") {
-      navigate("/app/mentions")
-    }
-  }
-
   const handleNavigation = () => {
     setIsSidebarOpen(false)
     setMenuOpen(false)
     setHelpMenuOpen(false)
+  }
+
+  const handleLogoClick = () => {
+    handleNavigation()
+    navigate("/app/mentions")
+  }
+
+  const handleMentionsNavigation = () => {
+    handleNavigation()
+    if (location.pathname !== "/app/mentions") {
+      navigate("/app/mentions")
+    }
   }
 
   return (
@@ -1204,8 +1162,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
         {/* Modern Sidebar */}
         <aside className="hidden md:flex lg:flex lg:w-64 bg-slate-800/50 backdrop-blur-xl border-r border-slate-700/50 p-6 flex-col space-y-2 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
           <SidebarNavigation
-            currentTab={currentTab}
-            onTabSelect={handleTabChange}
+            onMentionsNavigate={handleMentionsNavigation}
             onNavigate={handleNavigation}
             isAdmin={isAdmin}
           />
@@ -1223,8 +1180,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
                 onClick={(e) => e.stopPropagation()}
               >
                 <SidebarNavigation
-                  currentTab={currentTab}
-                  onTabSelect={handleTabChange}
+                  onMentionsNavigate={handleMentionsNavigation}
                   onNavigate={handleNavigation}
                   isAdmin={isAdmin}
                 />
@@ -1264,9 +1220,47 @@ export default function ModernSocialListeningApp({ onLogout }) {
                 <DashboardPage embedded />
               }
             />
+            <Route
+              path="reportes"
+              element={
+                <ReportsPage
+                  savedReports={savedReports}
+                  onDownload={handleDownloadReport}
+                  onDelete={handleDeleteReport}
+                  showReportForm={showReportForm}
+                  onToggleReportForm={() => setShowReportForm((prev) => !prev)}
+                  newReportName={newReportName}
+                  onReportNameChange={setNewReportName}
+                  reportPlatform={reportPlatform}
+                  onReportPlatformChange={setReportPlatform}
+                  includeComments={includeComments}
+                  onIncludeCommentsChange={setIncludeComments}
+                  reportKeyword={reportKeyword}
+                  onReportKeywordChange={setReportKeyword}
+                  reportDateOption={reportDateOption}
+                  onReportDateOptionChange={setReportDateOption}
+                  reportStartDate={reportStartDate}
+                  onReportStartDateChange={setReportStartDate}
+                  reportEndDate={reportEndDate}
+                  onReportEndDateChange={setReportEndDate}
+                  activeKeywords={activeKeywords}
+                  isReportScheduled={isReportScheduled}
+                  onReportScheduledChange={setIsReportScheduled}
+                  reportScheduleFrequency={reportScheduleFrequency}
+                  onReportScheduleFrequencyChange={setReportScheduleFrequency}
+                  reportScheduleDay={reportScheduleDay}
+                  onReportScheduleDayChange={setReportScheduleDay}
+                  reportScheduleTime={reportScheduleTime}
+                  onReportScheduleTimeChange={setReportScheduleTime}
+                  reportScheduleTimezone={reportScheduleTimezone}
+                  onReportScheduleTimezoneChange={setReportScheduleTimezone}
+                  onCreateReport={handleCreateReport}
+                />
+              }
+            />
             <Route path="*" element={<Navigate to="mentions" replace />} />
           </Routes>
-          {!isConfigRoute && !isDashboardRoute && currentTab === "home" && (
+          {!isConfigRoute && !isDashboardRoute && !isReportsRoute && (
             <section className="p-8">
               <div className="flex items-start gap-8 min-h-screen">
                 <div className="flex-1">
@@ -1403,257 +1397,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
               </div>
             </section>
           )}
-
-          {!isConfigRoute && !isDashboardRoute && currentTab === "reportes" && (
-            <section className="p-8 space-y-8">
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent mb-2">
-                  Mis Reportes
-                </h1>
-                <p className="text-slate-400">Crea y gestiona tus reportes descargables y automatiza su envío por correo</p>
-              </div>
-
-              <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
-                <ReportsTable reports={savedReports} onDownload={handleDownloadReport} onDelete={handleDeleteReport} />
-              </div>
-
-              <Button
-                variant="outline"
-                onClick={() => setShowReportForm(!showReportForm)}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-              >
-                {showReportForm ? (
-                  <Minus className="w-4 h-4 mr-2" />
-                ) : (
-                  <Plus className="w-4 h-4 mr-2" />
-                )}
-                Crear nuevo reporte
-              </Button>
-
-              {showReportForm && (
-                <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 space-y-6">
-                  <h3 className="text-lg font-semibold text-white">Nuevo Reporte</h3>
-
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">Nombre del reporte</p>
-                    <Input
-                      className="bg-slate-800/50 border-slate-700/50 text-white"
-                      value={newReportName}
-                      onChange={(e) => setNewReportName(e.target.value)}
-                      placeholder="Ingresa un nombre para el reporte"
-                    />
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-3 text-slate-300">Plataforma</p>
-                    <Select
-                      value={reportPlatform}
-                      onValueChange={(value) => {
-                        setReportPlatform(value)
-                        if (value !== "youtube" && value !== "reddit") {
-                          setIncludeComments(false)
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                        <SelectValue placeholder="Seleccionar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="youtube">YouTube</SelectItem>
-                        <SelectItem value="reddit">Reddit</SelectItem>
-                        <SelectItem value="twitter">Twitter</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">Palabra clave</p>
-                    <Select value={reportKeyword} onValueChange={setReportKeyword}>
-                      <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                        <SelectValue placeholder="Seleccionar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {activeKeywords.map((k) => (
-                          <SelectItem key={k.keyword} value={k.keyword}>
-                            {k.keyword}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">Rango de fechas</p>
-                    <div className="space-y-3">
-                      <Select value={reportDateOption} onValueChange={setReportDateOption}>
-                        <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                          <SelectValue placeholder="Seleccionar" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="range">Rango personalizado</SelectItem>
-                          <SelectItem value="7">Últimos 7 días</SelectItem>
-                          <SelectItem value="15">Últimos 15 días</SelectItem>
-                          <SelectItem value="30">Últimos 30 días</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {reportDateOption === "range" && (
-                        <div className="flex items-center gap-2">
-                          <DatePickerInput
-                            value={reportStartDate}
-                            onChange={setReportStartDate}
-                            placeholder="Desde"
-                            className="w-40"
-                          />
-                          <span className="text-slate-400">a</span>
-                          <DatePickerInput
-                            value={reportEndDate}
-                            onChange={setReportEndDate}
-                            placeholder="Hasta"
-                            className="w-40"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-medium mb-3 text-slate-300">Incluir comentarios</p>
-                    <Select
-                      value={includeComments ? "si" : "no"}
-                      onValueChange={(val) => setIncludeComments(val === "si")}
-                      disabled={!(reportPlatform === "youtube" || reportPlatform === "reddit")}
-                    >
-                      <SelectTrigger className="w-40 bg-slate-800/50 border-slate-700/50 text-white">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="si">Si</SelectItem>
-                        <SelectItem value="no">No</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-slate-300">Programar envío por correo</p>
-                        <p className="text-xs text-slate-500">Recibe el reporte automáticamente según la frecuencia seleccionada.</p>
-                      </div>
-                      <Switch checked={isReportScheduled} onCheckedChange={setIsReportScheduled} />
-                    </div>
-
-                    {isReportScheduled && (
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-sm font-medium mb-2 text-slate-300">Frecuencia</p>
-                          <Select
-                            value={reportScheduleFrequency}
-                            onValueChange={(value) => {
-                              setReportScheduleFrequency(value)
-                              if ((value === "weekly" || value === "biweekly") && Number(reportScheduleDay) > 7) {
-                                setReportScheduleDay("1")
-                              }
-                              if (value === "monthly" && Number(reportScheduleDay) > 31) {
-                                setReportScheduleDay("1")
-                              }
-                            }}
-                          >
-                            <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                              <SelectValue placeholder="Seleccionar" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="weekly">Semanal</SelectItem>
-                              <SelectItem value="biweekly">Cada dos semanas</SelectItem>
-                              <SelectItem value="monthly">Mensual</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {(reportScheduleFrequency === "weekly" ||
-                          reportScheduleFrequency === "biweekly") && (
-                          <div>
-                            <p className="text-sm font-medium mb-2 text-slate-300">
-                              {reportScheduleFrequency === "weekly"
-                                ? "Día de envío"
-                                : "Día de la semana"}
-                            </p>
-                            <Select value={reportScheduleDay} onValueChange={setReportScheduleDay}>
-                              <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {WEEK_DAYS.map((day) => (
-                                  <SelectItem key={day.value} value={day.value}>
-                                    {day.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
-
-                        {reportScheduleFrequency === "monthly" && (
-                          <div>
-                            <p className="text-sm font-medium mb-2 text-slate-300">Día del mes</p>
-                            <Select value={reportScheduleDay} onValueChange={setReportScheduleDay}>
-                              <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {MONTH_DAYS.map((day) => (
-                                  <SelectItem key={day.value} value={day.value}>
-                                    {day.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-sm font-medium mb-2 text-slate-300">Hora de envío</p>
-                            <Input
-                              type="time"
-                              value={reportScheduleTime}
-                              onChange={(e) => setReportScheduleTime(e.target.value)}
-                              className="bg-slate-800/50 border-slate-700/50 text-white"
-                            />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium mb-2 text-slate-300">Zona horaria</p>
-                            <Select
-                              value={reportScheduleTimezone}
-                              onValueChange={setReportScheduleTimezone}
-                            >
-                              <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {TIMEZONE_OPTIONS.map((tz) => (
-                                  <SelectItem key={tz.value} value={tz.value}>
-                                    {tz.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <Button
-                    onClick={handleCreateReport}
-                    className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                  >
-                    Crear reporte
-                  </Button>
-                </div>
-              )}
-            </section>
-          )}
-
         </main>
       </div>
     </div>
