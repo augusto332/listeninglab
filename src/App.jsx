@@ -495,23 +495,32 @@ export default function ModernSocialListeningApp({ onLogout }) {
     return nextQuery
   }
 
-  const fetchMentionsPage = async (view, filters = {}, afterCursor = null) => {
-    let query = supabase
-      .from(view)
-      .select("*")
-      .order("created_at", { ascending: false })
-      .order("mention_id", { ascending: false })
+  const fetchMentionsPage = async (view, filters = {}, afterCursor = null, sortOrder = "recent") => {
+    let query = supabase.from(view).select("*")
+
+    if (sortOrder === "popular") {
+      query = query
+        .order("popularity_score", { ascending: false, nullsLast: true })
+        .order("created_at", { ascending: false })
+        .order("mention_id", { ascending: false })
+    } else {
+      query = query.order("created_at", { ascending: false }).order("mention_id", { ascending: false })
+    }
 
     query = applyMentionFilters(query, filters)
 
-    if (afterCursor) {
+    if (sortOrder === "popular") {
+      const page = afterCursor?.page ?? 0
+      query = query.range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1)
+    } else if (afterCursor) {
       const { created_at, mention_id } = afterCursor
       query = query.or(
         `created_at.lt.${created_at},and(created_at.eq.${created_at},mention_id.lt.${mention_id})`,
       )
     }
 
-    const { data: rows, error } = await query.limit(PAGE_SIZE)
+    const { data: rows, error } =
+      sortOrder === "popular" ? await query : await query.limit(PAGE_SIZE)
     if (error) {
       console.error("Error fetching mentions page", error)
       return { rows: [], cursor: null, hasMore: false }
@@ -558,9 +567,12 @@ export default function ModernSocialListeningApp({ onLogout }) {
     }))
 
     const last = enriched[enriched.length - 1]
-    const nextCursor = last
-      ? { created_at: last.created_at, mention_id: last.mention_id }
-      : null
+    const nextCursor =
+      sortOrder === "popular"
+        ? { page: (afterCursor?.page ?? 0) + 1 }
+        : last
+          ? { created_at: last.created_at, mention_id: last.mention_id }
+          : null
 
     return {
       rows: enriched,
@@ -569,7 +581,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
     }
   }
 
-  const loadFirstPage = async (view, filters = {}) => {
+  const loadFirstPage = async (view, filters = {}, sortOrder = "recent") => {
     setMentions([])
     setMentionsLoading(true)
     setCursor(null)
@@ -577,7 +589,12 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setIsLoadingMore(false)
     loadedMentionIdsRef.current = new Set()
 
-    const { rows, cursor: nextCursor, hasMore: more } = await fetchMentionsPage(view, filters)
+    const { rows, cursor: nextCursor, hasMore: more } = await fetchMentionsPage(
+      view,
+      filters,
+      null,
+      sortOrder,
+    )
 
     rows.forEach((m) => loadedMentionIdsRef.current.add(m.mention_id))
 
@@ -587,13 +604,14 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setMentionsLoading(false)
   }
 
-  const loadMore = async (view, filters = {}) => {
+  const loadMore = async (view, filters = {}, sortOrder = "recent") => {
     if (isLoadingMore || !hasMore || !cursor) return
     setIsLoadingMore(true)
     const { rows, cursor: nextCursor, hasMore: more } = await fetchMentionsPage(
       view,
       filters,
-      cursor
+      cursor,
+      sortOrder,
     )
 
     const deduped = rows.filter((m) => !loadedMentionIdsRef.current.has(m.mention_id))
@@ -803,9 +821,9 @@ export default function ModernSocialListeningApp({ onLogout }) {
 
   useEffect(() => {
     const view = onlyFavorites ? "total_mentions_highlighted_vw" : "mentions_display_vw"
-    loadFirstPage(view, mentionsFilters)
+    loadFirstPage(view, mentionsFilters, order)
     refreshGlobalFilterOptions(view, mentionsFilters)
-  }, [onlyFavorites, mentionsFilters])
+  }, [onlyFavorites, mentionsFilters, order])
 
   useEffect(() => {
     const node = sentinelRef.current
@@ -821,12 +839,12 @@ export default function ModernSocialListeningApp({ onLogout }) {
           onlyFavorites
             ? "total_mentions_highlighted_vw"
             : "mentions_display_vw"
-        loadMore(view, mentionsFilters)
+        loadMore(view, mentionsFilters, order)
       }
     })
     observer.observe(node)
     return () => observer.disconnect()
-  }, [hasMore, isLoadingMore, onlyFavorites, mentions, mentionsFilters])
+  }, [hasMore, isLoadingMore, onlyFavorites, mentions, mentionsFilters, order])
 
   const fetchSavedReports = async () => {
     if (!accountId) return
