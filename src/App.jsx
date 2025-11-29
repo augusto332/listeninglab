@@ -109,6 +109,15 @@ const zScore = (value, stats = {}) => {
   return 0
 }
 
+// True if there's meaningful lift versus cohort percentiles or a fallback threshold
+const hasLift = (value, z, stats = {}, fallback = 0) => {
+  const { p90, p80 } = stats
+  if (z >= 1.5) return true
+  if (Number.isFinite(p90) && p90 > 0) return value >= p90
+  if (Number.isFinite(p80) && p80 > 0) return value >= p80
+  return fallback > 0 ? value >= fallback : false
+}
+
 // Absolute minimums per platform to avoid noise
 const passMinAbs = (m) => {
   const platform = m.platform?.toLowerCase?.()
@@ -354,7 +363,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const comments = metricValue(mention, ["comments", "comment_count"])
 
     const likeMin = ["youtube", "tiktok"].includes(platform) ? 10 : 5
-    if (likes >= likeMin && (zER >= 1.5 || er >= (stats.p90 ?? Infinity))) {
+    const hasERLift = hasLift(er, zER, stats, likeMin * 1.5)
+    if (likes >= likeMin && hasERLift) {
       tags.push("approval")
     }
 
@@ -362,24 +372,27 @@ export default function ModernSocialListeningApp({ onLogout }) {
     if (
       ["youtube", "tiktok"].includes(platform) &&
       views >= 500 &&
-      (zER >= 1.5 || er >= (stats.p90 ?? Infinity))
+      hasERLift
     ) {
       tags.push("reach")
     }
     if (
       platform === "twitter" &&
       (retweets >= 2 || views >= 300) &&
-      (zER >= 1.5 || er >= (stats.p90 ?? Infinity))
+      hasERLift
     ) {
       tags.push("reach")
     }
 
     // Conversation intensity using ER per hour
     const convMetric = platform === "twitter" ? convoCount(mention) : comments
-    if (
-      convMetric >= 3 &&
-      (zERph >= 1.5 || erph >= (stats.p90PH ?? Infinity))
-    ) {
+    const hasConversationLift = hasLift(
+      erph,
+      zERph,
+      { p90: stats.p90PH, p80: stats.p80PH },
+      convMetric,
+    )
+    if (convMetric >= 3 && hasConversationLift) {
       tags.push("conversation")
     }
 
