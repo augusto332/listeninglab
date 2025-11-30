@@ -125,11 +125,11 @@ export default function Landing() {
     },
     {
       name: "Team",
-      price: "$69.99",
+      price: "$74.99",
       period: "/ mes",
       description: "Para equipos que necesitan colaborar en el monitoreo",
       features: [
-        "Hasta 5,000 menciones/mes",
+        "Hasta 8,000 menciones/mes",
         "Agregar y gestionar usuarios del equipo",
         "Reportes descargables y compartibles",
         "Historial de menciones por 6 meses",
