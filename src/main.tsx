@@ -12,6 +12,8 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import OnboardingHome from './OnboardingHome'
 import Landing from './Landing' // 👈 NUEVA IMPORTACIÓN
 import Support from './Support'
+import PaymentSuccess from './PaymentSuccess'
+import PaymentCancelled from './PaymentCancelled'
 
 function Root() {
   const { session, loading } = useAuth()
@@ -62,6 +64,8 @@ function Root() {
               </ProtectedRoute>
             }
           />
+          <Route path="/payment/success" element={<PaymentSuccess />} />
+          <Route path="/payment/cancelled" element={<PaymentCancelled />} />
           <Route
             path="/onboarding"
             element={
