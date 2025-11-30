@@ -25,6 +25,7 @@ import {
   Github,
   Mail,
   ChevronDown,
+  Users,
 } from "lucide-react"
 
 export default function Landing() {
@@ -118,6 +119,24 @@ export default function Landing() {
       ],
       limitations: ["No incluye comentarios", "Sin clasificación automática AI", "Sin resúmenes automáticos"],
       icon: TrendingUp,
+      cta: "Probar 7 días gratis",
+      highlighted: false,
+      trial: true,
+    },
+    {
+      name: "Team",
+      price: "$59.99",
+      period: "por mes",
+      description: "Para equipos que necesitan colaborar en el monitoreo",
+      features: [
+        "Hasta 5,000 menciones/mes",
+        "Agregar y gestionar usuarios del equipo",
+        "Reportes descargables y compartibles",
+        "Historial de menciones por 6 meses",
+        "Alertas de menciones relevantes",
+      ],
+      limitations: ["Sin clasificación automática AI"],
+      icon: Users,
       cta: "Probar 7 días gratis",
       highlighted: false,
       trial: true,
@@ -523,7 +542,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {plans.map((plan, index) => {
               const Icon = plan.icon
               return (
