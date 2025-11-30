@@ -11,7 +11,7 @@ export default function ModernAISummary() {
   const [summaryTimestamp, setSummaryTimestamp] = useState(null)
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const { session, user, plan, planLoading } = useAuth()
+  const { session, user, plan, planLoading, accountId } = useAuth()
 
   // Cerrar el desplegable cuando se cambia de pestaña
   useEffect(() => {
@@ -29,8 +29,9 @@ export default function ModernAISummary() {
   }, [])
 
   const fetchSummary = useCallback(async () => {
-    if (!user) {
+    if (!user || !accountId) {
       setSummary("")
+      setSummaryTimestamp(null)
       return
     }
 
@@ -39,7 +40,7 @@ export default function ModernAISummary() {
       const { data, error } = await supabase
         .from("ai_summaries")
         .select("summary, created_at")
-        .eq("user_id", user.id)
+        .eq("account_id", accountId)
         .order("created_at", { ascending: false })
         .limit(1)
 
@@ -53,7 +54,7 @@ export default function ModernAISummary() {
     } finally {
       setLoadingSummary(false)
     }
-  }, [user])
+  }, [accountId, user])
 
   useEffect(() => {
     if (!planLoading && plan !== "free") {
