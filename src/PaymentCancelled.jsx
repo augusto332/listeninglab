@@ -57,22 +57,11 @@ export default function PaymentCancelled() {
                 <div className="space-y-1">
                   <p className="font-semibold text-white">Tu cuenta sigue protegida</p>
                   <p className="text-sm text-slate-400">
-                    Los datos y configuraciones permanecen intactos. Revisa los métodos guardados o contacta soporte si algo no se ve bien.
+                    Los datos y configuraciones permanecen intactos. Contacta soporte si algo no se ve bien.
                   </p>
                 </div>
               </div>
             </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-amber-200">Estado de la suscripción</p>
-                <p className="text-lg font-semibold text-white">Sin cambios recientes</p>
-              </div>
-              <Badge variant="secondary" className="border-amber-500/40 bg-amber-500/15 text-amber-50 text-sm px-3 py-1">
-                Puedes reintentar el pago cuando gustes
-              </Badge>
-            </div>
-
             <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-slate-400">¿Necesitas ayuda? Nuestro equipo está listo para ayudarte a completar tu suscripción.</p>
               <Button variant="secondary" size="lg" className="gap-2 bg-white/5 text-white hover:bg-white/10" onClick={() => navigate(primaryPath)}>

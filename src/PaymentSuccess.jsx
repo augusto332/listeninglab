@@ -32,7 +32,7 @@ export default function PaymentSuccess() {
               Pago completado con éxito
             </CardTitle>
             <CardDescription className="text-base text-slate-300">
-              Tu suscripción está activa y lista para usarse. Gracias por confiar en Listening Lab para potenciar tu monitoreo.
+              Tu suscripción está activa y lista para usarse. Gracias por confiar en Listening Lab.
             </CardDescription>
           </CardHeader>
 
@@ -45,7 +45,7 @@ export default function PaymentSuccess() {
                 <div className="space-y-1">
                   <p className="font-semibold text-white">Beneficios desbloqueados</p>
                   <p className="text-sm text-slate-400">
-                    Acceso a las herramientas premium, reportes avanzados y alertas inteligentes en tiempo real.
+                    Tu acceso a la aplicación ya está habilitado. Las características disponibles se ajustan al plan contratado.
                   </p>
                 </div>
               </div>
