@@ -108,7 +108,7 @@ export default function Landing() {
     {
       name: "Básico",
       price: "$29.99",
-      period: "por mes",
+      period: "/ mes",
       description: "Ideal para quienes están comenzando con el monitoreo",
       features: [
         "Hasta 3,000 menciones/mes",
@@ -125,8 +125,8 @@ export default function Landing() {
     },
     {
       name: "Team",
-      price: "$59.99",
-      period: "por mes",
+      price: "$69.99",
+      period: "/ mes",
       description: "Para equipos que necesitan colaborar en el monitoreo",
       features: [
         "Hasta 5,000 menciones/mes",
@@ -143,11 +143,11 @@ export default function Landing() {
     },
     {
       name: "Pro",
-      price: "$99.99",
-      period: "por mes",
+      price: "$149.99",
+      period: "/ mes",
       description: "Para equipos que necesitan análisis profundo con IA",
       features: [
-        "Hasta 10,000 menciones/mes",
+        "Hasta 20,000 menciones/mes",
         "Análisis avanzado con IA",
         "Incluye comentarios de menciones",
         "Clasificación automática por IA",
@@ -163,7 +163,7 @@ export default function Landing() {
     },
     {
       name: "Enterprise",
-      price: "Personalizado",
+      price: "",
       period: "",
       description: "Para organizaciones con grandes volúmenes de datos",
       features: [
