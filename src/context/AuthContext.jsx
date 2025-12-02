@@ -52,12 +52,12 @@ export const AuthProvider = ({ children }) => {
             error: accountError,
           } = await supabase
             .from('accounts')
-            .select('plan')
+            .select('plans(name)')
             .eq('id', nextAccountId)
             .single()
 
-          if (!accountError && account?.plan) {
-            nextPlan = account.plan
+          if (!accountError && account?.plans?.name) {
+            nextPlan = account.plans.name
           }
         }
 
