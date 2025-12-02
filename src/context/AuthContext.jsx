@@ -52,14 +52,22 @@ export const AuthProvider = ({ children }) => {
             error: accountError,
           } = await supabase
             .from('accounts')
-            .select('plan')
+            .select('plan_id, plans(name)')
             .eq('id', nextAccountId)
-            .single()
+            .single();
 
-          if (!accountError && account?.plan) {
-            nextPlan = account.plan
+          if (!accountError && account?.plans) {
+            // Normalizar formato (Supabase puede devolver array u objeto)
+            const planName = Array.isArray(account.plans)
+              ? account.plans[0]?.name
+              : account.plans?.name;
+
+          if (planName) {
+            nextPlan = planName;
           }
         }
+}
+
 
         setPlan(nextPlan)
         setRole(nextRole)
