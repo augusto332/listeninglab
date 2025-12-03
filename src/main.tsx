@@ -14,6 +14,11 @@ import Landing from './Landing' // 👈 NUEVA IMPORTACIÓN
 import Support from './Support'
 import PaymentSuccess from './PaymentSuccess'
 import PaymentCancelled from './PaymentCancelled'
+import ProfilePage from './account/ProfilePage'
+import SecurityPage from './account/SecurityPage'
+import PlanPage from './account/PlanPage'
+import TeamPage from './account/TeamPage'
+import AdminRoute from './account/AdminRoute'
 
 function Root() {
   const { session, loading } = useAuth()
@@ -49,13 +54,33 @@ function Root() {
             }
           />
           <Route
-            path="/app/account"
+            path="/app/account/*"
             element={
               <ProtectedRoute>
                 <Account />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="security" element={<SecurityPage />} />
+            <Route
+              path="plan"
+              element={
+                <AdminRoute>
+                  <PlanPage />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="team"
+              element={
+                <AdminRoute>
+                  <TeamPage />
+                </AdminRoute>
+              }
+            />
+          </Route>
           <Route
             path="/app/support"
             element={
