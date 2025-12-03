@@ -1,7 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import SocialListeningApp from './App'
-import Account from './Account'
+import AccountLayout from './pages/account/AccountLayout'
+import ProfilePage from './pages/account/ProfilePage'
+import SecurityPage from './pages/account/SecurityPage'
+import PlanPage from './pages/account/PlanPage'
+import TeamPage from './pages/account/TeamPage'
 import Login from './Login'
 import Register from './Register'
 import './index.css'
@@ -49,13 +53,19 @@ function Root() {
             }
           />
           <Route
-            path="/app/account"
+            path="/account"
             element={
               <ProtectedRoute>
-                <Account />
+                <AccountLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<Navigate to="profile" replace />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="security" element={<SecurityPage />} />
+            <Route path="plan" element={<PlanPage />} />
+            <Route path="team" element={<TeamPage />} />
+          </Route>
           <Route
             path="/app/support"
             element={
