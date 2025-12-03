@@ -33,7 +33,8 @@ export default function AccountLayout() {
     return menuItems.filter((item) => item.id !== "plan" && item.id !== "team")
   }, [isAdmin])
 
-  const currentItem = visibleMenuItems.find((item) => location.pathname.includes(item.path))
+  const pathname = location?.pathname ?? ""
+  const currentItem = visibleMenuItems.find((item) => pathname.includes(item.path))
 
   useEffect(() => {
     const handleClickOutside = (event) => {
