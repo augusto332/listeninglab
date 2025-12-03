@@ -1,15 +1,90 @@
-import { useMemo } from "react"
+"use client"
+
+import { useState, useMemo } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CreditCard, Crown } from "lucide-react"
+import { CreditCard, Crown, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { planConfig } from "./constants"
 
 export default function PlanPage() {
   const { plan, planLoading } = useAuth()
   const planTier = plan ?? "free"
   const isPaidPlan = planTier !== "free"
+  const [showPlans, setShowPlans] = useState(false)
+
+  const availablePlans = [
+    {
+      id: "basic",
+      label: "Plan Básico",
+      price: "$29",
+      period: "/mes",
+      description: "Perfecto para empezar",
+      color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+      features: [
+        "Monitoreo de redes sociales",
+        "Análisis de sentimiento básico",
+        "Reportes mensuales",
+        "Hasta 5 marcas",
+        "Soporte por email",
+      ],
+      cta: "Elegir Plan Básico",
+    },
+    {
+      id: "team",
+      label: "Plan Team",
+      price: "$79",
+      period: "/mes",
+      description: "Para equipos en crecimiento",
+      color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+      features: [
+        "Todo del Plan Básico",
+        "Análisis avanzado de sentimiento",
+        "Reportes semanales",
+        "Hasta 20 marcas",
+        "2 usuarios",
+        "Integraciones básicas",
+      ],
+      cta: "Elegir Plan Team",
+    },
+    {
+      id: "pro",
+      label: "Plan Pro",
+      price: "$199",
+      period: "/mes",
+      description: "Para profesionales",
+      color: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+      features: [
+        "Todo del Plan Team",
+        "Análisis predictivo",
+        "Reportes en tiempo real",
+        "Hasta 50 marcas",
+        "5 usuarios",
+        "Integraciones premium",
+        "API access",
+      ],
+      cta: "Elegir Plan Pro",
+      popular: true,
+    },
+    {
+      id: "enterprise",
+      label: "Plan Enterprise",
+      price: "Contactar",
+      period: "",
+      description: "Solución personalizada",
+      color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+      features: [
+        "Todo personalizado",
+        "Usuarios ilimitados",
+        "Soporte dedicado",
+        "Implementación personalizada",
+        "SLA garantizado",
+        "Capacitación incluida",
+      ],
+      cta: "Contactar ventas",
+    },
+  ]
 
   const currentPlanConfig = useMemo(() => planConfig[planTier] ?? planConfig.free, [planTier])
 
@@ -53,24 +128,83 @@ export default function PlanPage() {
       </Card>
 
       {planTier !== "enterprise" && (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 p-8">
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10 blur-2xl"></div>
-          <div className="relative">
-            <div className="flex items-center gap-2 mb-4">
-              <Crown className="w-6 h-6 text-amber-400" />
-              <h3 className="text-2xl font-bold text-white">Actualiza tu plan</h3>
-            </div>
-            <p className="text-slate-300 mb-6">Descubre funciones avanzadas y elige el plan que mejor se adapte a tu equipo.</p>
+        <div className="space-y-4">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/30 p-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10 blur-2xl"></div>
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-4">
+                <Crown className="w-6 h-6 text-amber-400" />
+                <h3 className="text-2xl font-bold text-white">Actualiza tu plan</h3>
+              </div>
+              <p className="text-slate-300 mb-6">
+                Descubre funciones avanzadas y elige el plan que mejor se adapte a tu equipo.
+              </p>
 
-            <Button
-              size="lg"
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg shadow-purple-500/25"
-              onClick={() => alert("Próximamente: página de planes y precios")}
-            >
-              <Crown className="w-5 h-5 mr-2" />
-              Actualiza tu plan
-            </Button>
+              <Button
+                size="lg"
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg shadow-purple-500/25"
+                onClick={() => setShowPlans(!showPlans)}
+              >
+                <Crown className="w-5 h-5 mr-2" />
+                {showPlans ? "Ocultar planes" : "Ver planes disponibles"}
+                {showPlans ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+              </Button>
+            </div>
           </div>
+
+          {showPlans && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {availablePlans.map((planItem) => (
+                <Card
+                  key={planItem.id}
+                  className={`relative overflow-hidden transition-all hover:shadow-lg ${
+                    planTier === planItem.id
+                      ? "ring-2 ring-purple-500 bg-slate-800/50"
+                      : "bg-slate-800/30 hover:bg-slate-800/50"
+                  } border-slate-700/50 backdrop-blur-sm`}
+                >
+                  {planItem.popular && (
+                    <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">
+                      Popular
+                    </div>
+                  )}
+
+                  <CardHeader>
+                    <CardTitle className="text-white text-lg">{planItem.label}</CardTitle>
+                    <CardDescription className="text-slate-400">{planItem.description}</CardDescription>
+                    <div className="pt-4">
+                      <span className="text-3xl font-bold text-white">{planItem.price}</span>
+                      {planItem.period && <span className="text-slate-400 text-sm">{planItem.period}</span>}
+                    </div>
+                  </CardHeader>
+
+                  <CardContent className="space-y-6">
+                    <div className="space-y-3">
+                      {planItem.features.map((feature, idx) => (
+                        <div key={idx} className="flex items-start gap-3">
+                          <Check className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-slate-300">{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      className={`w-full ${
+                        planTier === planItem.id
+                          ? "bg-emerald-600 hover:bg-emerald-700"
+                          : planItem.popular
+                            ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                            : "bg-slate-700 hover:bg-slate-600"
+                      }`}
+                      disabled={planTier === planItem.id}
+                    >
+                      {planTier === planItem.id ? "Plan actual" : planItem.cta}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
