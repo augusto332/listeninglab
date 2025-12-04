@@ -132,10 +132,11 @@ export default function PlanPage() {
     if (!variantId || !accountId) return
 
     try {
-      const response = await fetch("/functions/v1/create_checkout", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create_checkout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ account_id: accountId, variant_id: variantId }),
       })
