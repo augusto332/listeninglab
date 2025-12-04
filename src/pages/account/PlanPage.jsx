@@ -1,24 +1,42 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CreditCard, Crown, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { planConfig } from "./constants"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function PlanPage() {
   const { plan, planLoading, accountId } = useAuth()
   const planTier = plan ?? "free"
   const isPaidPlan = planTier !== "free"
   const [showPlans, setShowPlans] = useState(false)
+  const [planVariants, setPlanVariants] = useState({})
 
-  const planVariants = {
-    basic: 1121233,
-    team: 1123717,
-    pro: 1123719,
-  }
+  useEffect(() => {
+    const fetchPlanVariants = async () => {
+      const { data, error } = await supabase.from("plans").select("name, variant_id")
+
+      if (error) {
+        console.error("Error fetching plan variants:", error)
+        return
+      }
+
+      const variantMap = data?.reduce((acc, { name, variant_id }) => {
+        if (name && variant_id) {
+          acc[name.toLowerCase()] = variant_id
+        }
+        return acc
+      }, {})
+
+      setPlanVariants(variantMap ?? {})
+    }
+
+    fetchPlanVariants()
+  }, [])
 
   const availablePlans = [
     {
