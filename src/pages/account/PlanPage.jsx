@@ -9,10 +9,47 @@ import { CreditCard, Crown, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { planConfig } from "./constants"
 
 export default function PlanPage() {
-  const { plan, planLoading } = useAuth()
+  const { plan, planLoading, accountId } = useAuth()
   const planTier = plan ?? "free"
   const isPaidPlan = planTier !== "free"
   const [showPlans, setShowPlans] = useState(false)
+
+  const variantMapping = {
+    basic: 1121233,
+    team: 1123717,
+    pro: 1123719,
+  }
+
+  const handlePlanCheckout = async (planId) => {
+    const variantId = variantMapping[planId]
+
+    if (!variantId || !accountId) return
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create_checkout`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            account_id: accountId,
+            variant_id: variantId,
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (data?.url) {
+        window.location.href = data.url
+      }
+    } catch (error) {
+      console.error("Error al crear el checkout:", error)
+    }
+  }
 
   const availablePlans = [
     {
@@ -197,6 +234,7 @@ export default function PlanPage() {
                             : "bg-slate-700 hover:bg-slate-600"
                       }`}
                       disabled={planTier === planItem.id}
+                      onClick={() => handlePlanCheckout(planItem.id)}
                     >
                       {planTier === planItem.id ? "Plan actual" : planItem.cta}
                     </Button>
