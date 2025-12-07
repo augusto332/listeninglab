@@ -106,6 +106,28 @@ export default function Landing() {
 
   const plans = [
     {
+      name: "Free",
+      price: "$0",
+      period: "/ mes",
+      description: "Para probar Listening Lab con funciones esenciales",
+      features: [
+        "Hasta 50 menciones/mes",
+        "1 keyword activa",
+        "Soporte por email",
+        "Monitoreo básico en YouTube y Reddit",
+      ],
+      limitations: [
+        "Sin IA avanzada",
+        "Sin comentarios",
+        "Sin reportes descargables",
+        "Sin alertas inteligentes",
+      ],
+      icon: Shield,
+      cta: "Empezar Gratis",
+      highlighted: false,
+      trial: false,
+    },
+    {
       name: "Básico",
       price: "$29.99",
       period: "/ mes",
@@ -119,9 +141,9 @@ export default function Landing() {
       ],
       limitations: ["No incluye comentarios", "Sin clasificación automática AI", "Sin resúmenes automáticos"],
       icon: TrendingUp,
-      cta: "Probar 7 días gratis",
+      cta: "Elegir Básico",
       highlighted: false,
-      trial: true,
+      trial: false,
     },
     {
       name: "Team",
@@ -137,9 +159,9 @@ export default function Landing() {
       ],
       limitations: ["Sin clasificación automática AI"],
       icon: Users,
-      cta: "Probar 7 días gratis",
+      cta: "Elegir Team",
       highlighted: false,
-      trial: true,
+      trial: false,
     },
     {
       name: "Pro",
@@ -157,9 +179,9 @@ export default function Landing() {
       ],
       limitations: [],
       icon: Crown,
-      cta: "Probar 7 días gratis",
+      cta: "Elegir Pro",
       highlighted: true,
-      trial: true,
+      trial: false,
     },
     {
       name: "Enterprise",
@@ -287,7 +309,7 @@ export default function Landing() {
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                 onClick={() => navigate("/register")}
               >
-                Comenzar Gratis
+                Crear cuenta gratis
               </Button>
             </div>
 
@@ -343,7 +365,7 @@ export default function Landing() {
                   className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                   onClick={() => navigate("/register")}
                 >
-                  Comenzar Gratis
+                  Crear cuenta gratis
                 </Button>
               </div>
             </div>
@@ -423,7 +445,7 @@ export default function Landing() {
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 shadow-lg shadow-blue-500/25"
                 onClick={() => navigate("/register")}
               >
-                Comenzar Gratis
+                Crear cuenta gratis
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
               <Button
@@ -538,7 +560,7 @@ export default function Landing() {
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Planes simples y transparentes</h2>
             <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-              Todos los planes incluyen prueba gratuita de 7 días. Sin tarjeta de crédito requerida.
+              Ahora contamos con un plan completamente gratuito, sin necesidad de tarjeta de crédito.
             </p>
           </div>
 
@@ -582,13 +604,6 @@ export default function Landing() {
                       </div>
                       <p className="text-sm text-slate-400">{plan.description}</p>
                     </div>
-
-                    {plan.trial && (
-                      <Badge variant="secondary" className="mb-4 bg-green-500/10 text-green-400 border-green-500/20">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Prueba gratuita de 7 días
-                      </Badge>
-                    )}
 
                     <Button
                       className={`w-full mb-6 ${
