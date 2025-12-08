@@ -1,17 +1,21 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CreditCard, Crown, Check, ChevronDown, ChevronUp } from "lucide-react"
+import { CreditCard, Crown, Check, ChevronDown, ChevronUp, Info } from "lucide-react"
 import { planConfig } from "./constants"
 
 export default function PlanPage() {
-  const { plan, planLoading, accountId } = useAuth()
+  const { plan, planLoading, accountId, subscriptionId, subscriptionStatus } = useAuth()
   const planTier = plan ?? "free"
   const isPaidPlan = planTier !== "free"
+  const hasActiveSubscription =
+    Boolean(subscriptionId) && ["active", "past_due", "unpaid"].includes(subscriptionStatus)
+  const isCancelledSubscription = Boolean(subscriptionId) && subscriptionStatus === "cancelled"
+  const shouldUseCheckout = !hasActiveSubscription && !isCancelledSubscription && !subscriptionId && planTier === "free"
   const [showPlans, setShowPlans] = useState(false)
 
   // Mapping de planes a variant_id de Lemon Squeezy
@@ -22,9 +26,7 @@ export default function PlanPage() {
   }
 
   // Llamada a edge function create_checkout
-  const handleCheckout = async (planId) => {
-    const variantId = variantMapping[planId]
-
+  const handleCheckout = async (variantId) => {
     if (!variantId || !accountId) return
 
     try {
@@ -50,6 +52,62 @@ export default function PlanPage() {
       }
     } catch (error) {
       console.error("Error creando checkout:", error)
+    }
+  }
+
+  const handleUpdateSubscription = async (variantId) => {
+    if (!variantId || !subscriptionId) return
+
+    try {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update_subscription`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          subscription_id: subscriptionId,
+          action: "update",
+          variant_id: variantId,
+          invoice_immediately: false,
+          disable_prorations: false,
+        }),
+      })
+    } catch (error) {
+      console.error("Error actualizando suscripción:", error)
+    }
+  }
+
+  const handlePlanSelection = async (planId) => {
+    const variantId = variantMapping[planId]
+
+    if (!variantId) return
+
+    if (shouldUseCheckout) {
+      await handleCheckout(variantId)
+      return
+    }
+
+    await handleUpdateSubscription(variantId)
+  }
+
+  const handleCancelSubscription = async () => {
+    if (!subscriptionId) return
+
+    try {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update_subscription`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          subscription_id: subscriptionId,
+          action: "cancel",
+        }),
+      })
+    } catch (error) {
+      console.error("Error cancelando suscripción:", error)
     }
   }
 
@@ -141,8 +199,39 @@ export default function PlanPage() {
     )
   }, [plan, planLoading])
 
+  const headlineTitle = hasActiveSubscription || isCancelledSubscription ? "Actualizar tu plan" : "Contrata un nuevo plan"
+  const headlineDescription = hasActiveSubscription
+    ? "Gestiona tu suscripción y cambia de plan cuando lo necesites."
+    : isCancelledSubscription
+      ? "Tu suscripción fue cancelada. Elige un plan para reactivarla o cambiarlo."
+      : "Descubre funciones avanzadas y elige el plan que mejor se adapte a tu equipo."
+
+  const getPlanCta = (planItem) => {
+    if (hasActiveSubscription) {
+      return planTier === planItem.id ? "Plan vigente" : "Cambiar a este plan"
+    }
+
+    if (isCancelledSubscription) {
+      return planTier === planItem.id ? "Reactivar este plan" : "Cambiar a este plan"
+    }
+
+    return planItem.cta
+  }
+
   return (
     <div className="space-y-6">
+      {isCancelledSubscription && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-amber-100">
+          <Info className="mt-0.5 h-5 w-5" />
+          <div>
+            <p className="font-medium">Tu suscripción fue cancelada</p>
+            <p className="text-sm text-amber-200/80">
+              Selecciona un plan para reactivar tu suscripción o cambiar a otro.
+            </p>
+          </div>
+        </div>
+      )}
+
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 border-slate-700/50 backdrop-blur-sm">
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -154,14 +243,24 @@ export default function PlanPage() {
           <CardDescription className="text-slate-400">Información sobre tu suscripción</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg bg-slate-800/30 border border-slate-700/50">
+          <div className="flex flex-col gap-4 rounded-lg bg-slate-800/30 border border-slate-700/50 p-4 md:flex-row md:items-center md:justify-between">
             <div>
               <h4 className="font-medium text-white mb-1">{currentPlanConfig.label}</h4>
               <p className="text-sm text-slate-400">
                 {isPaidPlan ? "Acceso completo a las funciones avanzadas" : "Acceso básico a funciones de monitoreo"}
               </p>
+              {subscriptionStatus && (
+                <p className="mt-2 text-xs uppercase tracking-wide text-slate-400">Estado: {subscriptionStatus}</p>
+              )}
             </div>
-            {planBadge}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              {planBadge}
+              {hasActiveSubscription && (
+                <Button variant="outline" className="border-rose-500/50 text-rose-100" onClick={handleCancelSubscription}>
+                  Cancelar suscripción
+                </Button>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -173,11 +272,9 @@ export default function PlanPage() {
             <div className="relative">
               <div className="flex items-center gap-2 mb-4">
                 <Crown className="w-6 h-6 text-amber-400" />
-                <h3 className="text-2xl font-bold text-white">Contrata un nuevo plan</h3>
+                <h3 className="text-2xl font-bold text-white">{headlineTitle}</h3>
               </div>
-              <p className="text-slate-300 mb-6">
-                Descubre funciones avanzadas y elige el plan que mejor se adapte a tu equipo.
-              </p>
+              <p className="text-slate-300 mb-6">{headlineDescription}</p>
 
               <Button
                 size="lg"
@@ -235,10 +332,10 @@ export default function PlanPage() {
                             ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                             : "bg-slate-700 hover:bg-slate-600"
                       }`}
-                      disabled={planTier === planItem.id}
-                      onClick={() => handleCheckout(planItem.id)}
+                      disabled={!variantMapping[planItem.id] || (hasActiveSubscription && planTier === planItem.id)}
+                      onClick={() => handlePlanSelection(planItem.id)}
                     >
-                      {planTier === planItem.id ? "Plan actual" : planItem.cta}
+                      {getPlanCta(planItem)}
                     </Button>
                   </CardContent>
                 </Card>

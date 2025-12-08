@@ -11,6 +11,11 @@ export const planConfig = {
     color: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     icon: CircleUser,
   },
+  team: {
+    label: "Plan Team",
+    color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+    icon: CircleUser,
+  },
   pro: {
     label: "Plan Pro",
     color: "bg-purple-500/10 text-purple-400 border-purple-500/20",
