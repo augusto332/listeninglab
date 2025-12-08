@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CreditCard, Crown, Check, ChevronDown, ChevronUp, Trash2 } from "lucide-react"
+import { CreditCard, Crown, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { planConfig } from "./constants"
 
 export default function PlanPage() {
@@ -13,6 +13,45 @@ export default function PlanPage() {
   const planTier = plan ?? "free"
   const isPaidPlan = planTier !== "free"
   const [showPlans, setShowPlans] = useState(false)
+
+  // Mapping de planes a variant_id de Lemon Squeezy
+  const variantMapping = {
+    basic: 1121233,
+    team: 1123717,
+    pro: 1123719,
+  }
+
+  // Llamada a edge function create_checkout
+  const handleCheckout = async (planId) => {
+    const variantId = variantMapping[planId]
+
+    if (!variantId || !accountId) return
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create_checkout`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            account_id: accountId,
+            variant_id: variantId,
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (data?.url) {
+        window.location.href = data.url
+      }
+    } catch (error) {
+      console.error("Error creando checkout:", error)
+    }
+  }
 
   const availablePlans = [
     {
@@ -101,39 +140,6 @@ export default function PlanPage() {
       </Badge>
     )
   }, [plan, planLoading])
-
-  const handleCancelPlan = async () => {
-    if (!accountId || !isPaidPlan) return
-
-    if (!window.confirm("¿Estás seguro de que deseas cancelar tu plan? Perderás acceso a las funciones premium.")) {
-      return
-    }
-
-    try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cancel_plan`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-        },
-        body: JSON.stringify({
-          account_id: accountId,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data?.success) {
-        alert("Tu plan ha sido cancelado correctamente.")
-        window.location.reload()
-      } else {
-        alert("Error al cancelar el plan. Por favor, intenta de nuevo.")
-      }
-    } catch (error) {
-      console.error("Error cancelando plan:", error)
-      alert("Error al cancelar el plan.")
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -230,25 +236,13 @@ export default function PlanPage() {
                             : "bg-slate-700 hover:bg-slate-600"
                       }`}
                       disabled={planTier === planItem.id}
+                      onClick={() => handleCheckout(planItem.id)}
                     >
                       {planTier === planItem.id ? "Plan actual" : planItem.cta}
                     </Button>
                   </CardContent>
                 </Card>
               ))}
-            </div>
-          )}
-
-          {isPaidPlan && (
-            <div className="pt-4 border-t border-slate-700/50">
-              <Button
-                variant="destructive"
-                className="w-full bg-red-600/20 text-red-400 border border-red-500/30 hover:bg-red-600/30"
-                onClick={handleCancelPlan}
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Cancelar mi plan
-              </Button>
             </div>
           )}
         </div>
