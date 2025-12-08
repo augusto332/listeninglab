@@ -167,7 +167,7 @@ export default function PlanPage() {
             <div className="relative">
               <div className="flex items-center gap-2 mb-4">
                 <Crown className="w-6 h-6 text-amber-400" />
-                <h3 className="text-2xl font-bold text-white">Actualiza tu plan</h3>
+                <h3 className="text-2xl font-bold text-white">Contrata un nuevo plan</h3>
               </div>
               <p className="text-slate-300 mb-6">
                 Descubre funciones avanzadas y elige el plan que mejor se adapte a tu equipo.
