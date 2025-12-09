@@ -254,15 +254,22 @@ export default function PlanPage() {
     return () => controller.abort()
   }, [accountId])
 
-  const formattedPaymentMethod = useMemo(() => {
+  const paymentDetails = useMemo(() => {
     const brand = paymentMethod?.card_brand?.toUpperCase?.()
     const lastFour = paymentMethod?.card_last_four
+    const isCardPayment = Boolean(brand && lastFour)
 
-    if (brand && lastFour) {
-      return `${brand} •••• ${lastFour}`
+    return {
+      display: isCardPayment
+        ? `${brand} •••• ${lastFour}`
+        : paymentMethod
+          ? "Alternativo"
+          : "Método de pago no disponible",
+      actionLabel: isCardPayment ? "Cambiar tarjeta" : "Ir a portal de cliente",
+      actionUrl: isCardPayment
+        ? paymentMethod?.update_payment_method_url
+        : paymentMethod?.customer_portal_url,
     }
-
-    return "Método de pago no disponible"
   }, [paymentMethod])
 
   const sectionTitle = hasActiveSubscription ? "Actualizar tu plan" : "Contrata un nuevo plan"
@@ -295,21 +302,21 @@ export default function PlanPage() {
               <div>
                 <p className="text-sm text-slate-400">Método de pago</p>
                 <p className="text-white font-medium">
-                  {paymentLoading ? "Cargando método de pago..." : formattedPaymentMethod}
+                  {paymentLoading ? "Cargando método de pago..." : paymentDetails.display}
                 </p>
               </div>
 
               <Button
                 variant="outline"
                 className="border-slate-700 text-slate-200 hover:bg-slate-700/60"
-                disabled={paymentLoading || !paymentMethod?.update_payment_method_url}
+                disabled={paymentLoading || !paymentDetails.actionUrl}
                 onClick={() => {
-                  if (paymentMethod?.update_payment_method_url) {
-                    window.location.href = paymentMethod.update_payment_method_url
+                  if (paymentDetails.actionUrl) {
+                    window.location.href = paymentDetails.actionUrl
                   }
                 }}
               >
-                Cambiar tarjeta
+                {paymentDetails.actionLabel}
               </Button>
             </div>
           </div>
