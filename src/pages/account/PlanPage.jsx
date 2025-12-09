@@ -355,8 +355,8 @@ export default function PlanPage() {
               </Button>
               {hasActiveSubscription && !isCancelledSubscription && (
                 <Button
-                  variant="outline"
-                  className="mt-3 w-full border-red-500/50 text-red-200 hover:bg-red-500/10"
+                  variant="ghost"
+                  className="mt-3 w-full text-red-300 border border-red-500/40 hover:bg-red-500/20 bg-transparent"
                   onClick={handleCancelSubscription}
                 >
                   Cancelar suscripción
