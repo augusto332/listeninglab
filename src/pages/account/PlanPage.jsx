@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -13,6 +13,8 @@ export default function PlanPage() {
   const planTier = plan ?? "free"
   const isPaidPlan = planTier !== "free"
   const [showPlans, setShowPlans] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState(null)
+  const [paymentLoading, setPaymentLoading] = useState(false)
 
   const activeSubscriptionStatuses = ["active", "past_due", "unpaid", "cancelled"]
   const hasActiveSubscription = Boolean(
@@ -210,6 +212,66 @@ export default function PlanPage() {
     )
   }, [plan, planLoading])
 
+  useEffect(() => {
+    if (!accountId) return
+
+    const controller = new AbortController()
+    const fetchPaymentMethod = async () => {
+      setPaymentLoading(true)
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get_payment_method`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            },
+            body: JSON.stringify({ account_id: accountId }),
+            signal: controller.signal,
+          }
+        )
+
+        if (!response.ok) {
+          throw new Error("No se pudo obtener el método de pago")
+        }
+
+        const data = await response.json()
+        setPaymentMethod(data)
+      } catch (error) {
+        if (error.name !== "AbortError") {
+          console.error("Error obteniendo el método de pago:", error)
+          setPaymentMethod(null)
+        }
+      } finally {
+        setPaymentLoading(false)
+      }
+    }
+
+    fetchPaymentMethod()
+
+    return () => controller.abort()
+  }, [accountId])
+
+  const paymentDetails = useMemo(() => {
+    const brand = paymentMethod?.card_brand?.toUpperCase?.()
+    const lastFour = paymentMethod?.card_last_four
+    const isCardPayment = Boolean(brand && lastFour)
+
+    return {
+      display: isCardPayment
+        ? `${brand} •••• ${lastFour}`
+        : paymentMethod
+          ? "Alternativo"
+          : "Método de pago no disponible",
+      actionLabel: isCardPayment ? "Cambiar tarjeta" : "Ir a portal de cliente",
+      actionUrl: isCardPayment
+        ? paymentMethod?.update_payment_method_url
+        : paymentMethod?.customer_portal_url,
+    }
+  }, [paymentMethod])
+
   const sectionTitle = hasActiveSubscription ? "Actualizar tu plan" : "Contrata un nuevo plan"
 
   return (
@@ -233,6 +295,30 @@ export default function PlanPage() {
               </p>
             </div>
             {planBadge}
+          </div>
+
+          <div className="flex flex-col gap-3 p-4 rounded-lg bg-slate-800/30 border border-slate-700/50">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <p className="text-sm text-slate-400">Método de pago</p>
+                <p className="text-white font-medium">
+                  {paymentLoading ? "Cargando método de pago..." : paymentDetails.display}
+                </p>
+              </div>
+
+              <Button
+                variant="outline"
+                className="border-slate-700 text-slate-200 hover:bg-slate-700/60"
+                disabled={paymentLoading || !paymentDetails.actionUrl}
+                onClick={() => {
+                  if (paymentDetails.actionUrl) {
+                    window.location.href = paymentDetails.actionUrl
+                  }
+                }}
+              >
+                {paymentDetails.actionLabel}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
