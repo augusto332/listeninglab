@@ -9,10 +9,16 @@ import { CreditCard, Crown, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { planConfig } from "./constants"
 
 export default function PlanPage() {
-  const { plan, planLoading, accountId } = useAuth()
+  const { plan, planLoading, accountId, subscriptionId, subscriptionStatus } = useAuth()
   const planTier = plan ?? "free"
   const isPaidPlan = planTier !== "free"
   const [showPlans, setShowPlans] = useState(false)
+
+  const activeSubscriptionStatuses = ["active", "past_due", "unpaid", "cancelled"]
+  const hasActiveSubscription = Boolean(
+    subscriptionId && activeSubscriptionStatuses.includes(subscriptionStatus)
+  )
+  const isCancelledSubscription = subscriptionStatus === "cancelled"
 
   // Mapping de planes a variant_id de Lemon Squeezy
   const variantMapping = {
@@ -22,9 +28,7 @@ export default function PlanPage() {
   }
 
   // Llamada a edge function create_checkout
-  const handleCheckout = async (planId) => {
-    const variantId = variantMapping[planId]
-
+  const handleCheckout = async (variantId) => {
     if (!variantId || !accountId) return
 
     try {
@@ -51,6 +55,71 @@ export default function PlanPage() {
     } catch (error) {
       console.error("Error creando checkout:", error)
     }
+  }
+
+  const handleUpdateSubscription = async (variantId) => {
+    if (!variantId || !subscriptionId) return
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update_subscription`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            subscription_id: subscriptionId,
+            action: "update",
+            variant_id: variantId,
+            invoice_immediately: false,
+            disable_prorations: false,
+          }),
+        }
+      )
+
+      const data = await response.json()
+
+      if (data?.url) {
+        window.location.href = data.url
+      }
+    } catch (error) {
+      console.error("Error actualizando la suscripción:", error)
+    }
+  }
+
+  const handleCancelSubscription = async () => {
+    if (!subscriptionId) return
+
+    try {
+      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update_subscription`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          subscription_id: subscriptionId,
+          action: "cancel",
+        }),
+      })
+    } catch (error) {
+      console.error("Error cancelando la suscripción:", error)
+    }
+  }
+
+  const handlePlanSelection = (planId) => {
+    const variantId = variantMapping[planId]
+
+    if (!variantId) return
+
+    if (hasActiveSubscription) {
+      handleUpdateSubscription(variantId)
+      return
+    }
+
+    handleCheckout(variantId)
   }
 
   const availablePlans = [
@@ -141,6 +210,8 @@ export default function PlanPage() {
     )
   }, [plan, planLoading])
 
+  const sectionTitle = hasActiveSubscription ? "Actualizar tu plan" : "Contrata un nuevo plan"
+
   return (
     <div className="space-y-6">
       <Card className="bg-gradient-to-br from-slate-800/50 to-slate-800/30 border-slate-700/50 backdrop-blur-sm">
@@ -173,11 +244,19 @@ export default function PlanPage() {
             <div className="relative">
               <div className="flex items-center gap-2 mb-4">
                 <Crown className="w-6 h-6 text-amber-400" />
-                <h3 className="text-2xl font-bold text-white">Contrata un nuevo plan</h3>
+                <h3 className="text-2xl font-bold text-white">{sectionTitle}</h3>
               </div>
               <p className="text-slate-300 mb-6">
-                Descubre funciones avanzadas y elige el plan que mejor se adapte a tu equipo.
+                {hasActiveSubscription
+                  ? "Cambia tu plan actual según las necesidades de tu equipo."
+                  : "Descubre funciones avanzadas y elige el plan que mejor se adapte a tu equipo."}
               </p>
+
+              {isCancelledSubscription && (
+                <div className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-amber-200">
+                  Tu suscripción fue cancelada. Elige un plan para reactivarla.
+                </div>
+              )}
 
               <Button
                 size="lg"
@@ -188,6 +267,15 @@ export default function PlanPage() {
                 {showPlans ? "Ocultar planes" : "Ver planes disponibles"}
                 {showPlans ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
               </Button>
+              {hasActiveSubscription && !isCancelledSubscription && (
+                <Button
+                  variant="outline"
+                  className="mt-3 w-full border-red-500/50 text-red-200 hover:bg-red-500/10"
+                  onClick={handleCancelSubscription}
+                >
+                  Cancelar suscripción
+                </Button>
+              )}
             </div>
           </div>
 
@@ -217,31 +305,35 @@ export default function PlanPage() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="space-y-6">
-                    <div className="space-y-3">
-                      {planItem.features.map((feature, idx) => (
-                        <div key={idx} className="flex items-start gap-3">
-                          <Check className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-slate-300">{feature}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-3">
+                        {planItem.features.map((feature, idx) => (
+                          <div key={idx} className="flex items-start gap-3">
+                            <Check className="w-4 h-4 text-emerald-400 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-slate-300">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
 
-                    <Button
-                      className={`w-full ${
-                        planTier === planItem.id
-                          ? "bg-emerald-600 hover:bg-emerald-700"
-                          : planItem.popular
-                            ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                            : "bg-slate-700 hover:bg-slate-600"
-                      }`}
-                      disabled={planTier === planItem.id}
-                      onClick={() => handleCheckout(planItem.id)}
-                    >
-                      {planTier === planItem.id ? "Plan actual" : planItem.cta}
-                    </Button>
-                  </CardContent>
-                </Card>
+                      <Button
+                        className={`w-full ${
+                          planTier === planItem.id
+                            ? "bg-emerald-600 hover:bg-emerald-700"
+                            : planItem.popular
+                              ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                              : "bg-slate-700 hover:bg-slate-600"
+                        }`}
+                        disabled={planTier === planItem.id}
+                        onClick={() => handlePlanSelection(planItem.id)}
+                      >
+                        {planTier === planItem.id
+                          ? "Plan actual"
+                          : hasActiveSubscription
+                            ? `Cambiar a ${planItem.label}`
+                            : planItem.cta}
+                      </Button>
+                    </CardContent>
+                  </Card>
               ))}
             </div>
           )}
