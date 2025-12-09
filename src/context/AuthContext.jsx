@@ -9,6 +9,8 @@ const AuthContext = createContext({
   planLoading: true,
   role: 'contributor',
   accountId: undefined,
+  subscriptionId: null,
+  subscriptionStatus: null,
 })
 
 export const AuthProvider = ({ children }) => {
@@ -18,6 +20,8 @@ export const AuthProvider = ({ children }) => {
   const [planLoading, setPlanLoading] = useState(true)
   const [role, setRole] = useState('contributor')
   const [accountId, setAccountId] = useState(undefined)
+  const [subscriptionId, setSubscriptionId] = useState(null)
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null)
 
   useEffect(() => {
     const fetchUserPlan = async (currentSession) => {
@@ -37,6 +41,8 @@ export const AuthProvider = ({ children }) => {
           setPlan('free')
           setRole('contributor')
           setAccountId(null)
+          setSubscriptionId(null)
+          setSubscriptionStatus(null)
           setPlanLoading(false)
           return
         }
@@ -45,6 +51,8 @@ export const AuthProvider = ({ children }) => {
         const nextAccountId = profile?.account_id ?? null
 
         let nextPlan = 'free'
+        let nextSubscriptionId = null
+        let nextSubscriptionStatus = null
 
         if (nextAccountId) {
           const {
@@ -52,26 +60,30 @@ export const AuthProvider = ({ children }) => {
             error: accountError,
           } = await supabase
             .from('accounts')
-            .select('plan_id, plans(name)')
+            .select('plan_id, subscription_id, subscription_status, plans(name)')
             .eq('id', nextAccountId)
-            .single();
+            .single()
 
           if (!accountError && account?.plans) {
             // Normalizar formato (Supabase puede devolver array u objeto)
             const planName = Array.isArray(account.plans)
               ? account.plans[0]?.name
-              : account.plans?.name;
+              : account.plans?.name
 
-          if (planName) {
-            nextPlan = planName;
+            if (planName) {
+              nextPlan = planName
+            }
           }
-        }
-}
 
+          nextSubscriptionId = account?.subscription_id ?? null
+          nextSubscriptionStatus = account?.subscription_status ?? null
+        }
 
         setPlan(nextPlan)
         setRole(nextRole)
         setAccountId(nextAccountId)
+        setSubscriptionId(nextSubscriptionId)
+        setSubscriptionStatus(nextSubscriptionStatus)
         setPlanLoading(false)
         return
       }
@@ -79,6 +91,8 @@ export const AuthProvider = ({ children }) => {
       setPlan('free')
       setRole('contributor')
       setAccountId(null)
+      setSubscriptionId(null)
+      setSubscriptionStatus(null)
       setPlanLoading(false)
     }
 
@@ -105,7 +119,17 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ session, user: session?.user, loading, plan, planLoading, role, accountId }}
+      value={{
+        session,
+        user: session?.user,
+        loading,
+        plan,
+        planLoading,
+        role,
+        accountId,
+        subscriptionId,
+        subscriptionStatus,
+      }}
     >
       {children}
     </AuthContext.Provider>
