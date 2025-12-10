@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CreditCard, Crown, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { planConfig } from "./constants"
+import { ConfirmationModal } from "@/components/ConfirmationModal"
 
 export default function PlanPage() {
   const { plan, planLoading, accountId, subscriptionId, subscriptionStatus } = useAuth()
@@ -15,6 +16,14 @@ export default function PlanPage() {
   const [showPlans, setShowPlans] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState(null)
   const [paymentLoading, setPaymentLoading] = useState(false)
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    confirmLabel: "Confirmar",
+    cancelLabel: "Cancelar",
+    onConfirm: null,
+  })
 
   const activeSubscriptionStatuses = ["active", "past_due", "unpaid", "cancelled"]
   const hasActiveSubscription = Boolean(
@@ -111,13 +120,42 @@ export default function PlanPage() {
     }
   }
 
+  const closeConfirmationModal = () => {
+    setConfirmationModal((prev) => ({ ...prev, isOpen: false, onConfirm: null }))
+  }
+
+  const openConfirmationModal = (config) => {
+    setConfirmationModal({
+      isOpen: true,
+      title: config.title,
+      message: config.message,
+      confirmLabel: config.confirmLabel ?? "Confirmar",
+      cancelLabel: config.cancelLabel ?? "Cancelar",
+      onConfirm: config.onConfirm,
+    })
+  }
+
+  const confirmAction = () => {
+    if (typeof confirmationModal.onConfirm === "function") {
+      confirmationModal.onConfirm()
+    }
+    closeConfirmationModal()
+  }
+
   const handlePlanSelection = (planId) => {
     const variantId = variantMapping[planId]
 
     if (!variantId) return
 
     if (hasActiveSubscription) {
-      handleUpdateSubscription(variantId)
+      openConfirmationModal({
+        title: "Confirmar cambio de plan",
+        message:
+          "¿Estás seguro que querés cambiar tu plan? Esta acción modificará tu suscripción de inmediato.",
+        confirmLabel: "Confirmar",
+        cancelLabel: "Cancelar",
+        onConfirm: () => handleUpdateSubscription(variantId),
+      })
       return
     }
 
@@ -357,7 +395,16 @@ export default function PlanPage() {
                 <Button
                   variant="ghost"
                   className="mt-3 w-full text-red-300 border border-red-500/40 hover:bg-red-500/20 bg-transparent"
-                  onClick={handleCancelSubscription}
+                  onClick={() =>
+                    openConfirmationModal({
+                      title: "Cancelar suscripción",
+                      message:
+                        "¿Estás seguro que querés cancelar tu suscripción? Perderás acceso a las funciones premium al finalizar tu período de facturación.",
+                      confirmLabel: "Sí, cancelar",
+                      cancelLabel: "Volver",
+                      onConfirm: handleCancelSubscription,
+                    })
+                  }
                 >
                   Cancelar suscripción
                 </Button>
@@ -424,7 +471,17 @@ export default function PlanPage() {
             </div>
           )}
         </div>
-      )}
+          )}
+
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel={confirmationModal.confirmLabel}
+        cancelLabel={confirmationModal.cancelLabel}
+        onConfirm={confirmAction}
+        onCancel={closeConfirmationModal}
+      />
     </div>
   )
 }
