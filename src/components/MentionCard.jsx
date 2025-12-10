@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmationModal } from "@/components/ConfirmationModal"
 import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/context/AuthContext"
 import { FaTwitter, FaYoutube, FaRedditAlien, FaEllipsisV, FaInstagram } from "react-icons/fa"
@@ -61,6 +62,12 @@ export default function ModernMentionCard({
 
   const [expanded, setExpanded] = useState(false)
   const [optionsOpen, setOptionsOpen] = useState(false)
+  const [confirmationModal, setConfirmationModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  })
   const favorite = mention.is_highlighted === true || mention.is_highlighted === "true"
 
   const topComments = Array.isArray(mention?.top_comments) ? mention.top_comments : []
@@ -71,6 +78,37 @@ export default function ModernMentionCard({
     if (onToggleHighlight) {
       await onToggleHighlight(mention)
     }
+  }
+
+  const closeConfirmationModal = () => {
+    setConfirmationModal((prev) => ({ ...prev, isOpen: false, onConfirm: null }))
+  }
+
+  const confirmAction = async () => {
+    if (typeof confirmationModal.onConfirm === "function") {
+      await confirmationModal.onConfirm()
+    }
+    closeConfirmationModal()
+  }
+
+  const handleMarkAsIrrelevant = () => {
+    setConfirmationModal({
+      isOpen: true,
+      title: "Marcar como irrelevante",
+      message:
+        "¿Estás seguro de que deseas marcar esta mención como irrelevante? Las menciones irrelevantes ya no se mostrarán.",
+      onConfirm: async () => {
+        try {
+          await supabase
+            .from("fact_mentions")
+            .update({ is_relevant: false })
+            .eq("content_id", mention.content_id)
+          if (onHide) onHide()
+        } catch (error) {
+          console.error("Error updating mention relevance", error)
+        }
+      },
+    })
   }
 
   // Get mention sentiment (for the main post)
@@ -473,8 +511,9 @@ export default function ModernMentionCard({
   const mentionSentimentBadge = getMentionSentiment()
 
   return (
-    <TooltipProvider>
-      <Card
+    <>
+      <TooltipProvider>
+        <Card
         onClick={() => setExpanded((e) => !e)}
         className="relative bg-gradient-to-br from-slate-800/50 to-slate-800/30 backdrop-blur-sm border border-slate-700/50 hover:bg-gradient-to-br hover:from-slate-800/70 hover:to-slate-800/50 transition-all duration-200 rounded-xl cursor-pointer shadow-lg w-full"
       >
@@ -500,19 +539,7 @@ export default function ModernMentionCard({
                 onClick={async (e) => {
                   e.stopPropagation()
                   setOptionsOpen(false)
-                  const confirmed = window.confirm(
-                    "¿Estás seguro de que deseas marcar esta mención como irrelevante? Las menciones irrelevantes ya no se mostrarán.",
-                  )
-                  if (!confirmed) return
-                  try {
-                    await supabase
-                      .from("fact_mentions")
-                      .update({ is_relevant: false })
-                      .eq("content_id", mention.content_id)
-                    if (onHide) onHide()
-                  } catch (error) {
-                    console.error("Error updating mention relevance", error)
-                  }
+                  handleMarkAsIrrelevant()
                 }}
                 className="flex items-center gap-3 w-full text-left p-3 rounded-md hover:bg-slate-700/50 text-slate-300 hover:text-white transition-colors"
               >
@@ -636,7 +663,18 @@ export default function ModernMentionCard({
             </div>
           </div>
         </CardContent>
-      </Card>
-    </TooltipProvider>
+        </Card>
+      </TooltipProvider>
+
+      <ConfirmationModal
+        isOpen={confirmationModal.isOpen}
+        title={confirmationModal.title}
+        message={confirmationModal.message}
+        confirmLabel="Confirmar"
+        cancelLabel="Cancelar"
+        onConfirm={confirmAction}
+        onCancel={closeConfirmationModal}
+      />
+    </>
   )
 }
