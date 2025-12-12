@@ -1,5 +1,6 @@
 // REMOVIDO: "use client"
 
+import logo from "@/assets/logo.png"
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Input } from "@/components/ui/input"
@@ -25,7 +26,6 @@ import {
   MessageSquare,
   Bell,
   TrendingUp,
-  Sparkles,
   CheckCircle,
   ArrowRight,
   Hash,
@@ -204,8 +204,8 @@ export default function ModernOnboardingHome() {
             >
               {/* Header */}
               <div className="text-center mb-12">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-6">
-                  <Sparkles className="w-8 h-8 text-white" />
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-6 overflow-hidden">
+                  <img src={logo} alt="Listening Lab" className="w-full h-full object-cover" />
                 </div>
                 <h1 className="text-4xl font-semibold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent mb-4">
                   Bienvenido a Listening Lab

@@ -1,3 +1,4 @@
+import logo from "@/assets/logo.png"
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { supabase } from "@/lib/supabaseClient"
@@ -7,7 +8,6 @@ import {
   Mail,
   Lock,
   User,
-  Sparkles,
   ArrowRight,
   AlertCircle,
   CheckCircle,
@@ -147,8 +147,8 @@ export default function ModernRegister() {
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-6">
-              <Sparkles className="w-8 h-8 text-white" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl mb-6 overflow-hidden">
+              <img src={logo} alt="Listening Lab" className="w-full h-full object-cover" />
             </div>
             <h1 className="text-3xl font-semibold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent mb-2">
               Crear cuenta
