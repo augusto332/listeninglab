@@ -1,3 +1,4 @@
+import logo from "@/assets/logo.png"
 import { useState, useEffect, useMemo, useRef, useReducer } from "react"
 import { useNavigate, useLocation, Routes, Route, Navigate } from "react-router-dom"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -19,7 +20,6 @@ import {
   CircleHelp,
   MessageSquare,
   ChevronDown,
-  Sparkles,
   LogOut,
   Headset,
   Menu,
@@ -943,8 +943,12 @@ export default function ModernSocialListeningApp({ onLogout }) {
               onClick={handleLogoClick}
               className="flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-blue-500/50 rounded-lg"
             >
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
+              <div className="w-8 h-8 rounded-lg overflow-hidden bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                <img
+                  src={logo}
+                  alt="Listening Lab"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">
                 Listening Lab
