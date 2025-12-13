@@ -1,4 +1,4 @@
-import { format } from "date-fns"
+import { format, isValid } from "date-fns"
 import { es } from "date-fns/locale"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { Switch } from "@/components/ui/switch"
@@ -24,15 +24,15 @@ export default function KeywordTable({ keywords, onToggle }) {
       </TableHeader>
       <TableBody>
         {keywords.map((k) => {
-          const dates = [
-            k.last_processed_at_yt,
-            k.last_processed_at_rd,
-            k.last_processed_at_tw,
-          ]
+          const timestampFields = ["last_processed_at_yt", "last_processed_at_rd"]
+
+          const dates = timestampFields
+            .map((field) => k[field])
             .filter(Boolean)
-            .map((d) => new Date(d))
-          const lastDate =
-            dates.length > 0 ? new Date(Math.max(...dates)) : null
+            .map((value) => new Date(value))
+            .filter((date) => isValid(date))
+
+          const lastDate = dates.length > 0 ? new Date(Math.max(...dates)) : null
           return (
             <TableRow key={k.keyword_id}>
               <TableCell className="font-medium">{k.keyword}</TableCell>
@@ -40,7 +40,7 @@ export default function KeywordTable({ keywords, onToggle }) {
                 {format(new Date(k.created_at), "dd/MM/yyyy", { locale: es })}
               </TableCell>
               <TableCell>
-                {lastDate
+                {lastDate && isValid(lastDate)
                   ? format(lastDate, "dd/MM/yyyy HH:mm", { locale: es })
                   : "-"}
               </TableCell>
