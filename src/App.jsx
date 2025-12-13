@@ -551,9 +551,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
 
     const { data, error } = await supabase
       .from("dim_keywords")
-      .select(
-        "keyword, keyword_id, created_at, active, last_processed_at_yt, last_processed_at_rd, last_processed_at_tw",
-      )
+      .select("keyword, keyword_id, created_at, active, last_processed_at_yt, last_processed_at_rd")
       .eq("account_id", accountId)
       .order("created_at", { ascending: false })
     if (error) {
