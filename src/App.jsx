@@ -23,6 +23,9 @@ import {
   LogOut,
   Headset,
   Menu,
+  Bell,
+  CreditCard,
+  AlertCircle,
 } from "lucide-react"
 import { formatDistanceToNow, parseISO } from "date-fns"
 import { es } from "date-fns/locale"
@@ -31,6 +34,7 @@ import ReportsTable from "@/components/ReportsTable"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Skeleton } from "@/components/ui/skeleton"
 import AISummary from "@/components/AISummary"
+import NotificationsMenu from "./components/NotificationsMenu"
 
 const normalizeQualitativeTags = (mention) =>
   Array.isArray(mention?.qualitative_tags)
@@ -955,6 +959,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
           </div>
 
           <div className="flex items-center gap-4">
+            <NotificationsMenu />
+
             <div className="relative" ref={helpMenuRef}>
               <Button
                 variant="ghost"
@@ -1271,4 +1277,3 @@ export default function ModernSocialListeningApp({ onLogout }) {
     </div>
   )
 }
-
