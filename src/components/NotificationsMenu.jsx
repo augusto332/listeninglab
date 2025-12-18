@@ -1,11 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { formatDistanceToNow } from "date-fns"
+import { es } from "date-fns/locale"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { supabase } from "@/lib/supabaseClient"
+import { useAuth } from "@/context/AuthContext"
 import { AlertCircle, Bell, CreditCard, MessageSquare } from "lucide-react"
 
 export default function NotificationsMenu() {
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
+  const [notifications, setNotifications] = useState([])
+  const { user, accountId } = useAuth()
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -23,37 +29,101 @@ export default function NotificationsMenu() {
     }
   }, [])
 
-  const notifications = useMemo(
-    () => [
-      {
-        id: 1,
-        type: "payment",
-        title: "Pago procesado",
-        description: "Tu suscripción Pro se renovó correctamente.",
-        timestamp: "Hace 2h",
-        unread: true,
-      },
-      {
-        id: 2,
-        type: "system",
-        title: "Actualización del sistema",
-        description: "Nuevo dashboard de reportes disponible.",
-        timestamp: "Hace 5h",
-        unread: true,
-      },
-      {
-        id: 3,
-        type: "mention",
-        title: "Nueva mención",
-        description: "Se detectó una mención en Twitter sobre tu marca.",
-        timestamp: "Ayer",
-        unread: false,
-      },
-    ],
-    []
-  )
+  const formatTimestamp = (value) => {
+    if (!value) return ""
+    return formatDistanceToNow(new Date(value), { addSuffix: true, locale: es })
+  }
 
-  const unreadCount = notifications.filter((notification) => notification.unread).length
+  const fetchNotifications = useCallback(async () => {
+    if (!user) {
+      setNotifications([])
+      return
+    }
+
+    let query = supabase
+      .from("notifications")
+      .select("id, account_id, user_id, type, title, body, meta, is_read, created_at")
+      .order("created_at", { ascending: false })
+
+    if (accountId) {
+      query = query.eq("account_id", accountId)
+    } else {
+      query = query.eq("user_id", user.id)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      console.error("Error fetching notifications", error)
+      return
+    }
+
+    setNotifications(data ?? [])
+  }, [accountId, user])
+
+  useEffect(() => {
+    fetchNotifications()
+  }, [fetchNotifications])
+
+  const unreadCount = notifications.filter((notification) => !notification.is_read).length
+
+  const handleMarkAsRead = async (notificationId) => {
+    const target = notifications.find((notification) => notification.id === notificationId)
+    if (!target || target.is_read) return
+
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((notification) =>
+        notification.id === notificationId ? { ...notification, is_read: true } : notification
+      )
+    )
+
+    const { error } = await supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", notificationId)
+
+    if (error) {
+      console.error("Error marking notification as read", error)
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notification) =>
+          notification.id === notificationId ? { ...notification, is_read: false } : notification
+        )
+      )
+    }
+  }
+
+  const handleMarkAllAsRead = async () => {
+    if (!notifications.length) return
+
+    const previousNotifications = notifications.map((notification) => ({ ...notification }))
+
+    setNotifications((prevNotifications) =>
+      prevNotifications.map((notification) => ({ ...notification, is_read: true }))
+    )
+
+    let query = supabase.from("notifications").update({ is_read: true })
+
+    if (accountId) {
+      query = query.eq("account_id", accountId)
+    } else if (user) {
+      query = query.eq("user_id", user.id)
+    }
+
+    const { error } = await query
+
+    if (error) {
+      console.error("Error marking all notifications as read", error)
+      setNotifications(previousNotifications)
+    }
+  }
+
+  const handleToggleMenu = () => {
+    const nextOpen = !open
+    setOpen(nextOpen)
+    if (!open) {
+      fetchNotifications()
+    }
+  }
 
   const getNotificationIcon = (type) => {
     const iconClasses = "w-4 h-4"
@@ -73,7 +143,7 @@ export default function NotificationsMenu() {
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => setOpen(!open)}
+        onClick={handleToggleMenu}
         className="text-slate-300 hover:text-white relative"
         aria-label="Abrir notificaciones"
       >
@@ -96,46 +166,61 @@ export default function NotificationsMenu() {
               variant="secondary"
               size="sm"
               className="text-xs bg-white/5 text-slate-200 hover:bg-white/10"
+              onClick={handleMarkAllAsRead}
             >
               Marcar todas como leídas
             </Button>
           </div>
 
           <div className="space-y-2">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className={cn(
-                  "flex gap-3 p-3 rounded-lg border transition-colors",
-                  notification.unread
-                    ? "border-blue-500/30 bg-blue-500/5"
-                    : "border-slate-700/60 bg-slate-800/60 hover:bg-slate-800"
-                )}
-              >
+            {notifications.map((notification) => {
+              const unread = !notification.is_read
+              return (
                 <div
+                  key={notification.id}
                   className={cn(
-                    "w-9 h-9 rounded-full flex items-center justify-center",
-                    notification.unread
-                      ? "bg-blue-500/20 text-blue-200"
-                      : "bg-slate-700/50 text-slate-200"
+                    "flex gap-3 p-3 rounded-lg border transition-colors",
+                    unread
+                      ? "border-blue-500/30 bg-blue-500/5"
+                      : "border-slate-700/60 bg-slate-800/60 hover:bg-slate-800"
                   )}
+                  onClick={() => handleMarkAsRead(notification.id)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault()
+                      handleMarkAsRead(notification.id)
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
                 >
-                  {getNotificationIcon(notification.type)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-semibold text-white leading-tight">
-                      {notification.title}
-                    </p>
-                    {notification.unread && (
-                      <span className="mt-0.5 inline-flex w-2 h-2 rounded-full bg-blue-400" />
+                  <div
+                    className={cn(
+                      "w-9 h-9 rounded-full flex items-center justify-center",
+                      unread
+                        ? "bg-blue-500/20 text-blue-200"
+                        : "bg-slate-700/50 text-slate-200"
                     )}
+                  >
+                    {getNotificationIcon(notification.type)}
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">{notification.description}</p>
-                  <p className="text-[11px] text-slate-500 mt-1">{notification.timestamp}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-semibold text-white leading-tight">
+                        {notification.title}
+                      </p>
+                      {unread && (
+                        <span className="mt-0.5 inline-flex w-2 h-2 rounded-full bg-blue-400" />
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed">{notification.body}</p>
+                    <p className="text-[11px] text-slate-500 mt-1">
+                      {formatTimestamp(notification.created_at)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )}
