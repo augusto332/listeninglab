@@ -152,7 +152,7 @@ export default function RightSidebar({
       <aside
         className={cn(
           "w-80 bg-gradient-to-br from-slate-800/50 to-slate-800/30 backdrop-blur-xl border border-slate-700/50 shadow-2xl rounded-2xl",
-          "self-start flex flex-col overflow-hidden",
+          "self-start flex flex-col overflow-hidden lg:sticky lg:top-[100px] lg:max-h-[calc(100vh-120px)] lg:overflow-y-auto",
           className,
         )}
       >
