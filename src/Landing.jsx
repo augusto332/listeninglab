@@ -229,6 +229,16 @@ export default function Landing() {
     },
   ]
 
+  const infoSections = [
+    { id: "sobre-nosotros", title: "Sobre Nosotros", category: "company" },
+    { id: "blog", title: "Blog", category: "company" },
+    { id: "privacidad", title: "Privacidad", category: "legal" },
+    { id: "terminos-y-condiciones", title: "Términos y condiciones", category: "legal" },
+  ]
+
+  const companyLinks = infoSections.filter((section) => section.category === "company")
+  const legalLinks = infoSections.filter((section) => section.category === "legal")
+
   const faqs = [
     {
       question: "¿Qué plataformas soportan?",
@@ -821,6 +831,23 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Información adicional */}
+      <section className="py-20 px-6 bg-slate-900/50">
+        <div className="max-w-5xl mx-auto space-y-12">
+          {infoSections.map(({ id, title }, index) => (
+            <AnimatedSection key={id} delay={index * 0.1}>
+              <div
+                id={id}
+                className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-800/30 p-8 shadow-lg backdrop-blur-sm"
+              >
+                <h3 className="text-2xl font-bold text-white mb-3">{title}</h3>
+                <p className="text-slate-400">Proximamente</p>
+              </div>
+            </AnimatedSection>
+          ))}
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-slate-700/50 py-12 px-6">
         <div className="max-w-7xl mx-auto">
@@ -887,14 +914,14 @@ export default function Landing() {
               <div>
                 <h4 className="font-semibold text-white mb-4">Compañía</h4>
                 <ul className="space-y-2">
-                  {["Sobre Nosotros", "Blog"].map((item, index) => (
-                    <li key={index}>
+                  {companyLinks.map((item) => (
+                    <li key={item.id}>
                       <motion.a
                         whileHover={{ x: 5 }}
-                        href="#"
+                        href={`#${item.id}`}
                         className="text-sm text-slate-400 hover:text-white transition-colors inline-block"
                       >
-                        {item}
+                        {item.title}
                       </motion.a>
                     </li>
                   ))}
@@ -907,14 +934,14 @@ export default function Landing() {
               <div>
                 <h4 className="font-semibold text-white mb-4">Legal</h4>
                 <ul className="space-y-2">
-                  {["Privacidad", "Términos y condiciones"].map((item, index) => (
-                    <li key={index}>
+                  {legalLinks.map((item) => (
+                    <li key={item.id}>
                       <motion.a
                         whileHover={{ x: 5 }}
-                        href="#"
+                        href={`#${item.id}`}
                         className="text-sm text-slate-400 hover:text-white transition-colors inline-block"
                       >
-                        {item}
+                        {item.title}
                       </motion.a>
                     </li>
                   ))}
