@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { motion, useInView } from "framer-motion"
+import { Link } from "react-router-dom"
 import {
   Sparkles,
   TrendingUp,
@@ -230,10 +231,10 @@ export default function Landing() {
   ]
 
   const infoSections = [
-    { id: "sobre-nosotros", title: "Sobre Nosotros", category: "company" },
-    { id: "blog", title: "Blog", category: "company" },
-    { id: "privacidad", title: "Privacidad", category: "legal" },
-    { id: "terminos-y-condiciones", title: "Términos y condiciones", category: "legal" },
+    { id: "sobre-nosotros", title: "Sobre Nosotros", category: "company", path: "/sobre-nosotros" },
+    { id: "blog", title: "Blog", category: "company", path: "/blog" },
+    { id: "privacidad", title: "Privacidad", category: "legal", path: "/privacidad" },
+    { id: "terminos-y-condiciones", title: "Términos y condiciones", category: "legal", path: "/terminos-y-condiciones" },
   ]
 
   const companyLinks = infoSections.filter((section) => section.category === "company")
@@ -831,23 +832,6 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Información adicional */}
-      <section className="py-20 px-6 bg-slate-900/50">
-        <div className="max-w-5xl mx-auto space-y-12">
-          {infoSections.map(({ id, title }, index) => (
-            <AnimatedSection key={id} delay={index * 0.1}>
-              <div
-                id={id}
-                className="rounded-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-800/30 p-8 shadow-lg backdrop-blur-sm"
-              >
-                <h3 className="text-2xl font-bold text-white mb-3">{title}</h3>
-                <p className="text-slate-400">Proximamente</p>
-              </div>
-            </AnimatedSection>
-          ))}
-        </div>
-      </section>
-
       {/* Footer */}
       <footer className="border-t border-slate-700/50 py-12 px-6">
         <div className="max-w-7xl mx-auto">
@@ -916,13 +900,11 @@ export default function Landing() {
                 <ul className="space-y-2">
                   {companyLinks.map((item) => (
                     <li key={item.id}>
-                      <motion.a
-                        whileHover={{ x: 5 }}
-                        href={`#${item.id}`}
-                        className="text-sm text-slate-400 hover:text-white transition-colors inline-block"
-                      >
-                        {item.title}
-                      </motion.a>
+                      <motion.div whileHover={{ x: 5 }}>
+                        <Link to={item.path} className="text-sm text-slate-400 hover:text-white transition-colors inline-block">
+                          {item.title}
+                        </Link>
+                      </motion.div>
                     </li>
                   ))}
                 </ul>
@@ -936,13 +918,11 @@ export default function Landing() {
                 <ul className="space-y-2">
                   {legalLinks.map((item) => (
                     <li key={item.id}>
-                      <motion.a
-                        whileHover={{ x: 5 }}
-                        href={`#${item.id}`}
-                        className="text-sm text-slate-400 hover:text-white transition-colors inline-block"
-                      >
-                        {item.title}
-                      </motion.a>
+                      <motion.div whileHover={{ x: 5 }}>
+                        <Link to={item.path} className="text-sm text-slate-400 hover:text-white transition-colors inline-block">
+                          {item.title}
+                        </Link>
+                      </motion.div>
                     </li>
                   ))}
                 </ul>

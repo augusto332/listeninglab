@@ -18,6 +18,7 @@ import Landing from './Landing' // 👈 NUEVA IMPORTACIÓN
 import Support from './Support'
 import PaymentSuccess from './PaymentSuccess'
 import PaymentCancelled from './PaymentCancelled'
+import InfoPage from './pages/InfoPage'
 
 function Root() {
   const { session, loading } = useAuth()
@@ -84,6 +85,10 @@ function Root() {
               </ProtectedRoute>
             }
           />
+          <Route path="/sobre-nosotros" element={<InfoPage title="Sobre Nosotros" />} />
+          <Route path="/blog" element={<InfoPage title="Blog" />} />
+          <Route path="/privacidad" element={<InfoPage title="Privacidad" />} />
+          <Route path="/terminos-y-condiciones" element={<InfoPage title="Términos y condiciones" />} />
 
           {/* Cualquier otra ruta redirige según el estado de sesión */}
           <Route
