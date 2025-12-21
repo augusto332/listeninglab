@@ -1,5 +1,8 @@
 "use client"
+import dashboardDemo from "@/assets/dashboard screen.png"
 import logo from "@/assets/logo.png"
+import reportsDemo from "@/assets/reportes screen.png"
+import startDemo from "@/assets/inicio screen.png"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
@@ -33,6 +36,7 @@ export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [openFaq, setOpenFaq] = useState(null)
+  const [currentDemoIndex, setCurrentDemoIndex] = useState(0)
 
   // Text carousel states
   const [currentHeadingIndex, setCurrentHeadingIndex] = useState(0)
@@ -47,6 +51,12 @@ export default function Landing() {
     "Analiza la competencia y descubre oportunidades de mercado. Identifica qué estrategias funcionan y optimiza tu presencia digital con insights accionables.",
     "Identifica crisis de reputación antes de que escalen. Recibe alertas instantáneas sobre menciones negativas y protege la imagen de tu marca proactivamente.",
     "Optimiza tu estrategia de contenido con datos reales. Descubre qué temas resuenan con tu audiencia y mejora tu engagement en redes sociales.",
+  ]
+
+  const demoImages = [
+    { src: startDemo, alt: "Pantalla de inicio de Listening Lab" },
+    { src: dashboardDemo, alt: "Dashboard principal de Listening Lab" },
+    { src: reportsDemo, alt: "Reportes generados en Listening Lab" },
   ]
 
   // Carousel effect for heading
@@ -70,6 +80,15 @@ export default function Landing() {
 
     return () => clearInterval(interval)
   }, [])
+
+  // Demo carousel auto-rotation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentDemoIndex((prev) => (prev + 1) % demoImages.length)
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [demoImages.length])
 
   const features = [
     {
@@ -661,10 +680,40 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800/50 to-slate-800/30 border border-slate-700/50 aspect-video flex items-center justify-center">
-            <div className="text-center">
-              <TrendingUp className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-500">Demo interactivo próximamente</p>
+          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800/50 to-slate-800/30 border border-slate-700/50 aspect-video flex items-center justify-center shadow-xl shadow-black/20">
+            {demoImages.map((image, index) => (
+              <div
+                key={image.alt}
+                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  currentDemoIndex === index ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                <div className="w-full h-full p-4 md:p-8">
+                  <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-700/60 bg-slate-900/40 backdrop-blur-sm">
+                    <img
+                      src={image.src}
+                      alt={image.alt}
+                      className="w-full h-full object-contain"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent pointer-events-none"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-slate-900/70 backdrop-blur-md px-3 py-2 rounded-full border border-slate-700/70">
+              {demoImages.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentDemoIndex(index)}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    currentDemoIndex === index
+                      ? "w-6 bg-gradient-to-r from-blue-400 to-purple-400 shadow-md shadow-purple-500/30"
+                      : "w-2.5 bg-slate-600 hover:bg-slate-500"
+                  }`}
+                  aria-label={`Mostrar slide ${index + 1}`}
+                />
+              ))}
             </div>
           </div>
         </div>
