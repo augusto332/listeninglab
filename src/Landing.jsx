@@ -452,14 +452,6 @@ export default function Landing() {
                 Crear cuenta gratis
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-slate-700 text-slate-300 hover:bg-slate-800/50 bg-transparent"
-                onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })}
-              >
-                Ver Demo
-              </Button>
             </div>
 
             {/* Social Proof */}
@@ -644,28 +636,6 @@ export default function Landing() {
                 </Card>
               )
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* Demo Section - Placeholder */}
-      <section id="demo" className="py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge variant="secondary" className="mb-4 bg-slate-800/50 text-slate-300 border-slate-700/50">
-              Demo
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Mira Listening Lab en acción</h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-              Descubre cómo nuestra herramienta te ayuda a entender tu presencia en redes sociales
-            </p>
-          </div>
-
-          <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800/50 to-slate-800/30 border border-slate-700/50 aspect-video flex items-center justify-center">
-            <div className="text-center">
-              <TrendingUp className="w-16 h-16 text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-500">Demo interactivo próximamente</p>
-            </div>
           </div>
         </div>
       </section>
