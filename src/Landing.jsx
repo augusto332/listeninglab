@@ -688,15 +688,13 @@ export default function Landing() {
                   currentDemoIndex === index ? "opacity-100" : "opacity-0"
                 }`}
               >
-                <div className="w-full h-full p-4 md:p-8">
-                  <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-700/60 bg-slate-900/40 backdrop-blur-sm">
-                    <img
-                      src={image.src}
-                      alt={image.alt}
-                      className="w-full h-full object-contain"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent pointer-events-none"></div>
-                  </div>
+                <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-700/60 bg-slate-900/40 backdrop-blur-sm">
+                  <img
+                    src={image.src}
+                    alt={image.alt}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/30 to-transparent pointer-events-none"></div>
                 </div>
               </div>
             ))}
