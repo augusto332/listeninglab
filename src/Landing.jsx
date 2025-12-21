@@ -43,10 +43,10 @@ export default function Landing() {
   const headingVariations = ["tu marca", "la competencia", "figuras públicas", "temas sociales"]
 
   const descriptionVariations = [
-    "Descubre qué se dice sobre tu marca en tiempo real. Analiza sentimientos, identifica tendencias y toma decisiones basadas en datos con inteligencia artificial.",
-    "Analiza la competencia y descubre oportunidades de mercado. Identifica qué estrategias funcionan y optimiza tu presencia digital con insights accionables.",
-    "Identifica crisis de reputación antes de que escalen. Recibe alertas instantáneas sobre menciones negativas y protege la imagen de tu marca proactivamente.",
-    "Optimiza tu estrategia de contenido con datos reales. Descubre qué temas resuenan con tu audiencia y mejora tu engagement en redes sociales.",
+    "Descubre qué se dice sobre tu marca en tiempo real. Analiza sentimientos, identifica tendencias y toma decisiones basadas en datos.",
+    "Analiza la competencia y descubre oportunidades. Identifica qué estrategias funcionan y optimiza tu presencia digital.",
+    "Identifica crisis de reputación antes de que escalen. Recibe alertas sobre menciones negativas y protege la imagen pública proactivamente.",
+    "Descubre qué temas resuenan en las redes y actúa en consecuencia de manera estratégica.",
   ]
 
   // Carousel effect for heading
@@ -98,9 +98,9 @@ export default function Landing() {
       description: "Monitorea YouTube, Reddit, Twitter y más redes sociales desde un solo lugar",
     },
     {
-      icon: Shield,
-      title: "Seguro y Confiable",
-      description: "Tus datos están protegidos con encriptación de nivel empresarial",
+      icon: Zap,
+      title: "Fácil de Configurar",
+      description: "Empieza a monitorear en minutos, sin integraciones complejas",
     },
   ]
 
@@ -111,9 +111,9 @@ export default function Landing() {
       period: "/ mes",
       description: "Para probar Listening Lab con funciones esenciales",
       features: [
-        "Hasta 50 menciones/mes",
+        "Hasta 150 menciones a modo de prueba",
         "1 keyword activa",
-        "Soporte por email",
+        "Soporte via formuluraio de contacto",
         "Monitoreo básico en YouTube y Reddit",
       ],
       limitations: [
@@ -215,9 +215,9 @@ export default function Landing() {
     },
     {
       number: "02",
-      title: "Conecta tus Plataformas",
+      title: "Selecciona tus Plataformas",
       description:
-        "Selecciona las redes sociales que deseas rastrear. Nuestro sistema comenzará a recopilar menciones automáticamente.",
+        "Elige las redes sociales que deseas rastrear. Nuestro sistema comenzará a recopilar menciones automáticamente.",
     },
     {
       number: "03",
@@ -245,7 +245,7 @@ export default function Landing() {
     {
       question: "¿Hay límite en el número de menciones?",
       answer:
-        "No, no hay límite en el número de menciones que puedes monitorear. Tu plan solo limita las keywords y plataformas.",
+        "El número de menciones está sujeto al límite de tu plan. Cada plan define cuántas menciones puedes monitorear, además de las keywords y plataformas disponibles. ",
     },
     {
       question: "¿Ofrecen soporte técnico?",
@@ -771,16 +771,6 @@ export default function Landing() {
                     Precios
                   </a>
                 </li>
-                <li>
-                  <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">
-                    Integraciones
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">
-                    Actualizaciones
-                  </a>
-                </li>
               </ul>
             </div>
 
@@ -822,17 +812,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">
-                    Términos
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">
-                    Cookies
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="text-sm text-slate-400 hover:text-white transition-colors">
-                    Licencias
+                    Términos y condiciones
                   </a>
                 </li>
               </ul>
