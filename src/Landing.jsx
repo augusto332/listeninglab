@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { motion, useInView } from "framer-motion"
+import { Link } from "react-router-dom"
 import {
   Sparkles,
   TrendingUp,
@@ -887,15 +888,19 @@ export default function Landing() {
               <div>
                 <h4 className="font-semibold text-white mb-4">Compañía</h4>
                 <ul className="space-y-2">
-                  {["Sobre Nosotros", "Blog"].map((item, index) => (
+                  {[
+                    { label: "Sobre Nosotros", to: "/sobre-nosotros" },
+                    { label: "Blog", to: "/blog" },
+                  ].map((item, index) => (
                     <li key={index}>
-                      <motion.a
-                        whileHover={{ x: 5 }}
-                        href="#"
-                        className="text-sm text-slate-400 hover:text-white transition-colors inline-block"
-                      >
-                        {item}
-                      </motion.a>
+                      <motion.div whileHover={{ x: 5 }}>
+                        <Link
+                          to={item.to}
+                          className="text-sm text-slate-400 hover:text-white transition-colors inline-block"
+                        >
+                          {item.label}
+                        </Link>
+                      </motion.div>
                     </li>
                   ))}
                 </ul>
@@ -907,15 +912,19 @@ export default function Landing() {
               <div>
                 <h4 className="font-semibold text-white mb-4">Legal</h4>
                 <ul className="space-y-2">
-                  {["Privacidad", "Términos y condiciones"].map((item, index) => (
+                  {[
+                    { label: "Privacidad", to: "/privacidad" },
+                    { label: "Términos y condiciones", to: "/terminos-y-condiciones" },
+                  ].map((item, index) => (
                     <li key={index}>
-                      <motion.a
-                        whileHover={{ x: 5 }}
-                        href="#"
-                        className="text-sm text-slate-400 hover:text-white transition-colors inline-block"
-                      >
-                        {item}
-                      </motion.a>
+                      <motion.div whileHover={{ x: 5 }}>
+                        <Link
+                          to={item.to}
+                          className="text-sm text-slate-400 hover:text-white transition-colors inline-block"
+                        >
+                          {item.label}
+                        </Link>
+                      </motion.div>
                     </li>
                   ))}
                 </ul>
