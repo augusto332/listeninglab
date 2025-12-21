@@ -1252,23 +1252,25 @@ export default function ModernSocialListeningApp({ onLogout }) {
                   </div>
                 </div>
 
-                <RightSidebar
-                  className="mt-0 ml-auto"
-                  sources={sourcesFilter}
-                  toggleSource={toggleSourceFilter}
-                  keywords={keywordsFilter}
-                  setKeywords={setKeywordsFilter}
-                  keywordOptions={activeKeywords}
-                  tags={tagsFilter}
-                  toggleTag={toggleTagFilter}
-                  aiTags={aiTagsFilter}
-                  toggleAiTag={toggleAiTagFilter}
-                  aiTagOptions={allAiTagOptions}
-                  sentiments={sentimentFilter}
-                  toggleSentiment={toggleSentimentFilter}
-                  sentimentOptions={allSentimentOptions}
-                  clearFilters={clearSidebarFilters}
-                />
+                <div className="ml-auto lg:sticky lg:top-[100px] lg:self-start">
+                  <RightSidebar
+                    className="mt-0"
+                    sources={sourcesFilter}
+                    toggleSource={toggleSourceFilter}
+                    keywords={keywordsFilter}
+                    setKeywords={setKeywordsFilter}
+                    keywordOptions={activeKeywords}
+                    tags={tagsFilter}
+                    toggleTag={toggleTagFilter}
+                    aiTags={aiTagsFilter}
+                    toggleAiTag={toggleAiTagFilter}
+                    aiTagOptions={allAiTagOptions}
+                    sentiments={sentimentFilter}
+                    toggleSentiment={toggleSentimentFilter}
+                    sentimentOptions={allSentimentOptions}
+                    clearFilters={clearSidebarFilters}
+                  />
+                </div>
               </div>
             </section>
           )}
