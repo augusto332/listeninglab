@@ -16,13 +16,16 @@ export default function ResetPassword() {
 
   const navigate = useNavigate()
 
-  // 🔑 Paso CLAVE: consumir el token del link y crear la sesión
+  // Regex alineado con la password policy de Supabase
+  const passwordRegex =
+    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).+$/
+
+  // 🔑 Consumir el token del link y crear la sesión
   useEffect(() => {
     const initRecovery = async () => {
       const { data, error } = await supabase.auth.getSession()
 
       if (error) {
-        console.error("Error initializing recovery session:", error)
         setStatus({
           loading: false,
           error: "El enlace de recuperación no es válido o ha expirado.",
@@ -61,6 +64,17 @@ export default function ResetPassword() {
       return
     }
 
+    // ✅ Validación FRONTEND (mejora UX)
+    if (!passwordRegex.test(newPassword)) {
+      setStatus({
+        loading: false,
+        error:
+          "La contraseña debe tener al menos una letra minúscula, una mayúscula, un número y un símbolo.",
+        success: null,
+      })
+      return
+    }
+
     setStatus({ loading: true, error: null, success: null })
 
     const { error } = await supabase.auth.updateUser({
@@ -68,9 +82,17 @@ export default function ResetPassword() {
     })
 
     if (error) {
+      let message = error.message
+
+      // 🧠 Fallback por si el backend igual falla
+      if (message.includes("Password should contain")) {
+        message =
+          "La contraseña debe tener al menos una letra minúscula, una mayúscula, un número y un símbolo."
+      }
+
       setStatus({
         loading: false,
-        error: error.message,
+        error: message,
         success: null,
       })
       return
@@ -80,13 +102,11 @@ export default function ResetPassword() {
     setStatus({
       loading: false,
       error: null,
-      success: "Tu contraseña fue actualizada correctamente. Redirigiendo al inicio de sesión...",
+      success:
+        "Tu contraseña fue actualizada correctamente. Redirigiendo al inicio de sesión...",
     })
 
-    // 🔒 FIX DEFINITIVO:
-    // 1) cerrar sesión creada por recovery
-    // 2) limpiar tokens del hash
-    // 3) redirigir al login sin sesión
+    // 🔒 Cerrar sesión de recovery y volver limpio al login
     await supabase.auth.signOut()
     window.history.replaceState(null, "", window.location.pathname)
     navigate("/login", { replace: true })
