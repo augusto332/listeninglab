@@ -227,7 +227,7 @@ export default function Landing() {
     {
       number: "03",
       title: "Analiza y Actúa",
-      description: "Visualiza insights en tiempo real, recibe alertas importantes y toma decisiones basadas en datos.",
+      description: "Visualiza la información en tiempo real, recibe alertas importantes y toma decisiones basadas en datos.",
     },
   ]
 
@@ -617,7 +617,7 @@ export default function Landing() {
               </Badge>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Planes simples y transparentes</h2>
               <p className="text-lg text-slate-400 max-w-2xl mx-auto">
-                Ahora contamos con un plan completamente gratuito, sin necesidad de tarjeta de crédito.
+                Contamos con un plan de prueba completamente gratuito, sin necesidad de tarjeta de crédito.
               </p>
             </div>
           </AnimatedSection>
@@ -741,7 +741,7 @@ export default function Landing() {
                 FAQ
               </Badge>
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Preguntas Frecuentes</h2>
-              <p className="text-lg text-slate-400">Todo lo que necesitas saber sobre Listening Lab</p>
+              <p className="text-lg text-slate-400">Respuestas rápidas a tus dudas sobre Listening Lab</p>
             </div>
           </AnimatedSection>
 
