@@ -23,6 +23,7 @@ import AboutPage from './pages/AboutPage'
 import BlogPage from './pages/BlogPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
+import ResetPassword from './ResetPassword'
 
 function Root() {
   const { session, loading } = useAuth()
@@ -57,6 +58,7 @@ function Root() {
             path="/register"
             element={session ? <Navigate to="/app/mentions" replace /> : <Register />}
           />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route
             path="/app/*"
