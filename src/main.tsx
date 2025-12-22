@@ -8,6 +8,7 @@ import PlanPage from './pages/account/PlanPage'
 import TeamPage from './pages/account/TeamPage'
 import Login from './Login'
 import Register from './Register'
+import ForgotPassword from './ForgotPassword'
 import './index.css'
 import { FavoritesProvider } from './context/FavoritesContext'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
@@ -47,6 +48,10 @@ function Root() {
           <Route
             path="/login"
             element={session ? <Navigate to="/app/mentions" replace /> : <Login />}
+          />
+          <Route
+            path="/forgot-password"
+            element={session ? <Navigate to="/app/mentions" replace /> : <ForgotPassword />}
           />
           <Route
             path="/register"
