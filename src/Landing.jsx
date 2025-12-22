@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { motion, useInView } from "framer-motion"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import {
   Sparkles,
   TrendingUp,
@@ -48,6 +48,7 @@ export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [openFaq, setOpenFaq] = useState(null)
+  const navigate = useNavigate()
 
   // Text carousel states
   const [currentHeadingIndex, setCurrentHeadingIndex] = useState(0)
@@ -262,11 +263,11 @@ export default function Landing() {
   }
 
   const handleRegister = () => {
-    console.log("Navigate to register")
+    navigate("/register")
   }
 
   const handleLogin = () => {
-    console.log("Navigate to login")
+    navigate("/login")
   }
 
   return (
