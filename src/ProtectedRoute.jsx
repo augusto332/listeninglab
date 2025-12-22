@@ -4,14 +4,22 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function ProtectedRoute({ children }) {
-  const { session, loading, accountId } = useAuth()
+  const { session, loading, accountId, isRecoverySession } = useAuth()
   const location = useLocation()
   const [checkingKeywords, setCheckingKeywords] = useState(true)
   const [hasKeywords, setHasKeywords] = useState(false)
 
   useEffect(() => {
+    if (isRecoverySession && session) {
+      supabase.auth.signOut().catch((error) => {
+        console.error('Error signing out from recovery session', error)
+      })
+    }
+  }, [isRecoverySession, session])
+
+  useEffect(() => {
     const checkKeywords = async () => {
-      if (!session) {
+      if (!session || isRecoverySession) {
         setCheckingKeywords(false)
         setHasKeywords(false)
         return
@@ -38,9 +46,10 @@ export default function ProtectedRoute({ children }) {
       setCheckingKeywords(false)
     }
     checkKeywords()
-  }, [session, accountId, location.pathname])
+  }, [session, accountId, location.pathname, isRecoverySession])
 
   if (loading || checkingKeywords) return null
+  if (isRecoverySession) return <Navigate to="/login" replace />
   if (!session) return <Navigate to="/login" replace />
 
   if (!hasKeywords && location.pathname !== '/onboarding') {

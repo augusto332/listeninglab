@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabaseClient'
 const AuthContext = createContext({
   session: null,
   user: null,
+  authEvent: null,
+  isRecoverySession: false,
   loading: true,
   plan: 'free',
   planLoading: true,
@@ -15,6 +17,8 @@ const AuthContext = createContext({
 
 export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null)
+  const [authEvent, setAuthEvent] = useState(null)
+  const [isRecoverySession, setIsRecoverySession] = useState(false)
   const [loading, setLoading] = useState(true)
   const [plan, setPlan] = useState('free')
   const [planLoading, setPlanLoading] = useState(true)
@@ -22,6 +26,15 @@ export const AuthProvider = ({ children }) => {
   const [accountId, setAccountId] = useState(undefined)
   const [subscriptionId, setSubscriptionId] = useState(null)
   const [subscriptionStatus, setSubscriptionStatus] = useState(null)
+
+  const deriveIsRecoverySession = (currentSession, event) => {
+    const appMetadataRecovery = currentSession?.user?.app_metadata?.action === 'recovery'
+    const pendingConfirmationRecovery =
+      currentSession?.user?.email_confirmed_at && !currentSession?.user?.last_sign_in_at
+    const eventRecovery = event === 'PASSWORD_RECOVERY'
+
+    return Boolean(appMetadataRecovery || pendingConfirmationRecovery || eventRecovery)
+  }
 
   useEffect(() => {
     const fetchUserPlan = async (currentSession) => {
@@ -101,6 +114,7 @@ export const AuthProvider = ({ children }) => {
         data: { session },
       } = await supabase.auth.getSession()
       setSession(session)
+      setIsRecoverySession(deriveIsRecoverySession(session, null))
       await fetchUserPlan(session)
       setLoading(false)
     }
@@ -108,8 +122,10 @@ export const AuthProvider = ({ children }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setAuthEvent(event)
       setSession(session)
+      setIsRecoverySession(deriveIsRecoverySession(session, event))
       fetchUserPlan(session)
       setLoading(false)
     })
@@ -122,6 +138,8 @@ export const AuthProvider = ({ children }) => {
       value={{
         session,
         user: session?.user,
+        authEvent,
+        isRecoverySession,
         loading,
         plan,
         planLoading,

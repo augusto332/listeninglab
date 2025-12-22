@@ -26,9 +26,11 @@ import TermsPage from './pages/TermsPage'
 import ResetPassword from './ResetPassword'
 
 function Root() {
-  const { session, loading } = useAuth()
+  const { session, loading, isRecoverySession } = useAuth()
 
   if (loading) return null
+
+  const hasActiveSession = Boolean(session && !isRecoverySession)
 
   return (
     <FavoritesProvider>
@@ -38,7 +40,7 @@ function Root() {
           {/* 👇 NUEVA RUTA PRINCIPAL */}
           <Route
             path="/"
-            element={session ? <Navigate to="/app/mentions" replace /> : <Landing />}
+            element={hasActiveSession ? <Navigate to="/app/mentions" replace /> : <Landing />}
           />
 
           <Route path="/sobre-nosotros" element={<AboutPage />} />
@@ -48,15 +50,15 @@ function Root() {
 
           <Route
             path="/login"
-            element={session ? <Navigate to="/app/mentions" replace /> : <Login />}
+            element={hasActiveSession ? <Navigate to="/app/mentions" replace /> : <Login />}
           />
           <Route
             path="/forgot-password"
-            element={session ? <Navigate to="/app/mentions" replace /> : <ForgotPassword />}
+            element={hasActiveSession ? <Navigate to="/app/mentions" replace /> : <ForgotPassword />}
           />
           <Route
             path="/register"
-            element={session ? <Navigate to="/app/mentions" replace /> : <Register />}
+            element={hasActiveSession ? <Navigate to="/app/mentions" replace /> : <Register />}
           />
           <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -104,7 +106,7 @@ function Root() {
           {/* Cualquier otra ruta redirige según el estado de sesión */}
           <Route
             path="*"
-            element={<Navigate to={session ? '/app/mentions' : '/login'} replace />}
+            element={<Navigate to={hasActiveSession ? '/app/mentions' : '/login'} replace />}
           />
         </Routes>
       </BrowserRouter>
