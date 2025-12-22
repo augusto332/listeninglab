@@ -76,18 +76,20 @@ export default function ResetPassword() {
       return
     }
 
+    // ✅ Password cambiada
     setStatus({
       loading: false,
       error: null,
-      success: "Tu contraseña fue actualizada correctamente. Te redirigiremos al inicio de sesión.",
+      success: "Tu contraseña fue actualizada correctamente. Redirigiendo al inicio de sesión...",
     })
 
-    // Limpio la sesión de recovery antes de volver al login
+    // 🔒 FIX DEFINITIVO:
+    // 1) cerrar sesión creada por recovery
+    // 2) limpiar tokens del hash
+    // 3) redirigir al login sin sesión
     await supabase.auth.signOut()
-
-    setTimeout(() => {
-      navigate("/login")
-    }, 1500)
+    window.history.replaceState(null, "", window.location.pathname)
+    navigate("/login", { replace: true })
   }
 
   return (
