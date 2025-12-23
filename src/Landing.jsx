@@ -238,9 +238,9 @@ export default function Landing() {
         "Actualmente soportamos YouTube, Reddit, Twitter, Instagram, Facebook y TikTok. Estamos agregando nuevas plataformas constantemente.",
     },
     {
-      question: "¿Cómo funciona el análisis de sentimientos?",
+      question: "¿Cómo utilizan inteligencia artificial?",
       answer:
-        "Utilizamos inteligencia artificial avanzada para analizar el tono y contexto de cada mención, clasificándolas como positivas, negativas o neutrales.",
+        "Aplicamos inteligencia artificial para analizar automáticamente las menciones detectadas: evaluamos el sentimiento (positivo, negativo o neutral), clasificamos el tipo de contenido (por ejemplo, opiniones, críticas o contenido informativo) y generamos resúmenes y reportes automatizados que te permiten entender rápidamente de qué se está hablando y por qué importa.",
     },
     {
       question: "¿Puedo cambiar de plan en cualquier momento?",
