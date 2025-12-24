@@ -13,7 +13,7 @@ import {
   BarChart3,
   Zap,
   Shield,
-  Globe,
+  Layers,
   MessageSquare,
   Bell,
   CheckCircle,
@@ -91,7 +91,7 @@ export default function Landing() {
     {
       icon: MessageSquare,
       title: "Monitoreo en Tiempo Real",
-      description: "Rastrea menciones de tu marca en múltiples plataformas sociales instantáneamente",
+      description: "Rastrea menciones en múltiples redes sociales de manera continua.",
     },
     {
       icon: Sparkles,
@@ -101,17 +101,17 @@ export default function Landing() {
     {
       icon: BarChart3,
       title: "Reportes Detallados",
-      description: "Visualiza datos complejos de forma simple con gráficos interactivos y reportes personalizables",
+      description: "Visualiza datos de forma simple con gráficos interactivos y reportes personalizables",
     },
     {
       icon: Bell,
       title: "Alertas Inteligentes",
-      description: "Recibe notificaciones cuando se detecten menciones importantes de tu marca",
+      description: "Recibe notificaciones personalizadas cuando se detecten menciones importantes",
     },
     {
-      icon: Globe,
-      title: "Multi-Plataforma",
-      description: "Monitorea YouTube, Reddit, Twitter y más redes sociales desde un solo lugar",
+      icon: Layers,
+      title: "Todo en un solo lugar.",
+      description: "Monitorea todas las plataformas en una sola herramienta.",
     },
     {
       icon: Zap,
