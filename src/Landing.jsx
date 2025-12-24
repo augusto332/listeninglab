@@ -91,7 +91,7 @@ export default function Landing() {
     {
       icon: MessageSquare,
       title: "Monitoreo en Tiempo Real",
-      description: "Rastrea menciones en múltiples redes sociales de manera continua.",
+      description: "Rastrea menciones en múltiples redes sociales de manera continua",
     },
     {
       icon: Sparkles,
@@ -111,7 +111,7 @@ export default function Landing() {
     {
       icon: Layers,
       title: "Todo en un solo lugar.",
-      description: "Monitorea todas las plataformas en una sola herramienta.",
+      description: "Monitorea todas las plataformas en una sola herramienta",
     },
     {
       icon: Zap,
