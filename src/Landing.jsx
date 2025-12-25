@@ -62,7 +62,7 @@ export default function Landing() {
     "Descubre qué se dice sobre tu marca en tiempo real. Analiza sentimientos, identifica tendencias y toma decisiones basadas en datos.",
     "Analiza la competencia y descubre oportunidades. Identifica qué estrategias funcionan y optimiza tu presencia digital.",
     "Identifica crisis de reputación antes de que escalen. Recibe alertas sobre menciones negativas y protege la imagen pública proactivamente.",
-    "Descubre qué temas resuenan en las redes y actúa en consecuencia de manera estratégica.",
+    "Analiza la percepción publica sobre los temas que te importan.",
   ]
 
   // Carousel effect for heading
