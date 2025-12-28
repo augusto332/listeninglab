@@ -23,7 +23,7 @@ export default function PrivacyPage() {
               Al acceder o crear una cuenta, aceptas las prácticas descritas aquí.
             </p>
             <p className="text-sm text-slate-400">
-              Última actualización: 15 de marzo de 2025.
+              Última actualización: 20 de diciembre de 2025.
             </p>
           </header>
 
