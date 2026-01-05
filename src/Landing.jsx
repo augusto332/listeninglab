@@ -146,7 +146,7 @@ export default function Landing() {
       features: [
         "Todo lo incluido en el plan Free",
         "Hasta 3,000 menciones/mes",
-        "Hasta 5 keyword activas",
+        "Hasta 3 keywords activas",
         "Monitoreo de Instagram, Twitter y Tiktok",
         "Análisis de sentimiento con IA",
         "Historial de menciones extraídas almacenado por 1 año"
@@ -164,7 +164,7 @@ export default function Landing() {
       features: [
         "Todo lo incluido en el plan Básico",
         "Hasta 8,000 menciones/mes",
-        "Hasta 10 keyword activas",
+        "Hasta 6 keywords activas",
         "Agregar y gestionar usuarios del equipo",
         "Canales de soporte adicionales"
       ],
@@ -181,7 +181,7 @@ export default function Landing() {
       features: [
         "Todo lo incluido en el plan Team",
         "Hasta 20,000 menciones/mes",
-        "Hasta 20 keywords activas",
+        "Hasta 12 keywords activas",
         "Clasificación automática de menciones con IA",
         "Reportes avanzados potenciados por IA",
         "Historial de menciones extraídas almacenado por 2 años",
