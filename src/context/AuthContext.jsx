@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 
 const AuthContext = createContext({
@@ -11,6 +11,8 @@ const AuthContext = createContext({
   accountId: undefined,
   subscriptionId: null,
   subscriptionStatus: null,
+  onboardingCompleted: false,
+  refreshAccount: async () => {},
 })
 
 export const AuthProvider = ({ children }) => {
@@ -22,80 +24,92 @@ export const AuthProvider = ({ children }) => {
   const [accountId, setAccountId] = useState(undefined)
   const [subscriptionId, setSubscriptionId] = useState(null)
   const [subscriptionStatus, setSubscriptionStatus] = useState(null)
+  const [onboardingCompleted, setOnboardingCompleted] = useState(false)
 
-  useEffect(() => {
-    const fetchUserPlan = async (currentSession) => {
-      if (currentSession?.user) {
-        setPlanLoading(true)
+  const fetchUserPlan = useCallback(async (currentSession) => {
+    if (currentSession?.user) {
+      setPlanLoading(true)
 
-        const {
-          data: profile,
-          error: profileError,
-        } = await supabase
-          .from('profiles')
-          .select('role, account_id')
-          .eq('user_id', currentSession.user.id)
-          .single()
+      const {
+        data: profile,
+        error: profileError,
+      } = await supabase
+        .from('profiles')
+        .select('role, account_id')
+        .eq('user_id', currentSession.user.id)
+        .single()
 
-        if (profileError) {
-          setPlan('free')
-          setRole('contributor')
-          setAccountId(null)
-          setSubscriptionId(null)
-          setSubscriptionStatus(null)
-          setPlanLoading(false)
-          return
-        }
-
-        const nextRole = profile?.role || 'contributor'
-        const nextAccountId = profile?.account_id ?? null
-
-        let nextPlan = 'free'
-        let nextSubscriptionId = null
-        let nextSubscriptionStatus = null
-
-        if (nextAccountId) {
-          const {
-            data: account,
-            error: accountError,
-          } = await supabase
-            .from('accounts')
-            .select('plan_id, subscription_id, subscription_status, plans(name)')
-            .eq('id', nextAccountId)
-            .single()
-
-          if (!accountError && account?.plans) {
-            // Normalizar formato (Supabase puede devolver array u objeto)
-            const planName = Array.isArray(account.plans)
-              ? account.plans[0]?.name
-              : account.plans?.name
-
-            if (planName) {
-              nextPlan = planName
-            }
-          }
-
-          nextSubscriptionId = account?.subscription_id ?? null
-          nextSubscriptionStatus = account?.subscription_status ?? null
-        }
-
-        setPlan(nextPlan)
-        setRole(nextRole)
-        setAccountId(nextAccountId)
-        setSubscriptionId(nextSubscriptionId)
-        setSubscriptionStatus(nextSubscriptionStatus)
+      if (profileError) {
+        setPlan('free')
+        setRole('contributor')
+        setAccountId(null)
+        setSubscriptionId(null)
+        setSubscriptionStatus(null)
+        setOnboardingCompleted(false)
         setPlanLoading(false)
         return
       }
 
-      setPlan('free')
-      setRole('contributor')
-      setAccountId(null)
-      setSubscriptionId(null)
-      setSubscriptionStatus(null)
+      const nextRole = profile?.role || 'contributor'
+      const nextAccountId = profile?.account_id ?? null
+
+      let nextPlan = 'free'
+      let nextSubscriptionId = null
+      let nextSubscriptionStatus = null
+      let nextOnboardingCompleted = false
+
+      if (nextAccountId) {
+        const {
+          data: account,
+          error: accountError,
+        } = await supabase
+          .from('accounts')
+          .select(
+            'plan_id, subscription_id, subscription_status, is_onboarding_completed, plans(name)',
+          )
+          .eq('id', nextAccountId)
+          .single()
+
+        if (!accountError && account?.plans) {
+          // Normalizar formato (Supabase puede devolver array u objeto)
+          const planName = Array.isArray(account.plans)
+            ? account.plans[0]?.name
+            : account.plans?.name
+
+          if (planName) {
+            nextPlan = planName
+          }
+        }
+
+        nextSubscriptionId = account?.subscription_id ?? null
+        nextSubscriptionStatus = account?.subscription_status ?? null
+        nextOnboardingCompleted = account?.is_onboarding_completed ?? false
+      }
+
+      setPlan(nextPlan)
+      setRole(nextRole)
+      setAccountId(nextAccountId)
+      setSubscriptionId(nextSubscriptionId)
+      setSubscriptionStatus(nextSubscriptionStatus)
+      setOnboardingCompleted(nextOnboardingCompleted)
       setPlanLoading(false)
+      return
     }
 
+    setPlan('free')
+    setRole('contributor')
+    setAccountId(null)
+    setSubscriptionId(null)
+    setSubscriptionStatus(null)
+    setOnboardingCompleted(false)
+    setPlanLoading(false)
+  }, [])
+
+  const refreshAccount = useCallback(async () => {
+    await fetchUserPlan(session)
+  }, [fetchUserPlan, session])
+
+  useEffect(() => {
     const initSession = async () => {
       const {
         data: { session },
@@ -115,7 +129,7 @@ export const AuthProvider = ({ children }) => {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [fetchUserPlan])
 
   return (
     <AuthContext.Provider
@@ -129,6 +143,8 @@ export const AuthProvider = ({ children }) => {
         accountId,
         subscriptionId,
         subscriptionStatus,
+        onboardingCompleted,
+        refreshAccount,
       }}
     >
       {children}

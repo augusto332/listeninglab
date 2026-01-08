@@ -48,7 +48,7 @@ export default function ModernOnboardingHome() {
   const [step, setStep] = useState(0)
   const [language, setLanguage] = useState("")
   const [savingLanguage, setSavingLanguage] = useState(false)
-  const { user, accountId } = useAuth()
+  const { user, accountId, refreshAccount } = useAuth()
   const navigate = useNavigate()
 
   const accountName =
@@ -136,6 +136,15 @@ export default function ModernOnboardingHome() {
     const { error } = await supabase.from("dim_keywords").insert(rows)
     setSaving(false)
     if (!error) {
+      const { error: onboardingError } = await supabase
+        .from("accounts")
+        .update({ is_onboarding_completed: true })
+        .eq("id", accountId)
+      if (onboardingError) {
+        console.error("Error updating onboarding status", onboardingError)
+      } else {
+        await refreshAccount()
+      }
       setSaved(true)
     } else {
       console.error("Error saving keywords", error)
