@@ -1,11 +1,23 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
+import AppShell from '@/components/AppShell'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
 export default function ProtectedRoute({ children }) {
   const { session, loading, planLoading, onboardingCompleted } = useAuth()
   const location = useLocation()
 
-  if (loading || planLoading) return null
+  if (loading || planLoading) {
+    if (session) {
+      return children
+    }
+
+    return (
+      <AppShell>
+        <LoadingIndicator label="Verificando acceso..." />
+      </AppShell>
+    )
+  }
   if (!session) return <Navigate to="/login" replace />
 
   if (!onboardingCompleted && location.pathname !== '/onboarding') {
