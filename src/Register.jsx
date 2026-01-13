@@ -339,11 +339,21 @@ export default function ModernRegister() {
           <div className="text-center mt-8">
             <p className="text-slate-500 text-sm">
               Al crear una cuenta, aceptas nuestros{" "}
-              <a href="#" className="text-blue-400 hover:text-blue-300 transition-colors">
+              <a
+                href="/terminos-y-condiciones"
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-400 hover:text-blue-300 transition-colors"
+              >
                 Términos de Servicio
               </a>{" "}
               y{" "}
-              <a href="#" className="text-blue-400 hover:text-blue-300 transition-colors">
+              <a
+                href="/privacidad"
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-400 hover:text-blue-300 transition-colors"
+              >
                 Política de Privacidad
               </a>
             </p>
