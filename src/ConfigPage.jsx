@@ -46,16 +46,14 @@ export default function ConfigPage({
   const [isSavingSettings, setIsSavingSettings] = useState(false)
   const [settingsMessage, setSettingsMessage] = useState(null)
   const [isLoadingSettings, setIsLoadingSettings] = useState(false)
-  const [collectionPreference, setCollectionPreference] = useState("recent")
   const [countryFilter, setCountryFilter] = useState("")
   const [accountLanguage, setAccountLanguage] = useState("")
-  const collectionPreferenceHelpText =
+  const filterHelpText =
     "Algunas plataformas no permiten aplicar esta preferencia; se utilizará solo en aquellas donde esté disponible."
 
   useEffect(() => {
     if (!accountId) {
       setActiveSources(defaultActiveSources)
-      setCollectionPreference("recent")
       setCountryFilter("")
       return
     }
@@ -69,7 +67,7 @@ export default function ConfigPage({
       const { data, error } = await supabase
         .from("account_settings")
         .select(
-          "is_youtube_active, is_twitter_active, is_reddit_active, is_instagram_active, is_tiktok_active, is_facebook_active, is_others_active, sorting_preference, country_filter, language",
+          "is_youtube_active, is_twitter_active, is_reddit_active, is_instagram_active, is_tiktok_active, is_facebook_active, is_others_active, country_filter, language",
         )
         .eq("account_id", accountId)
         .maybeSingle()
@@ -89,12 +87,10 @@ export default function ConfigPage({
           facebook: !!data.is_facebook_active,
           others: !!data.is_others_active,
         })
-        setCollectionPreference(data.sorting_preference || "recent")
         setCountryFilter((data.country_filter || "").toUpperCase())
         setAccountLanguage(data.language || "")
       } else {
         setActiveSources(defaultActiveSources)
-        setCollectionPreference("recent")
         setCountryFilter("")
         setAccountLanguage("")
       }
@@ -130,7 +126,6 @@ export default function ConfigPage({
       is_tiktok_active: !!activeSources.tiktok,
       is_facebook_active: !!activeSources.facebook,
       is_others_active: !!activeSources.others,
-      sorting_preference: collectionPreference,
       country_filter: countryFilter ? countryFilter.toUpperCase() : null,
       language: accountLanguage || null,
     }
@@ -185,46 +180,43 @@ export default function ConfigPage({
 
             <TooltipProvider>
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <span className="text-sm font-medium text-slate-200">Idioma</span>
-                  <Select value={accountLanguage} onValueChange={setAccountLanguage}>
-                    <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
-                      <SelectValue placeholder="Selecciona un idioma" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="es">Español</SelectItem>
-                      <SelectItem value="en">Inglés</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-slate-200">Preferencia de recolección</span>
+                      <span className="text-sm font-medium text-slate-200">Idioma</span>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <HelpCircle className="w-4 h-4 text-slate-500 hover:text-slate-300 cursor-pointer" />
                         </TooltipTrigger>
                         <TooltipContent className="bg-slate-800/95 border border-slate-700/70 text-slate-200 max-w-xs">
-                          <p>{collectionPreferenceHelpText}</p>
+                          <p>{filterHelpText}</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <Select value={collectionPreference} onValueChange={setCollectionPreference}>
+                    <Select value={accountLanguage} onValueChange={setAccountLanguage}>
                       <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
-                        <SelectValue placeholder="Selecciona una preferencia" />
+                        <SelectValue placeholder="Selecciona un idioma" />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-800 border-slate-700 text-slate-100">
-                        <SelectItem value="recent">Recientes</SelectItem>
-                        <SelectItem value="popular">Populares</SelectItem>
+                        <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="es">Español</SelectItem>
+                        <SelectItem value="en">Inglés</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <span className="text-sm font-medium text-slate-200">Filtro por país</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-slate-200">Filtro por país</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-slate-500 hover:text-slate-300 cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-slate-800/95 border border-slate-700/70 text-slate-200 max-w-xs">
+                          <p>{filterHelpText}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Select value={countryFilter} onValueChange={setCountryFilter}>
                       <SelectTrigger className="bg-slate-800/40 border-slate-700/60 text-slate-100">
                         <SelectValue placeholder="Selecciona un país (opcional)" />
