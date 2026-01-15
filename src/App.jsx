@@ -590,7 +590,12 @@ export default function ModernSocialListeningApp({ onLogout }) {
       const { error } = await toggleKeywordActive(id, active)
       if (error) {
         hasError = true
-        errorMsg = error.message || "Error desconocido"
+        const normalizedMessage = error.message?.includes(
+          'new row violates row-level security policy for table "dim_keywords"',
+        )
+          ? "Se alcanzó el límite de palabras clave activas disponible en tu plan."
+          : error.message
+        errorMsg = normalizedMessage || "Error desconocido"
       }
     }
     setKeywordChanges({})
