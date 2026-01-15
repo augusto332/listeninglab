@@ -16,6 +16,7 @@ export default function ConfigPage({
   addKeywordMessage,
   keywords,
   handleKeywordToggle,
+  handleKeywordDelete,
   saveKeywordChanges,
   keywordChanges,
   saveKeywordMessage,
@@ -309,7 +310,11 @@ export default function ConfigPage({
             <h3 className="text-lg font-semibold text-white">Palabras clave</h3>
             {keywords.length ? (
               <div className="bg-slate-800/50 rounded-lg p-4">
-                <KeywordTable keywords={keywords} onToggle={handleKeywordToggle} />
+                <KeywordTable
+                  keywords={keywords}
+                  onToggle={handleKeywordToggle}
+                  onDelete={handleKeywordDelete}
+                />
               </div>
             ) : (
               <div className="text-center py-8">
