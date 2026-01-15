@@ -26,7 +26,12 @@ export default function ModernLogin() {
     setLoading(false)
 
     if (error) {
-      setError(error.message)
+      const userMessageMap = {
+        "Invalid login credentials": "Email y/o contraseña no son correctos. Por favor, vuelva a intentarlo.",
+        "Invalid email or password": "Email y/o contraseña no son correctos. Por favor, vuelva a intentarlo.",
+      }
+      const userMessage = userMessageMap[error.message] ?? error.message
+      setError(userMessage)
     } else {
       setSuccess(true)
       setTimeout(() => {
