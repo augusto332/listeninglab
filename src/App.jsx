@@ -577,6 +577,31 @@ export default function ModernSocialListeningApp({ onLogout }) {
     return { error: null }
   }
 
+  const deleteKeyword = async (keyword) => {
+    if (!accountId) {
+      return { error: new Error("No pudimos identificar tu cuenta") }
+    }
+    const { error } = await supabase
+      .from("dim_keywords")
+      .delete()
+      .eq("keyword_id", keyword.keyword_id)
+      .eq("account_id", accountId)
+
+    if (error) {
+      console.error("Error deleting keyword", error)
+      return { error }
+    }
+
+    setKeywords((prev) => prev.filter((k) => k.keyword_id !== keyword.keyword_id))
+    setKeywordChanges((prev) => {
+      const next = { ...prev }
+      delete next[keyword.keyword_id]
+      return next
+    })
+    setAccountSettingsVersion((prev) => prev + 1)
+    return { error: null }
+  }
+
   const handleKeywordToggle = (id, active) => {
     setKeywords((prev) => prev.map((k) => (k.keyword_id === id ? { ...k, active } : k)))
     setKeywordChanges((prev) => ({ ...prev, [id]: active }))
@@ -1083,6 +1108,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
                     addKeywordMessage={addKeywordMessage}
                     keywords={keywords}
                     handleKeywordToggle={handleKeywordToggle}
+                    handleKeywordDelete={deleteKeyword}
                     saveKeywordChanges={saveKeywordChanges}
                     keywordChanges={keywordChanges}
                     saveKeywordMessage={saveKeywordMessage}

@@ -2,11 +2,22 @@ import { format, isValid } from "date-fns"
 import { es } from "date-fns/locale"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
 import { Switch } from "@/components/ui/switch"
-import { Power } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Power, X } from "lucide-react"
 
-export default function KeywordTable({ keywords, onToggle }) {
+export default function KeywordTable({ keywords, onToggle, onDelete }) {
   const handleToggle = (id, current) => {
     if (onToggle) onToggle(id, !current)
+  }
+
+  const handleDelete = async (keyword) => {
+    if (!onDelete) return
+    const confirmed = window.confirm("¿Estás seguro de eliminar esta keyword?")
+    if (!confirmed) return
+    const { error } = await onDelete(keyword)
+    if (error) {
+      alert(error.message || "Ocurrió un error al eliminar la keyword.")
+    }
   }
 
   return (
@@ -19,6 +30,9 @@ export default function KeywordTable({ keywords, onToggle }) {
           <TableHead>Estado</TableHead>
           <TableHead className="text-right">
             <Power className="w-4 h-4 inline" />
+          </TableHead>
+          <TableHead className="text-right">
+            <X className="w-4 h-4 inline" />
           </TableHead>
         </TableRow>
       </TableHeader>
@@ -50,6 +64,18 @@ export default function KeywordTable({ keywords, onToggle }) {
                   checked={k.active}
                   onCheckedChange={() => handleToggle(k.keyword_id, k.active)}
                 />
+              </TableCell>
+              <TableCell className="text-right">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="text-slate-300 hover:text-red-400"
+                  onClick={() => handleDelete(k)}
+                  aria-label={`Eliminar keyword ${k.keyword}`}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
               </TableCell>
             </TableRow>
           )
