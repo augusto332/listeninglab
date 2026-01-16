@@ -3,11 +3,13 @@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import {
   FilterX,
   Sparkles,
   TrendingUp,
+  BarChart3,
   Users,
   MessageSquare,
   Hash,
@@ -37,6 +39,8 @@ export default function RightSidebar({
   sentiments = [],
   toggleSentiment,
   sentimentOptions = [],
+  metricsFilter = {},
+  updateMetricRange,
   clearFilters,
 }) {
   const { plan: authPlan = "free" } = useAuth()
@@ -146,6 +150,15 @@ export default function RightSidebar({
       className: "bg-red-500/10 text-red-400 border border-red-500/20",
     },
   }
+
+  const metricsConfig = [
+    { key: "likes", label: "Likes" },
+    { key: "views", label: "Views" },
+    { key: "comments", label: "Comments" },
+    { key: "retweets", label: "Retweets" },
+    { key: "replies", label: "Replies" },
+    { key: "quotes", label: "Quotes" },
+  ]
 
   return (
     <TooltipProvider>
@@ -301,6 +314,45 @@ export default function RightSidebar({
               </div>
             </div>
           )}
+
+          {/* Metrics */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-slate-400" />
+              <h4 className="font-medium text-white">Métricas</h4>
+            </div>
+            <div className="space-y-4">
+              {metricsConfig.map((metric) => (
+                <div key={metric.key} className="space-y-2">
+                  <p className="text-sm text-slate-300">{metric.label}</p>
+                  <div className="space-y-2">
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      placeholder="Mínimo"
+                      value={metricsFilter?.[metric.key]?.min ?? ""}
+                      onChange={(event) =>
+                        updateMetricRange?.(metric.key, "min", event.target.value)
+                      }
+                      className="bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                    />
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      placeholder="Máximo"
+                      value={metricsFilter?.[metric.key]?.max ?? ""}
+                      onChange={(event) =>
+                        updateMetricRange?.(metric.key, "max", event.target.value)
+                      }
+                      className="bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Footer */}
