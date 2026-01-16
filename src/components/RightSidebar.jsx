@@ -3,11 +3,14 @@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 import {
   FilterX,
   Sparkles,
   TrendingUp,
+  BarChart3,
+  ChevronDown,
   Users,
   MessageSquare,
   Hash,
@@ -21,6 +24,7 @@ import {
 import { cn } from "@/lib/utils"
 import MultiSelect from "@/components/MultiSelect"
 import { useAuth } from "@/context/AuthContext"
+import { useState } from "react"
 
 export default function RightSidebar({
   className = "",
@@ -37,10 +41,13 @@ export default function RightSidebar({
   sentiments = [],
   toggleSentiment,
   sentimentOptions = [],
+  metricsFilter = {},
+  updateMetricRange,
   clearFilters,
 }) {
   const { plan: authPlan = "free" } = useAuth()
   const normalizedPlan = typeof authPlan === "string" ? authPlan.toLowerCase() : "free"
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
 
   const planHierarchy = ["free", "pro", "enterprise"]
   const getPlanLevel = (planName, fallback = 0) => {
@@ -146,6 +153,15 @@ export default function RightSidebar({
       className: "bg-red-500/10 text-red-400 border border-red-500/20",
     },
   }
+
+  const metricsConfig = [
+    { key: "likes", label: "Likes" },
+    { key: "views", label: "Views" },
+    { key: "comments", label: "Comments" },
+    { key: "retweets", label: "Retweets" },
+    { key: "replies", label: "Replies" },
+    { key: "quotes", label: "Quotes" },
+  ]
 
   return (
     <TooltipProvider>
@@ -301,6 +317,64 @@ export default function RightSidebar({
               </div>
             </div>
           )}
+
+          {/* Advanced Filters */}
+          <div className="space-y-4">
+            <button
+              type="button"
+              onClick={() => setShowAdvancedFilters((prev) => !prev)}
+              className="w-full flex items-center justify-between rounded-lg border border-slate-700/50 bg-slate-800/40 px-3 py-2 text-left text-sm font-medium text-white transition hover:bg-slate-700/40"
+              aria-expanded={showAdvancedFilters}
+            >
+              <span>Filtros avanzados</span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-slate-300 transition-transform",
+                  showAdvancedFilters && "rotate-180",
+                )}
+              />
+            </button>
+
+            {showAdvancedFilters && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-slate-400" />
+                  <h4 className="font-medium text-white">Métricas</h4>
+                </div>
+                <div className="space-y-4">
+                  {metricsConfig.map((metric) => (
+                    <div key={metric.key} className="space-y-2">
+                      <p className="text-sm text-slate-300">{metric.label}</p>
+                      <div className="space-y-2">
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min="0"
+                          placeholder="Mínimo"
+                          value={metricsFilter?.[metric.key]?.min ?? ""}
+                          onChange={(event) =>
+                            updateMetricRange?.(metric.key, "min", event.target.value)
+                          }
+                          className="bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                        />
+                        <Input
+                          type="number"
+                          inputMode="numeric"
+                          min="0"
+                          placeholder="Máximo"
+                          value={metricsFilter?.[metric.key]?.max ?? ""}
+                          onChange={(event) =>
+                            updateMetricRange?.(metric.key, "max", event.target.value)
+                          }
+                          className="bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:ring-blue-500/20"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Footer */}

@@ -43,6 +43,15 @@ const normalizeQualitativeTags = (mention) =>
 
 export default function ModernSocialListeningApp({ onLogout }) {
   // All your existing state variables remain the same
+  const createEmptyMetricsFilter = () => ({
+    likes: { min: null, max: null },
+    views: { min: null, max: null },
+    comments: { min: null, max: null },
+    retweets: { min: null, max: null },
+    replies: { min: null, max: null },
+    quotes: { min: null, max: null },
+  })
+
   const filterReducer = (state, action) => {
     switch (action.type) {
       case "SET_SEARCH":
@@ -61,6 +70,21 @@ export default function ModernSocialListeningApp({ onLogout }) {
         return { ...state, order: action.payload }
       case "SET_ONLY_FAVORITES":
         return { ...state, onlyFavorites: action.payload }
+      case "SET_METRICS":
+        return { ...state, metricsFilter: action.payload }
+      case "UPDATE_METRIC_RANGE": {
+        const { metricKey, bound, value } = action.payload
+        return {
+          ...state,
+          metricsFilter: {
+            ...state.metricsFilter,
+            [metricKey]: {
+              ...state.metricsFilter?.[metricKey],
+              [bound]: value,
+            },
+          },
+        }
+      }
       default:
         return state
     }
@@ -75,9 +99,19 @@ export default function ModernSocialListeningApp({ onLogout }) {
     sentimentFilter: [],
     order: "recent",
     onlyFavorites: false,
+    metricsFilter: createEmptyMetricsFilter(),
   })
-  const { search, sourcesFilter, keywordsFilter, tagsFilter, aiTagsFilter, sentimentFilter, order, onlyFavorites } =
-    filterState
+  const {
+    search,
+    sourcesFilter,
+    keywordsFilter,
+    tagsFilter,
+    aiTagsFilter,
+    sentimentFilter,
+    order,
+    onlyFavorites,
+    metricsFilter,
+  } = filterState
   const setSearch = (value) => dispatchFilter({ type: "SET_SEARCH", payload: value })
   const setSourcesFilter = (value) => dispatchFilter({ type: "SET_SOURCES", payload: value })
   const setKeywordsFilter = (value) => dispatchFilter({ type: "SET_KEYWORDS", payload: value })
@@ -86,6 +120,9 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const setSentimentFilter = (value) => dispatchFilter({ type: "SET_SENTIMENT", payload: value })
   const setOrder = (value) => dispatchFilter({ type: "SET_ORDER", payload: value })
   const setOnlyFavorites = (value) => dispatchFilter({ type: "SET_ONLY_FAVORITES", payload: value })
+  const setMetricsFilter = (value) => dispatchFilter({ type: "SET_METRICS", payload: value })
+  const updateMetricRange = (metricKey, bound, value) =>
+    dispatchFilter({ type: "UPDATE_METRIC_RANGE", payload: { metricKey, bound, value } })
 
   const [mentions, setMentions] = useState([])
   const [mentionsLoading, setMentionsLoading] = useState(true)
@@ -177,6 +214,19 @@ export default function ModernSocialListeningApp({ onLogout }) {
           .map((s) => (typeof s === "string" ? s.trim().toLowerCase() : null))
           .filter((s) => s && s.length > 0)
       : []
+    const normalizeMetricValue = (value) => {
+      if (value === "" || value === null || value === undefined) return null
+      const parsed = Number(value)
+      return Number.isFinite(parsed) ? parsed : null
+    }
+    const metricKeys = ["likes", "views", "comments", "retweets", "replies", "quotes"]
+    const normalizedMetrics = metricKeys.reduce((acc, key) => {
+      const range = metricsFilter?.[key] || {}
+      const min = normalizeMetricValue(range.min)
+      const max = normalizeMetricValue(range.max)
+      acc[key] = { min, max }
+      return acc
+    }, {})
 
     return {
       search: typeof search === "string" ? search.trim() : "",
@@ -185,8 +235,9 @@ export default function ModernSocialListeningApp({ onLogout }) {
       tags: normalizedTags,
       aiTags: normalizedAiTags,
       sentiment: normalizedSentiment,
+      metrics: normalizedMetrics,
     }
-  }, [search, sourcesFilter, keywordsFilter, tagsFilter, aiTagsFilter, sentimentFilter])
+  }, [search, sourcesFilter, keywordsFilter, tagsFilter, aiTagsFilter, sentimentFilter, metricsFilter])
 
   const getQualitativeTags = (mention) =>
     normalizeQualitativeTags(mention).map((tag) => tag.trim())
@@ -287,6 +338,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       tags = [],
       aiTags = [],
       sentiment = [],
+      metrics = {},
     } = filters || {}
 
     let nextQuery = query
@@ -331,6 +383,20 @@ export default function ModernSocialListeningApp({ onLogout }) {
           .map((s) => (typeof s === "string" ? s.trim().toLowerCase() : null))
           .filter((s) => s && s.length > 0),
       )
+    }
+
+    if (metrics && typeof metrics === "object") {
+      Object.entries(metrics).forEach(([metricKey, range]) => {
+        if (!range) return
+        const min = range.min
+        const max = range.max
+        if (min !== null && min !== undefined) {
+          nextQuery = nextQuery.gte(metricKey, min)
+        }
+        if (max !== null && max !== undefined) {
+          nextQuery = nextQuery.lte(metricKey, max)
+        }
+      })
     }
 
     return nextQuery
@@ -793,6 +859,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setTagsFilter([])
     setAiTagsFilter([])
     setSentimentFilter([])
+    setMetricsFilter(createEmptyMetricsFilter())
   }
 
   const handleCreateReport = async () => {
@@ -1298,6 +1365,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
                   sentiments={sentimentFilter}
                   toggleSentiment={toggleSentimentFilter}
                   sentimentOptions={allSentimentOptions}
+                  metricsFilter={metricsFilter}
+                  updateMetricRange={updateMetricRange}
                   clearFilters={clearSidebarFilters}
                 />
               </div>
