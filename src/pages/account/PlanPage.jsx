@@ -25,7 +25,7 @@ export default function PlanPage() {
     onConfirm: null,
   })
 
-  const activeSubscriptionStatuses = ["active", "past_due", "unpaid", "cancelled"]
+  const activeSubscriptionStatuses = ["active", "past_due", "paid", "cancelled"]
   const hasActiveSubscription = Boolean(
     subscriptionId && activeSubscriptionStatuses.includes(subscriptionStatus)
   )
