@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ConfirmationModal } from "@/components/ConfirmationModal"
 import { supabase } from "@/lib/supabaseClient"
-import { useAuth } from "@/context/AuthContext"
 import { FaTwitter, FaYoutube, FaRedditAlien, FaEllipsisV, FaInstagram } from "react-icons/fa"
 import { SiTiktok } from "react-icons/si"
 import {
@@ -25,8 +24,6 @@ import {
   Smile,
   Meh,
   Frown,
-  BarChart3,
-  Lock,
   ChevronDown,
 } from "lucide-react"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
@@ -46,7 +43,6 @@ export default function ModernMentionCard({
   tags = [], // precomputed tags
   aiTags = [], // AI classification tags
 }) {
-  const { plan, planLoading } = useAuth()
   const icons = {
     twitter: { Icon: FaTwitter, color: "#1DA1F2" },
     youtube: { Icon: FaYoutube, color: "#FF0000" },
@@ -69,9 +65,6 @@ export default function ModernMentionCard({
     onConfirm: null,
   })
   const favorite = mention.is_highlighted === true || mention.is_highlighted === "true"
-
-  const topComments = Array.isArray(mention?.top_comments) ? mention.top_comments : []
-  const isPremiumUser = !planLoading && plan !== "free"
 
   const handleFavClick = async (e) => {
     e.stopPropagation()
@@ -155,260 +148,6 @@ export default function ModernMentionCard({
         <SentimentIcon className="w-3 h-3" />
         {config.label}
       </Badge>
-    )
-  }
-
-  // Get comments sentiment preview
-  const getCommentsSentimentPreview = () => {
-    if (!isPremiumUser) return null
-    if (!["youtube", "reddit"].includes(platform) || !topComments.length) return null
-
-    const total = Number(mention.comments) || 0
-    if (total === 0) return null
-
-    const positivePercent = Number(mention.comments_positive_pct) || 0
-    const neutralPercent = Number(mention.comments_neutral_pct) || 0
-    const negativePercent = Number(mention.comments_negative_pct) || 0
-
-    // Determine dominant sentiment
-    let dominantSentiment = "neutral"
-    let dominantPercent = neutralPercent
-    let dominantIcon = Meh
-    let dominantColor = "text-slate-400"
-
-    if (positivePercent > neutralPercent && positivePercent > negativePercent) {
-      dominantSentiment = "positive"
-      dominantPercent = positivePercent
-      dominantIcon = Smile
-      dominantColor = "text-green-400"
-    } else if (negativePercent > positivePercent && negativePercent > neutralPercent) {
-      dominantSentiment = "negative"
-      dominantPercent = negativePercent
-      dominantIcon = Frown
-      dominantColor = "text-red-400"
-    }
-
-    const DominantIcon = dominantIcon
-
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/30 border border-slate-700/50 rounded-lg">
-            <BarChart3 className="w-3 h-3 text-slate-400" />
-            <div className="flex items-center gap-1">
-              <DominantIcon className={`w-3 h-3 ${dominantColor}`} />
-              <span className={`text-xs font-medium ${dominantColor}`}>{dominantPercent.toFixed(0)}%</span>
-            </div>
-          </div>
-        </TooltipTrigger>
-        <TooltipContent>
-          <div className="space-y-1">
-            <div className="text-xs font-medium">Sentimiento de comentarios:</div>
-            <div className="flex items-center gap-2 text-xs">
-              <Smile className="w-3 h-3 text-green-400" />
-              <span className="text-green-400">{positivePercent.toFixed(1)}%</span>
-              <Meh className="w-3 h-3 text-slate-400" />
-              <span className="text-slate-400">{neutralPercent.toFixed(1)}%</span>
-              <Frown className="w-3 h-3 text-red-400" />
-              <span className="text-red-400">{negativePercent.toFixed(1)}%</span>
-            </div>
-          </div>
-        </TooltipContent>
-      </Tooltip>
-    )
-  }
-
-  // Mock data for preview (when user is on free plan)
-  const getMockSentimentData = () => {
-    return {
-      positivePercent: 65,
-      neutralPercent: 25,
-      negativePercent: 10,
-      total: 127,
-    }
-  }
-
-  const getMockComments = () => {
-    return [
-      { comment: "¡Excelente producto! Lo recomiendo totalmente.", comment_likes: 34 },
-      { comment: "Muy buena calidad, superó mis expectativas.", comment_likes: 28 },
-      { comment: "El servicio al cliente es excepcional.", comment_likes: 19 },
-    ]
-  }
-
-  const renderPremiumAnalysis = () => {
-    // Only show for YouTube and Reddit (platforms with comments)
-    if (!["youtube", "reddit"].includes(platform)) return null
-
-    const hasComments = topComments.length > 0 || Number(mention.comments) > 0
-
-    if (!hasComments) return null
-
-    // Use real data for premium users, mock data for free users
-    const sentimentData = isPremiumUser
-      ? {
-          positivePercent: Number(mention.comments_positive_pct) || 0,
-          neutralPercent: Number(mention.comments_neutral_pct) || 0,
-          negativePercent: Number(mention.comments_negative_pct) || 0,
-          total: Number(mention.comments) || 0,
-        }
-      : getMockSentimentData()
-
-    const commentsData = isPremiumUser ? topComments : getMockComments()
-
-    const { positivePercent, neutralPercent, negativePercent, total } = sentimentData
-    const positiveCount = Math.round((positivePercent / 100) * total)
-    const neutralCount = Math.round((neutralPercent / 100) * total)
-    const negativeCount = Math.round((negativePercent / 100) * total)
-
-    return (
-      <div className="mt-4 relative">
-        {/* Background content (semi-transparent for free users) */}
-        <div className={`space-y-6 ${!isPremiumUser ? "opacity-30 pointer-events-none" : ""}`}>
-          {/* Sentiment Analysis */}
-          <div className="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50">
-            <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="w-4 h-4 text-slate-400" />
-              <span className="text-sm font-semibold text-white">Análisis de sentimiento</span>
-              <Badge
-                variant="secondary"
-                className="bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs"
-              >
-                {total} comentarios
-              </Badge>
-            </div>
-
-            {/* Sentiment Bars */}
-            <div className="space-y-3">
-              {/* Positive */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 w-20">
-                  <Smile className="w-4 h-4 text-green-400" />
-                  <span className="text-xs font-medium text-green-400">{positivePercent.toFixed(1)}%</span>
-                </div>
-                <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full transition-all duration-500"
-                    style={{ width: `${positivePercent}%` }}
-                  />
-                </div>
-                <span className="text-xs text-slate-500 w-12 text-right">{positiveCount}</span>
-              </div>
-
-              {/* Neutral */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 w-20">
-                  <Meh className="w-4 h-4 text-slate-400" />
-                  <span className="text-xs font-medium text-slate-400">{neutralPercent.toFixed(1)}%</span>
-                </div>
-                <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-slate-500 to-slate-400 rounded-full transition-all duration-500"
-                    style={{ width: `${neutralPercent}%` }}
-                  />
-                </div>
-                <span className="text-xs text-slate-500 w-12 text-right">{neutralCount}</span>
-              </div>
-
-              {/* Negative */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 w-20">
-                  <Frown className="w-4 h-4 text-red-400" />
-                  <span className="text-xs font-medium text-red-400">{negativePercent.toFixed(1)}%</span>
-                </div>
-                <div className="flex-1 h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-red-500 to-red-400 rounded-full transition-all duration-500"
-                    style={{ width: `${negativePercent}%` }}
-                  />
-                </div>
-                <span className="text-xs text-slate-500 w-12 text-right">{negativeCount}</span>
-              </div>
-            </div>
-
-            {/* Overall Sentiment Indicator */}
-            <div className="mt-4 pt-3 border-t border-slate-700/50">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500">Sentimiento general:</span>
-                <div className="flex items-center gap-2">
-                  {positivePercent > negativePercent && positivePercent > neutralPercent ? (
-                    <>
-                      <Smile className="w-3 h-3 text-green-400" />
-                      <span className="text-xs font-medium text-green-400">Positivo</span>
-                    </>
-                  ) : negativePercent > positivePercent && negativePercent > neutralPercent ? (
-                    <>
-                      <Frown className="w-3 h-3 text-red-400" />
-                      <span className="text-xs font-medium text-red-400">Negativo</span>
-                    </>
-                  ) : (
-                    <>
-                      <Meh className="w-3 h-3 text-slate-400" />
-                      <span className="text-xs font-medium text-slate-400">Neutral</span>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Top Comments */}
-          <div className="pt-4 border-t border-slate-700/50">
-            <div className="flex items-center gap-2 mb-4">
-              <MessageCircle className="w-4 h-4 text-slate-400" />
-              <span className="text-sm font-semibold text-white">Comentarios destacados</span>
-            </div>
-
-            <div className="space-y-3">
-              {commentsData.map((c, i) => {
-                const CommentIcon = platform === "reddit" ? ArrowBigUp : Heart
-                return (
-                  <div
-                    key={i}
-                    className="p-4 rounded-lg bg-slate-800/40 border border-slate-700/50 flex items-start gap-3 w-full"
-                  >
-                    <div className="flex-1 min-w-0 w-full">
-                      <p
-                        className="text-sm text-slate-300 leading-relaxed w-full overflow-hidden text-ellipsis"
-                        style={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: "vertical",
-                        }}
-                      >
-                        {c.comment ? he.decode(c.comment) : "—"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs font-medium text-slate-400 shrink-0">
-                      <CommentIcon className="w-3 h-3" />
-                      {c.comment_likes ?? 0}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Premium Lock Overlay */}
-        {!isPremiumUser && (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm rounded-lg">
-            <div className="text-center p-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-slate-700/30 to-slate-600/30 rounded-2xl mb-6">
-                <Lock className="w-8 h-8 text-slate-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-300 mb-2">Análisis Premium</h3>
-              <p className="text-sm text-slate-400 mb-6 max-w-sm">
-                Desbloquea el análisis de sentimientos y comentarios destacados con un plan premium
-              </p>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/10 to-blue-600/10 border border-purple-500/20 rounded-lg">
-                <Sparkles className="w-4 h-4 text-purple-400" />
-                <span className="text-sm font-medium text-purple-400">Actualiza tu plan</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
     )
   }
 
@@ -621,8 +360,6 @@ export default function ModernMentionCard({
               <div className="flex items-center justify-between gap-3 min-w-0">
                 <span className="font-semibold text-white">@{username}</span>
                 <div className="flex items-center gap-2 shrink-0">
-                  {/* Comments Sentiment Preview */}
-                  {!expanded && getCommentsSentimentPreview()}
                   <span className="text-xs text-slate-500">{timestamp}</span>
                   {/* Expand Arrow - Only show when not expanded */}
                   {!expanded && (
@@ -641,9 +378,6 @@ export default function ModernMentionCard({
 
               {/* Metrics */}
               {expanded && renderMetrics()}
-
-              {/* Premium Analysis (Sentiment + Comments) */}
-              {expanded && renderPremiumAnalysis()}
 
               {/* Action Button */}
               {expanded && url && (
