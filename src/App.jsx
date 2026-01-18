@@ -533,33 +533,28 @@ export default function ModernSocialListeningApp({ onLogout }) {
   }
 
   const fetchAiTagOptions = async (view, filters = {}) => {
-    try {
-      let query = supabase.from(view).select("ai_classification_tags", { distinct: true })
-      query = applyMentionFilters(query, filters, { skipAiTags: true })
-      query = query.not("ai_classification_tags", "is", null)
+    const normalizeAiTag = (tag) =>
+      typeof tag === "string" ? tag.trim().replace(/\s+/g, " ").toLowerCase() : ""
 
-      const { data, error } = await query
+    try {
+      const { data, error } = await supabase.rpc("get_distinct_classification_tags")
       if (error) throw error
 
       const tagSet = new Set()
       ;(data || []).forEach((row) => {
-        const tags = Array.isArray(row?.ai_classification_tags)
-          ? row.ai_classification_tags
-          : []
-        tags.forEach((tag) => {
-          const normalized = typeof tag === "string" ? tag.trim() : ""
-          if (normalized) {
-            tagSet.add(normalized)
-          }
-        })
+        const value =
+          row && typeof row === "object" && !Array.isArray(row) ? Object.values(row)[0] : row
+        const normalized = normalizeAiTag(value)
+        if (normalized) {
+          tagSet.add(normalized)
+        }
       })
 
-      const merged = new Set([...tagSet, ...(filters.aiTags || [])])
+      const merged = new Set([...tagSet, ...(filters.aiTags || []).map(normalizeAiTag).filter(Boolean)])
       return Array.from(merged)
     } catch (err) {
       console.error("Error fetching AI classification tags", err)
-      const merged = new Set(filters.aiTags || [])
-      return Array.from(merged)
+      return Array.from(new Set(filters.aiTags || []))
     }
   }
 
