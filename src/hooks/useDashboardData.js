@@ -7,7 +7,10 @@ export default function useDashboardData({
   allAiTagOptions,
   allSentimentOptions,
 }) {
-  const [startDate, setStartDate] = useState("")
+  const defaultStart = new Date()
+  defaultStart.setFullYear(defaultStart.getFullYear() - 1)
+  const defaultStartDate = defaultStart.toISOString().slice(0, 10)
+  const [startDate, setStartDate] = useState(defaultStartDate)
   const [endDate, setEndDate] = useState("")
   const [selectedDashboardKeywords, setSelectedDashboardKeywords] = useState(["all"])
   const [selectedDashboardPlatforms, setSelectedDashboardPlatforms] = useState(["all"])
@@ -45,9 +48,9 @@ export default function useDashboardData({
     setSelectedDashboardPlatforms(["all"])
     setSelectedDashboardSentiments([])
     setSelectedDashboardAiTags([])
-    setStartDate("")
+    setStartDate(defaultStartDate)
     setEndDate("")
-  }, [])
+  }, [defaultStartDate])
 
   const buildDashboardParams = useCallback(() => {
     const from = startDate ? new Date(startDate).toISOString() : null
