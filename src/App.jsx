@@ -41,6 +41,8 @@ const normalizeQualitativeTags = (mention) =>
     ? mention.qualitative_tags.filter((tag) => typeof tag === "string" && tag.trim().length > 0)
     : []
 
+const DEFAULT_SENTIMENT_OPTIONS = ["positive", "neutral", "negative"]
+
 export default function ModernSocialListeningApp({ onLogout }) {
   // All your existing state variables remain the same
   const createEmptyMetricsFilter = () => ({
@@ -562,42 +564,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
   }
 
   const fetchSentimentOptions = async (view, filters = {}) => {
-    const preferredOrder = ["positive", "neutral", "negative"]
-    try {
-      let query = supabase.from(view).select("ai_sentiment", { distinct: true })
-      query = applyMentionFilters(query, filters, { skipSentiment: true })
-      query = query.not("ai_sentiment", "is", null)
-
-      const { data, error } = await query
-      if (error) throw error
-
-      const normalized = Array.from(
-        new Set(
-          (data || [])
-            .map((row) =>
-              typeof row?.ai_sentiment === "string" ? row.ai_sentiment.trim().toLowerCase() : "",
-            )
-            .filter((value) => value.length > 0),
-        ),
-      )
-
-      const ordered = [
-        ...preferredOrder.filter((sentiment) => normalized.includes(sentiment)),
-        ...normalized.filter((sentiment) => !preferredOrder.includes(sentiment)),
-      ]
-
-      const merged = new Set([...(filters.sentiment || []), ...ordered])
-      const mergedOrdered = [
-        ...preferredOrder.filter((sentiment) => merged.has(sentiment)),
-        ...Array.from(merged).filter((sentiment) => !preferredOrder.includes(sentiment)),
-      ]
-
-      return mergedOrdered
-    } catch (err) {
-      console.error("Error fetching sentiment options", err)
-      const merged = new Set(filters.sentiment || [])
-      return Array.from(merged)
-    }
+    return DEFAULT_SENTIMENT_OPTIONS
   }
 
   const refreshGlobalFilterOptions = async (view, filters = {}) => {
