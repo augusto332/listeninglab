@@ -87,6 +87,18 @@ export default function ModernAISummary() {
     }
   }
 
+  const isSameDaySummary = summaryTimestamp
+    ? (() => {
+        const summaryDate = new Date(summaryTimestamp)
+        const today = new Date()
+        return (
+          summaryDate.getFullYear() === today.getFullYear() &&
+          summaryDate.getMonth() === today.getMonth() &&
+          summaryDate.getDate() === today.getDate()
+        )
+      })()
+    : false
+
   return (
     <div className="mb-8">
       {/* Header */}
@@ -181,32 +193,62 @@ export default function ModernAISummary() {
                 )}
 
                 {/* Generate Button */}
-                <button
-                  type="button"
-                  onClick={handleGenerateSummary}
-                  disabled={generating}
-                  className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 p-[1px] transition-all duration-200 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <div className="relative flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4 text-white transition-all duration-200 group-hover:from-blue-600 group-hover:to-purple-700">
-                    {generating ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span className="text-sm font-medium">Generando resumen AI...</span>
-                      </>
-                    ) : (
-                      <>
-                        {summary ? (
-                          <RefreshCw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-300" />
-                        ) : (
-                          <Zap className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
-                        )}
-                        <span className="text-sm font-medium">
-                          {summary ? "Actualizar" : "Generar resumen AI"}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </button>
+                <div className="relative group">
+                  <button
+                    type="button"
+                    onClick={handleGenerateSummary}
+                    disabled={generating || isSameDaySummary}
+                    aria-describedby={isSameDaySummary ? "summary-day-tooltip" : undefined}
+                    className={`relative w-full overflow-hidden rounded-xl p-[1px] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                      isSameDaySummary
+                        ? "bg-slate-700/60"
+                        : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                    }`}
+                  >
+                    <div
+                      className={`relative flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-white transition-all duration-200 ${
+                        isSameDaySummary
+                          ? "bg-slate-700 text-slate-200"
+                          : "bg-gradient-to-r from-blue-500 to-purple-600 group-hover:from-blue-600 group-hover:to-purple-700"
+                      }`}
+                    >
+                      {generating ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span className="text-sm font-medium">Generando resumen AI...</span>
+                        </>
+                      ) : (
+                        <>
+                          {summary ? (
+                            <RefreshCw
+                              className={`w-5 h-5 ${
+                                isSameDaySummary ? "" : "group-hover:rotate-180 transition-transform duration-300"
+                              }`}
+                            />
+                          ) : (
+                            <Zap
+                              className={`w-5 h-5 ${
+                                isSameDaySummary ? "" : "group-hover:scale-110 transition-transform duration-200"
+                              }`}
+                            />
+                          )}
+                          <span className="text-sm font-medium">
+                            {summary ? "Actualizar" : "Generar resumen AI"}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </button>
+                  {isSameDaySummary && (
+                    <span
+                      id="summary-day-tooltip"
+                      role="tooltip"
+                      className="pointer-events-none absolute -top-10 left-1/2 w-max -translate-x-1/2 rounded-md bg-slate-900 px-3 py-1 text-xs text-slate-100 opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100"
+                    >
+                      Solo se puede generar un resumen al dia
+                    </span>
+                  )}
+                </div>
 
                 {/* Info Text */}
                 {!summary && !generating && (
