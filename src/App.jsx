@@ -164,6 +164,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const [reportScheduleTime, setReportScheduleTime] = useState("09:00")
   const DEFAULT_REPORT_TIMEZONE = "-05:00"
   const [reportScheduleTimezone, setReportScheduleTimezone] = useState(DEFAULT_REPORT_TIMEZONE)
+  const [reportEmailRecipients, setReportEmailRecipients] = useState([])
+  const [reportEmailRecipientInput, setReportEmailRecipientInput] = useState("")
   const [editingReportId, setEditingReportId] = useState(null)
   const { user, accountId, role } = useAuth()
   const isAdmin = role?.toLowerCase?.() === "admin"
@@ -778,6 +780,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       schedule: r.schedule,
       scheduleDay: r.schedule_day,
       scheduleTime: r.schedule_time,
+      emailRecipients: r.email_recipients || [],
       createdAt: r.created_at,
     }))
     setSavedReports(mapped)
@@ -859,6 +862,39 @@ export default function ModernSocialListeningApp({ onLogout }) {
     return { time, timezone }
   }
 
+  const EMAIL_RECIPIENT_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i
+
+  const commitReportEmailRecipients = (rawValue = reportEmailRecipientInput) => {
+    const candidates = rawValue
+      .split(/[\s,]+/)
+      .map((value) => value.trim())
+      .filter(Boolean)
+    if (candidates.length === 0) return
+    const invalidRecipients = candidates.filter((value) => !EMAIL_RECIPIENT_REGEX.test(value))
+    const validRecipients = candidates.filter((value) => EMAIL_RECIPIENT_REGEX.test(value))
+    if (validRecipients.length > 0) {
+      setReportEmailRecipients((prev) => {
+        const existing = new Set(prev.map((email) => email.toLowerCase()))
+        const next = [...prev]
+        validRecipients.forEach((email) => {
+          const normalized = email.toLowerCase()
+          if (!existing.has(normalized)) {
+            existing.add(normalized)
+            next.push(email)
+          }
+        })
+        return next
+      })
+    }
+    if (invalidRecipients.length === 0) {
+      setReportEmailRecipientInput("")
+    }
+  }
+
+  const removeReportEmailRecipient = (email) => {
+    setReportEmailRecipients((prev) => prev.filter((item) => item !== email))
+  }
+
   const resetReportForm = () => {
     setNewReportName("")
     setReportPlatform("")
@@ -871,6 +907,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setReportScheduleDay("1")
     setReportScheduleTime("09:00")
     setReportScheduleTimezone(DEFAULT_REPORT_TIMEZONE)
+    setReportEmailRecipients([])
+    setReportEmailRecipientInput("")
     setShowReportForm(false)
     setEditingReportId(null)
   }
@@ -897,6 +935,8 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const { time, timezone } = splitScheduleTime(report.scheduleTime)
     setReportScheduleTime(time)
     setReportScheduleTimezone(timezone)
+    setReportEmailRecipients(Array.isArray(report.emailRecipients) ? report.emailRecipients : [])
+    setReportEmailRecipientInput("")
   }
 
   const handleCreateReport = async () => {
@@ -939,6 +979,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       schedule: scheduleValue,
       schedule_day: scheduleDayValue,
       schedule_time: scheduleTimeValue,
+      email_recipients: reportEmailRecipients,
     }
     const { data, error } = await supabase
       .from("user_reports_parameters")
@@ -961,6 +1002,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
         schedule: r.schedule,
         scheduleDay: r.schedule_day,
         scheduleTime: r.schedule_time,
+        emailRecipients: r.email_recipients || [],
         createdAt: r.created_at,
       }
       setSavedReports((prev) => [...prev, newRep])
@@ -1000,6 +1042,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       schedule: scheduleValue,
       schedule_day: scheduleDayValue,
       schedule_time: scheduleTimeValue,
+      email_recipients: reportEmailRecipients,
     }
     const { data, error } = await supabase
       .from("user_reports_parameters")
@@ -1028,6 +1071,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
               schedule: updated.schedule,
               scheduleDay: updated.schedule_day,
               scheduleTime: updated.schedule_time,
+              emailRecipients: updated.email_recipients || [],
             }
           : rep
       )
@@ -1324,6 +1368,11 @@ export default function ModernSocialListeningApp({ onLogout }) {
                   onReportScheduleTimeChange={setReportScheduleTime}
                   reportScheduleTimezone={reportScheduleTimezone}
                   onReportScheduleTimezoneChange={setReportScheduleTimezone}
+                  reportEmailRecipients={reportEmailRecipients}
+                  reportEmailRecipientInput={reportEmailRecipientInput}
+                  onReportEmailRecipientInputChange={setReportEmailRecipientInput}
+                  onReportEmailRecipientsCommit={commitReportEmailRecipients}
+                  onRemoveReportEmailRecipient={removeReportEmailRecipient}
                   onCreateReport={editingReportId ? handleUpdateReport : handleCreateReport}
                   isEditingReport={Boolean(editingReportId)}
                   onCancelEdit={resetReportForm}

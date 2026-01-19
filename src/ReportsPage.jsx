@@ -1,4 +1,4 @@
-import { Minus, Plus } from "lucide-react"
+import { Minus, Plus, X } from "lucide-react"
 import DatePickerInput from "@/components/DatePickerInput"
 import ReportsTable from "@/components/ReportsTable"
 import { Button } from "@/components/ui/button"
@@ -61,6 +61,11 @@ export default function ReportsPage({
   onReportScheduleTimeChange,
   reportScheduleTimezone,
   onReportScheduleTimezoneChange,
+  reportEmailRecipients,
+  reportEmailRecipientInput,
+  onReportEmailRecipientInputChange,
+  onReportEmailRecipientsCommit,
+  onRemoveReportEmailRecipient,
   onCreateReport,
   isEditingReport,
   onCancelEdit,
@@ -78,6 +83,13 @@ export default function ReportsPage({
 
     if (value === "monthly" && Number(reportScheduleDay) > 31) {
       onReportScheduleDayChange("1")
+    }
+  }
+
+  const handleRecipientKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      onReportEmailRecipientsCommit()
     }
   }
 
@@ -273,6 +285,42 @@ export default function ReportsPage({
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium mb-2 text-slate-300">Destinatarios del reporte</p>
+                  <Input
+                    type="email"
+                    value={reportEmailRecipientInput}
+                    onChange={(e) => onReportEmailRecipientInputChange(e.target.value)}
+                    onKeyDown={handleRecipientKeyDown}
+                    onBlur={onReportEmailRecipientsCommit}
+                    className="bg-slate-800/50 border-slate-700/50 text-white"
+                    placeholder="Escribe un correo y presiona espacio o enter"
+                  />
+                  <p className="text-xs text-slate-500 mt-2">
+                    Puedes agregar múltiples direcciones presionando espacio, enter o saliendo del campo.
+                  </p>
+                  {reportEmailRecipients.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {reportEmailRecipients.map((email) => (
+                        <span
+                          key={email}
+                          className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
+                        >
+                          {email}
+                          <button
+                            type="button"
+                            onClick={() => onRemoveReportEmailRecipient(email)}
+                            className="text-slate-300 hover:text-white"
+                            aria-label={`Eliminar ${email}`}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
