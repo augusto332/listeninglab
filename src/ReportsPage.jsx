@@ -41,8 +41,6 @@ export default function ReportsPage({
   onReportNameChange,
   reportPlatform,
   onReportPlatformChange,
-  includeComments,
-  onIncludeCommentsChange,
   reportKeyword,
   onReportKeywordChange,
   reportDateOption,
@@ -66,9 +64,6 @@ export default function ReportsPage({
 }) {
   const handlePlatformChange = (value) => {
     onReportPlatformChange(value)
-    if (value !== "youtube" && value !== "reddit") {
-      onIncludeCommentsChange(false)
-    }
   }
 
   const handleScheduleFrequencyChange = (value) => {
@@ -121,17 +116,17 @@ export default function ReportsPage({
 
           <div>
             <p className="text-sm font-medium mb-3 text-slate-300">Plataforma</p>
-            <Select
-              value={reportPlatform}
-              onValueChange={handlePlatformChange}
-            >
+            <Select value={reportPlatform} onValueChange={handlePlatformChange}>
               <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
                 <SelectValue placeholder="Seleccionar" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="youtube">YouTube</SelectItem>
                 <SelectItem value="reddit">Reddit</SelectItem>
                 <SelectItem value="twitter">Twitter</SelectItem>
+                <SelectItem value="tiktok">TikTok</SelectItem>
+                <SelectItem value="instagram">Instagram</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -143,6 +138,7 @@ export default function ReportsPage({
                 <SelectValue placeholder="Seleccionar" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
                 {activeKeywords.map((k) => (
                   <SelectItem key={k.keyword} value={k.keyword}>
                     {k.keyword}
@@ -184,23 +180,6 @@ export default function ReportsPage({
                 </div>
               )}
             </div>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium mb-3 text-slate-300">Incluir comentarios</p>
-            <Select
-              value={includeComments ? "si" : "no"}
-              onValueChange={(val) => onIncludeCommentsChange(val === "si")}
-              disabled={!(reportPlatform === "youtube" || reportPlatform === "reddit")}
-            >
-              <SelectTrigger className="w-40 bg-slate-800/50 border-slate-700/50 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="si">Si</SelectItem>
-                <SelectItem value="no">No</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="space-y-4">

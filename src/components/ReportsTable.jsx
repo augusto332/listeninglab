@@ -4,8 +4,6 @@ import {
   Download,
   Trash2,
   Calendar,
-  Hash,
-  MessageSquare,
   FileText,
   MoreHorizontal,
   Eye,
@@ -50,8 +48,15 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
       twitter: "bg-blue-500/20 text-blue-300 border border-blue-500/30",
       tiktok: "bg-slate-900/50 text-cyan-300 border border-slate-600/60",
       instagram: "bg-pink-500/20 text-pink-200 border border-pink-500/30",
+      all: "bg-slate-600/30 text-slate-200 border border-slate-500/40",
     }
     return colors[platform?.toLowerCase()] || "bg-slate-500/20 text-slate-300 border border-slate-500/30"
+  }
+
+  const getPlatformLabel = (platform) => {
+    if (!platform) return "Sin definir"
+    if (platform === "all") return "Todas"
+    return platform?.charAt(0).toUpperCase() + platform?.slice(1)
   }
 
   const formatDateRange = (report) => {
@@ -62,23 +67,6 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
       return `${new Date(report.startDate).toLocaleDateString()} - ${new Date(report.endDate).toLocaleDateString()}`
     }
     return "Sin definir"
-  }
-
-  const getCommentsInfo = (report) => {
-    if (report.includeComments !== undefined) {
-      return report.includeComments ? "Incluidos" : "Excluidos"
-    }
-
-    const commentPlatforms = [
-      report.includeYoutubeComments && "YouTube",
-      report.includeRedditComments && "Reddit",
-    ].filter(Boolean)
-
-    if (report.platforms?.includes("twitter") && commentPlatforms.length === 0) {
-      return "N/A"
-    }
-
-    return commentPlatforms.length ? `Incluidos (${commentPlatforms.join(", ")})` : "Excluidos"
   }
 
   const getKeywordsDisplay = (report) => {
@@ -253,7 +241,6 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                   Frecuencia
                 </div>
               </th>
-              <th className="text-left p-4 text-slate-300 font-medium">Comentarios</th>
               <th className="text-right p-4 text-slate-300 font-medium"></th>
             </tr>
           </thead>
@@ -290,7 +277,7 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                           platform,
                         )}`}
                       >
-                        {platform?.charAt(0).toUpperCase() + platform?.slice(1)}
+                        {getPlatformLabel(platform)}
                       </span>
                     ))}
                   </div>
@@ -325,18 +312,6 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                       </Tooltip>
                     </TooltipProvider>
                   </div>
-                </td>
-
-                <td className="p-4">
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
-                      getCommentsInfo(report).includes("Incluidos")
-                        ? "bg-green-500/20 text-green-300 border border-green-500/30"
-                        : "bg-slate-500/20 text-slate-300 border border-slate-500/30"
-                    }`}
-                  >
-                    {getCommentsInfo(report)}
-                  </span>
                 </td>
 
                 <td className="p-4 text-right">
