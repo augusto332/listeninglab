@@ -37,7 +37,11 @@ export default function ReportsPage({
   onDelete,
   onEdit,
   showReportForm,
+  showReportTypeModal,
+  reportFormType,
   onToggleReportForm,
+  onCloseReportTypeModal,
+  onReportTypeSelect,
   newReportName,
   onReportNameChange,
   reportPlatform,
@@ -51,6 +55,8 @@ export default function ReportsPage({
   reportEndDate,
   onReportEndDateChange,
   activeKeywords,
+  reportAiInstructions,
+  onReportAiInstructionsChange,
   isReportScheduled,
   onReportScheduledChange,
   reportScheduleFrequency,
@@ -93,6 +99,139 @@ export default function ReportsPage({
     }
   }
 
+  const isAiReport = reportFormType === "ai"
+
+  const scheduleSection = (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-slate-300">Programar envío por correo</p>
+          <p className="text-xs text-slate-500">Recibe el reporte automáticamente según la frecuencia seleccionada.</p>
+        </div>
+        <Switch checked={isReportScheduled} onCheckedChange={onReportScheduledChange} />
+      </div>
+
+      {isReportScheduled && (
+        <div className="space-y-4">
+          <div>
+            <p className="text-sm font-medium mb-2 text-slate-300">Frecuencia</p>
+            <Select value={reportScheduleFrequency} onValueChange={handleScheduleFrequencyChange}>
+              <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
+                <SelectValue placeholder="Seleccionar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="weekly">Semanal</SelectItem>
+                <SelectItem value="biweekly">Cada dos semanas</SelectItem>
+                <SelectItem value="monthly">Mensual</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {(reportScheduleFrequency === "weekly" || reportScheduleFrequency === "biweekly") && (
+            <div>
+              <p className="text-sm font-medium mb-2 text-slate-300">
+                {reportScheduleFrequency === "weekly" ? "Día de envío" : "Día de la semana"}
+              </p>
+              <Select value={reportScheduleDay} onValueChange={onReportScheduleDayChange}>
+                <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {WEEK_DAYS.map((day) => (
+                    <SelectItem key={day.value} value={day.value}>
+                      {day.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {reportScheduleFrequency === "monthly" && (
+            <div>
+              <p className="text-sm font-medium mb-2 text-slate-300">Día del mes</p>
+              <Select value={reportScheduleDay} onValueChange={onReportScheduleDayChange}>
+                <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {MONTH_DAYS.map((day) => (
+                    <SelectItem key={day.value} value={day.value}>
+                      {day.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <p className="text-sm font-medium mb-2 text-slate-300">Hora de envío</p>
+              <Input
+                type="time"
+                value={reportScheduleTime}
+                onChange={(e) => onReportScheduleTimeChange(e.target.value)}
+                className="bg-slate-800/50 border-slate-700/50 text-white"
+              />
+            </div>
+            <div>
+              <p className="text-sm font-medium mb-2 text-slate-300">Zona horaria</p>
+              <Select value={reportScheduleTimezone} onValueChange={onReportScheduleTimezoneChange}>
+                <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TIMEZONE_OPTIONS.map((tz) => (
+                    <SelectItem key={tz.value} value={tz.value}>
+                      {tz.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-medium mb-2 text-slate-300">Destinatarios del reporte</p>
+            <Input
+              type="email"
+              value={reportEmailRecipientInput}
+              onChange={(e) => onReportEmailRecipientInputChange(e.target.value)}
+              onKeyDown={handleRecipientKeyDown}
+              onBlur={onReportEmailRecipientsCommit}
+              className="bg-slate-800/50 border-slate-700/50 text-white"
+              placeholder="Escribe un correo y presiona espacio o enter"
+            />
+            <p className="text-xs text-slate-500 mt-2">
+              Puedes agregar múltiples direcciones presionando espacio, enter o saliendo del campo.
+            </p>
+            {reportEmailRecipients.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {reportEmailRecipients.map((email) => (
+                  <span
+                    key={email}
+                    className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
+                  >
+                    {email}
+                    <button
+                      type="button"
+                      onClick={() => onRemoveReportEmailRecipient(email)}
+                      className="text-slate-300 hover:text-white"
+                      aria-label={`Eliminar ${email}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <section className="p-8 space-y-8">
       <div className="mb-8">
@@ -115,9 +254,56 @@ export default function ReportsPage({
         {isEditingReport ? "Cancelar edición" : "Crear nuevo reporte"}
       </Button>
 
+      {showReportTypeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700/60 rounded-xl w-full max-w-md p-6 space-y-6 shadow-2xl">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Crear nuevo reporte</h3>
+                <p className="text-sm text-slate-400">Selecciona el tipo de reporte que quieres generar.</p>
+              </div>
+              <button
+                type="button"
+                onClick={onCloseReportTypeModal}
+                className="text-slate-400 hover:text-white"
+                aria-label="Cerrar modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => onReportTypeSelect("standard")}
+                className="w-full text-left rounded-lg border border-slate-700/60 bg-slate-800/60 px-4 py-3 text-slate-200 hover:bg-slate-700/60 transition"
+              >
+                <p className="text-sm font-semibold text-white">Reporte estándar</p>
+                <p className="text-xs text-slate-400">Descargable y configurable con filtros completos.</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => onReportTypeSelect("ai")}
+                className="w-full text-left rounded-lg border border-purple-500/40 bg-purple-500/10 px-4 py-3 text-slate-200 hover:bg-purple-500/20 transition"
+              >
+                <p className="text-sm font-semibold text-white">Reporte generado por IA</p>
+                <p className="text-xs text-slate-400">Crea un informe basado en instrucciones personalizadas.</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showReportForm && (
         <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 space-y-6">
-          <h3 className="text-lg font-semibold text-white">{isEditingReport ? "Editar Reporte" : "Nuevo Reporte"}</h3>
+          <h3 className="text-lg font-semibold text-white">
+            {isEditingReport
+              ? isAiReport
+                ? "Editar Reporte IA"
+                : "Editar Reporte"
+              : isAiReport
+                ? "Nuevo Reporte IA"
+                : "Nuevo Reporte"}
+          </h3>
 
           <div>
             <p className="text-sm font-medium mb-2 text-slate-300">Nombre del reporte</p>
@@ -129,202 +315,97 @@ export default function ReportsPage({
             />
           </div>
 
-          <div>
-            <p className="text-sm font-medium mb-3 text-slate-300">Plataforma</p>
-            <Select value={reportPlatform} onValueChange={handlePlatformChange}>
-              <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                <SelectValue placeholder="Seleccionar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="youtube">YouTube</SelectItem>
-                <SelectItem value="reddit">Reddit</SelectItem>
-                <SelectItem value="twitter">Twitter</SelectItem>
-                <SelectItem value="tiktok">TikTok</SelectItem>
-                <SelectItem value="instagram">Instagram</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium mb-2 text-slate-300">Palabra clave</p>
-            <Select value={reportKeyword} onValueChange={onReportKeywordChange}>
-              <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                <SelectValue placeholder="Seleccionar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                {activeKeywords.map((k) => (
-                  <SelectItem key={k.keyword} value={k.keyword}>
-                    {k.keyword}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <p className="text-sm font-medium mb-2 text-slate-300">Rango de fechas</p>
-            <div className="space-y-3">
-              <Select value={reportDateOption} onValueChange={onReportDateOptionChange}>
-                <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="range">Rango personalizado</SelectItem>
-                  <SelectItem value="7">Últimos 7 días</SelectItem>
-                  <SelectItem value="15">Últimos 15 días</SelectItem>
-                  <SelectItem value="30">Últimos 30 días</SelectItem>
-                </SelectContent>
-              </Select>
-              {reportDateOption === "range" && (
-                <div className="flex items-center gap-2">
-                  <DatePickerInput
-                    value={reportStartDate}
-                    onChange={onReportStartDateChange}
-                    placeholder="Desde"
-                    className="w-40"
-                  />
-                  <span className="text-slate-400">a</span>
-                  <DatePickerInput
-                    value={reportEndDate}
-                    onChange={onReportEndDateChange}
-                    placeholder="Hasta"
-                    className="w-40"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between gap-4">
+          {isAiReport ? (
+            <div className="space-y-6">
               <div>
-                <p className="text-sm font-medium text-slate-300">Programar envío por correo</p>
-                <p className="text-xs text-slate-500">Recibe el reporte automáticamente según la frecuencia seleccionada.</p>
+                <p className="text-sm font-medium mb-2 text-slate-300">Instrucciones</p>
+                <textarea
+                  value={reportAiInstructions}
+                  onChange={(e) => onReportAiInstructionsChange(e.target.value)}
+                  maxLength={200}
+                  rows={4}
+                  className="w-full rounded-md bg-slate-800/50 border border-slate-700/50 text-white px-3 py-2 text-sm"
+                  placeholder="Describe el enfoque del reporte en hasta 200 caracteres"
+                />
+                <p className="text-xs text-slate-500 mt-2">
+                  {reportAiInstructions.length}/200 caracteres
+                </p>
               </div>
-              <Switch checked={isReportScheduled} onCheckedChange={onReportScheduledChange} />
+              {scheduleSection}
             </div>
+          ) : (
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm font-medium mb-3 text-slate-300">Plataforma</p>
+                <Select value={reportPlatform} onValueChange={handlePlatformChange}>
+                  <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="youtube">YouTube</SelectItem>
+                    <SelectItem value="reddit">Reddit</SelectItem>
+                    <SelectItem value="twitter">Twitter</SelectItem>
+                    <SelectItem value="tiktok">TikTok</SelectItem>
+                    <SelectItem value="instagram">Instagram</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {isReportScheduled && (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm font-medium mb-2 text-slate-300">Frecuencia</p>
-                  <Select value={reportScheduleFrequency} onValueChange={handleScheduleFrequencyChange}>
+              <div>
+                <p className="text-sm font-medium mb-2 text-slate-300">Palabra clave</p>
+                <Select value={reportKeyword} onValueChange={onReportKeywordChange}>
+                  <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {activeKeywords.map((k) => (
+                      <SelectItem key={k.keyword} value={k.keyword}>
+                        {k.keyword}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium mb-2 text-slate-300">Rango de fechas</p>
+                <div className="space-y-3">
+                  <Select value={reportDateOption} onValueChange={onReportDateOptionChange}>
                     <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="weekly">Semanal</SelectItem>
-                      <SelectItem value="biweekly">Cada dos semanas</SelectItem>
-                      <SelectItem value="monthly">Mensual</SelectItem>
+                      <SelectItem value="range">Rango personalizado</SelectItem>
+                      <SelectItem value="7">Últimos 7 días</SelectItem>
+                      <SelectItem value="15">Últimos 15 días</SelectItem>
+                      <SelectItem value="30">Últimos 30 días</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                {(reportScheduleFrequency === "weekly" || reportScheduleFrequency === "biweekly") && (
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">
-                      {reportScheduleFrequency === "weekly" ? "Día de envío" : "Día de la semana"}
-                    </p>
-                    <Select value={reportScheduleDay} onValueChange={onReportScheduleDayChange}>
-                      <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                        <SelectValue placeholder="Seleccionar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {WEEK_DAYS.map((day) => (
-                          <SelectItem key={day.value} value={day.value}>
-                            {day.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                {reportScheduleFrequency === "monthly" && (
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">Día del mes</p>
-                    <Select value={reportScheduleDay} onValueChange={onReportScheduleDayChange}>
-                      <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                        <SelectValue placeholder="Seleccionar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MONTH_DAYS.map((day) => (
-                          <SelectItem key={day.value} value={day.value}>
-                            {day.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">Hora de envío</p>
-                    <Input
-                      type="time"
-                      value={reportScheduleTime}
-                      onChange={(e) => onReportScheduleTimeChange(e.target.value)}
-                      className="bg-slate-800/50 border-slate-700/50 text-white"
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">Zona horaria</p>
-                    <Select value={reportScheduleTimezone} onValueChange={onReportScheduleTimezoneChange}>
-                      <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                        <SelectValue placeholder="Seleccionar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {TIMEZONE_OPTIONS.map((tz) => (
-                          <SelectItem key={tz.value} value={tz.value}>
-                            {tz.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium mb-2 text-slate-300">Destinatarios del reporte</p>
-                  <Input
-                    type="email"
-                    value={reportEmailRecipientInput}
-                    onChange={(e) => onReportEmailRecipientInputChange(e.target.value)}
-                    onKeyDown={handleRecipientKeyDown}
-                    onBlur={onReportEmailRecipientsCommit}
-                    className="bg-slate-800/50 border-slate-700/50 text-white"
-                    placeholder="Escribe un correo y presiona espacio o enter"
-                  />
-                  <p className="text-xs text-slate-500 mt-2">
-                    Puedes agregar múltiples direcciones presionando espacio, enter o saliendo del campo.
-                  </p>
-                  {reportEmailRecipients.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {reportEmailRecipients.map((email) => (
-                        <span
-                          key={email}
-                          className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
-                        >
-                          {email}
-                          <button
-                            type="button"
-                            onClick={() => onRemoveReportEmailRecipient(email)}
-                            className="text-slate-300 hover:text-white"
-                            aria-label={`Eliminar ${email}`}
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
+                  {reportDateOption === "range" && (
+                    <div className="flex items-center gap-2">
+                      <DatePickerInput
+                        value={reportStartDate}
+                        onChange={onReportStartDateChange}
+                        placeholder="Desde"
+                        className="w-40"
+                      />
+                      <span className="text-slate-400">a</span>
+                      <DatePickerInput
+                        value={reportEndDate}
+                        onChange={onReportEndDateChange}
+                        placeholder="Hasta"
+                        className="w-40"
+                      />
                     </div>
                   )}
                 </div>
               </div>
-            )}
-          </div>
+
+              {scheduleSection}
+            </div>
+          )}
 
           <Button
             onClick={onCreateReport}
