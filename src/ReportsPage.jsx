@@ -35,6 +35,7 @@ export default function ReportsPage({
   savedReports,
   onDownload,
   onDelete,
+  onEdit,
   showReportForm,
   onToggleReportForm,
   newReportName,
@@ -61,6 +62,8 @@ export default function ReportsPage({
   reportScheduleTimezone,
   onReportScheduleTimezoneChange,
   onCreateReport,
+  isEditingReport,
+  onCancelEdit,
 }) {
   const handlePlatformChange = (value) => {
     onReportPlatformChange(value)
@@ -88,21 +91,21 @@ export default function ReportsPage({
       </div>
 
       <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6">
-        <ReportsTable reports={savedReports} onDownload={onDownload} onDelete={onDelete} />
+        <ReportsTable reports={savedReports} onDownload={onDownload} onDelete={onDelete} onEdit={onEdit} />
       </div>
 
       <Button
         variant="outline"
-        onClick={onToggleReportForm}
+        onClick={isEditingReport ? onCancelEdit : onToggleReportForm}
         className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
       >
         {showReportForm ? <Minus className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-        Crear nuevo reporte
+        {isEditingReport ? "Cancelar edición" : "Crear nuevo reporte"}
       </Button>
 
       {showReportForm && (
         <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 space-y-6">
-          <h3 className="text-lg font-semibold text-white">Nuevo Reporte</h3>
+          <h3 className="text-lg font-semibold text-white">{isEditingReport ? "Editar Reporte" : "Nuevo Reporte"}</h3>
 
           <div>
             <p className="text-sm font-medium mb-2 text-slate-300">Nombre del reporte</p>
@@ -279,7 +282,7 @@ export default function ReportsPage({
             onClick={onCreateReport}
             className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
           >
-            Crear reporte
+            {isEditingReport ? "Guardar cambios" : "Crear reporte"}
           </Button>
         </div>
       )}
