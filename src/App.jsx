@@ -152,7 +152,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const [reportStartDate, setReportStartDate] = useState("")
   const [reportEndDate, setReportEndDate] = useState("")
   const [reportPlatform, setReportPlatform] = useState("")
-  const [includeComments, setIncludeComments] = useState(false)
   const [savedReports, setSavedReports] = useState([])
   const [showReportForm, setShowReportForm] = useState(false)
   const [newReportName, setNewReportName] = useState("")
@@ -762,11 +761,13 @@ export default function ModernSocialListeningApp({ onLogout }) {
       id: r.id,
       name: r.name,
       platform: r.platform,
-      keyword: keywords.find((k) => k.keyword_id === r.keyword_id)?.keyword || "",
+      keyword:
+        r.keyword_id === "all"
+          ? "Todas"
+          : keywords.find((k) => k.keyword_id === r.keyword_id)?.keyword || "",
       startDate: r.isdynamicdate ? "" : r.date_from,
       endDate: r.isdynamicdate ? "" : r.date_to,
       datePreset: r.isdynamicdate ? (r.last_x_days ? String(r.last_x_days) : "") : "",
-      includeComments: r.comments,
       isScheduled: r.is_scheduled,
       schedule: r.schedule,
       scheduleDay: r.schedule_day,
@@ -858,12 +859,11 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const insertData = {
       name: newReportName || `Reporte ${savedReports.length + 1}`,
       platform: reportPlatform,
-      keyword_id: keywordObj?.keyword_id || null,
+      keyword_id: reportKeyword === "all" ? "all" : keywordObj?.keyword_id || null,
       isdynamicdate: isDynamic,
       date_from: isDynamic ? null : reportStartDate || null,
       date_to: isDynamic ? null : reportEndDate || null,
       last_x_days: isDynamic ? Number(reportDateOption) : null,
-      comments: includeComments,
       user_id: user.id,
       account_id: accountId,
       is_scheduled: isReportScheduled,
@@ -883,11 +883,10 @@ export default function ModernSocialListeningApp({ onLogout }) {
         id: r.id,
         name: r.name,
         platform: r.platform,
-        keyword: reportKeyword,
+        keyword: reportKeyword === "all" ? "Todas" : reportKeyword,
         startDate: r.isdynamicdate ? "" : r.date_from,
         endDate: r.isdynamicdate ? "" : r.date_to,
         datePreset: r.isdynamicdate ? (r.last_x_days ? String(r.last_x_days) : "") : "",
-        includeComments: r.comments,
         isScheduled: r.is_scheduled,
         schedule: r.schedule,
         scheduleDay: r.schedule_day,
@@ -900,7 +899,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
       setReportStartDate("")
       setReportEndDate("")
       setReportDateOption("range")
-      setIncludeComments(false)
       setIsReportScheduled(false)
       setReportScheduleFrequency("weekly")
       setReportScheduleDay("1")
@@ -1173,8 +1171,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
                   onReportNameChange={setNewReportName}
                   reportPlatform={reportPlatform}
                   onReportPlatformChange={setReportPlatform}
-                  includeComments={includeComments}
-                  onIncludeCommentsChange={setIncludeComments}
                   reportKeyword={reportKeyword}
                   onReportKeywordChange={setReportKeyword}
                   reportDateOption={reportDateOption}
