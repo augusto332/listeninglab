@@ -78,6 +78,13 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
     return report.keywords || "Sin definir"
   }
 
+  const getCreatedDateDisplay = (report) => {
+    if (!report?.createdAt) return "Sin definir"
+    const createdDate = new Date(report.createdAt)
+    if (Number.isNaN(createdDate.getTime())) return "Sin definir"
+    return createdDate.toLocaleDateString()
+  }
+
   const getScheduleTimeDisplay = (scheduleTime) => {
     if (!scheduleTime) return "hora no definida"
 
@@ -264,7 +271,7 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                         <TooltipContent>{report.name}</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                    <div className="text-xs text-slate-500">Creado {new Date().toLocaleDateString()}</div>
+                    <div className="text-xs text-slate-500">Creado {getCreatedDateDisplay(report)}</div>
                   </div>
                 </td>
 

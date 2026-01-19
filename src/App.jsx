@@ -772,6 +772,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       schedule: r.schedule,
       scheduleDay: r.schedule_day,
       scheduleTime: r.schedule_time,
+      createdAt: r.created_at,
     }))
     setSavedReports(mapped)
   }
@@ -891,6 +892,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
         schedule: r.schedule,
         scheduleDay: r.schedule_day,
         scheduleTime: r.schedule_time,
+        createdAt: r.created_at,
       }
       setSavedReports((prev) => [...prev, newRep])
       setNewReportName("")
