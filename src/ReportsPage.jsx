@@ -37,10 +37,9 @@ export default function ReportsPage({
   onDelete,
   onEdit,
   showReportForm,
-  showReportTypeModal,
+  showReportTypeSelector,
   reportFormType,
   onToggleReportForm,
-  onCloseReportTypeModal,
   onReportTypeSelect,
   newReportName,
   onReportNameChange,
@@ -254,42 +253,24 @@ export default function ReportsPage({
         {isEditingReport ? "Cancelar edición" : "Crear nuevo reporte"}
       </Button>
 
-      {showReportTypeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-700/60 rounded-xl w-full max-w-md p-6 space-y-6 shadow-2xl">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-white">Crear nuevo reporte</h3>
-                <p className="text-sm text-slate-400">Selecciona el tipo de reporte que quieres generar.</p>
-              </div>
-              <button
-                type="button"
-                onClick={onCloseReportTypeModal}
-                className="text-slate-400 hover:text-white"
-                aria-label="Cerrar modal"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={() => onReportTypeSelect("standard")}
-                className="w-full text-left rounded-lg border border-slate-700/60 bg-slate-800/60 px-4 py-3 text-slate-200 hover:bg-slate-700/60 transition"
-              >
-                <p className="text-sm font-semibold text-white">Reporte estándar</p>
-                <p className="text-xs text-slate-400">Descargable y configurable con filtros completos.</p>
-              </button>
-              <button
-                type="button"
-                onClick={() => onReportTypeSelect("ai")}
-                className="w-full text-left rounded-lg border border-purple-500/40 bg-purple-500/10 px-4 py-3 text-slate-200 hover:bg-purple-500/20 transition"
-              >
-                <p className="text-sm font-semibold text-white">Reporte generado por IA</p>
-                <p className="text-xs text-slate-400">Crea un informe basado en instrucciones personalizadas.</p>
-              </button>
-            </div>
-          </div>
+      {showReportTypeSelector && !showReportForm && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => onReportTypeSelect("standard")}
+            className="rounded-xl border border-slate-700/60 bg-slate-800/60 px-4 py-4 text-left text-slate-200 hover:bg-slate-700/60 transition"
+          >
+            <p className="text-sm font-semibold text-white">Reporte estándar</p>
+            <p className="text-xs text-slate-400 mt-1">Descargable y configurable con filtros completos.</p>
+          </button>
+          <button
+            type="button"
+            onClick={() => onReportTypeSelect("ai")}
+            className="rounded-xl border border-purple-500/40 bg-purple-500/10 px-4 py-4 text-left text-slate-200 hover:bg-purple-500/20 transition"
+          >
+            <p className="text-sm font-semibold text-white">Reporte generado por IA</p>
+            <p className="text-xs text-slate-400 mt-1">Crea un informe basado en instrucciones personalizadas.</p>
+          </button>
         </div>
       )}
 

@@ -154,7 +154,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const [reportPlatform, setReportPlatform] = useState("")
   const [savedReports, setSavedReports] = useState([])
   const [showReportForm, setShowReportForm] = useState(false)
-  const [showReportTypeModal, setShowReportTypeModal] = useState(false)
+  const [showReportTypeSelector, setShowReportTypeSelector] = useState(false)
   const [reportFormType, setReportFormType] = useState("standard")
   const [newReportName, setNewReportName] = useState("")
   const [reportKeyword, setReportKeyword] = useState("")
@@ -919,7 +919,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setReportAiInstructions("")
     setReportFormType("standard")
     setShowReportForm(false)
-    setShowReportTypeModal(false)
+    setShowReportTypeSelector(false)
     setEditingReportId(null)
   }
 
@@ -1372,7 +1372,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
                   onDelete={handleDeleteReport}
                   onEdit={handleEditReport}
                   showReportForm={showReportForm}
-                  showReportTypeModal={showReportTypeModal}
+                  showReportTypeSelector={showReportTypeSelector}
                   reportFormType={reportFormType}
                   onToggleReportForm={() => {
                     if (editingReportId) {
@@ -1381,14 +1381,14 @@ export default function ModernSocialListeningApp({ onLogout }) {
                     }
                     if (showReportForm) {
                       setShowReportForm(false)
+                      setShowReportTypeSelector(false)
                       return
                     }
-                    setShowReportTypeModal(true)
+                    setShowReportTypeSelector((prev) => !prev)
                   }}
-                  onCloseReportTypeModal={() => setShowReportTypeModal(false)}
                   onReportTypeSelect={(type) => {
                     setReportFormType(type)
-                    setShowReportTypeModal(false)
+                    setShowReportTypeSelector(false)
                     setShowReportForm(true)
                     setReportAiInstructions("")
                   }}
