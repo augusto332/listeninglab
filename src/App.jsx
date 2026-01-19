@@ -762,7 +762,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       name: r.name,
       platform: r.platform,
       keyword:
-        r.keyword_id === "all"
+        r.keyword_id === "all" || r.keyword_id === null
           ? "Todas"
           : keywords.find((k) => k.keyword_id === r.keyword_id)?.keyword || "",
       startDate: r.isdynamicdate ? "" : r.date_from,
@@ -859,7 +859,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const insertData = {
       name: newReportName || `Reporte ${savedReports.length + 1}`,
       platform: reportPlatform,
-      keyword_id: reportKeyword === "all" ? "all" : keywordObj?.keyword_id || null,
+      keyword_id: reportKeyword === "all" ? null : keywordObj?.keyword_id || null,
       isdynamicdate: isDynamic,
       date_from: isDynamic ? null : reportStartDate || null,
       date_to: isDynamic ? null : reportEndDate || null,
