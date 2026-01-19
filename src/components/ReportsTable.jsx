@@ -226,6 +226,7 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                   Nombre
                 </div>
               </th>
+              <th className="text-left p-4 text-slate-300 font-medium">Tipo</th>
               <th className="text-left p-4 text-slate-300 font-medium">
                 <div className="flex items-center gap-2">
                   Plataformas
@@ -273,6 +274,18 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                     </TooltipProvider>
                     <div className="text-xs text-slate-500">Creado {getCreatedDateDisplay(report)}</div>
                   </div>
+                </td>
+
+                <td className="p-4">
+                  {report.isAiPowered ? (
+                    <span className="inline-flex items-center rounded-full bg-purple-500/20 text-purple-200 border border-purple-500/40 px-2 py-0.5 text-xs font-semibold">
+                      IA
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-md text-xs font-medium bg-slate-600/30 text-slate-200 border border-slate-500/40 px-2 py-0.5">
+                      Estándar
+                    </span>
+                  )}
                 </td>
 
                 <td className="p-4">
@@ -324,11 +337,14 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                 <td className="p-4 text-right">
                   <div className="flex items-center justify-end gap-2">
                     <button
-                      onClick={() => onDownload && onDownload(report)}
+                      onClick={() => {
+                        if (report.isAiPowered) return
+                        onDownload && onDownload(report)
+                      }}
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md bg-gradient-to-r from-blue-500/20 to-purple-600/20 hover:from-blue-500/30 hover:to-purple-600/30 border border-blue-500/30 text-blue-300 hover:text-white transition-all duration-200"
                     >
-                      <Download className="w-3 h-3 mr-1" />
-                      Descargar
+                      {!report.isAiPowered && <Download className="w-3 h-3 mr-1" />}
+                      {report.isAiPowered ? "Generar" : "Descargar"}
                     </button>
 
                     <div className="relative" ref={(el) => (dropdownRefs.current[idx] = el)}>
