@@ -100,6 +100,17 @@ export default function ReportsPage({
 
   const isAiReport = reportFormType === "ai"
 
+  const scheduleFrequencies = isAiReport
+    ? [
+        { value: "weekly", label: "Semanal" },
+        { value: "monthly", label: "Mensual" },
+      ]
+    : [
+        { value: "weekly", label: "Semanal" },
+        { value: "biweekly", label: "Cada dos semanas" },
+        { value: "monthly", label: "Mensual" },
+      ]
+
   const scheduleSection = (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-4">
@@ -119,9 +130,11 @@ export default function ReportsPage({
                 <SelectValue placeholder="Seleccionar" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="weekly">Semanal</SelectItem>
-                <SelectItem value="biweekly">Cada dos semanas</SelectItem>
-                <SelectItem value="monthly">Mensual</SelectItem>
+                {scheduleFrequencies.map((frequency) => (
+                  <SelectItem key={frequency.value} value={frequency.value}>
+                    {frequency.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -311,6 +324,19 @@ export default function ReportsPage({
                 <p className="text-xs text-slate-500 mt-2">
                   {reportAiInstructions.length}/200 caracteres
                 </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium mb-2 text-slate-300">Rango de fechas</p>
+                <Select value={reportDateOption} onValueChange={onReportDateOptionChange}>
+                  <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Últimos 7 días</SelectItem>
+                    <SelectItem value="15">Últimos 15 días</SelectItem>
+                    <SelectItem value="30">Últimos 30 días</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               {scheduleSection}
             </div>

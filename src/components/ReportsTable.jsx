@@ -282,7 +282,9 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                       IA
                     </span>
                   ) : (
-                    <span className="text-sm text-slate-300">Estándar</span>
+                    <span className="inline-flex items-center rounded-md text-xs font-medium bg-slate-600/30 text-slate-200 border border-slate-500/40 px-2 py-0.5">
+                      Estándar
+                    </span>
                   )}
                 </td>
 
@@ -342,7 +344,7 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                       className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md bg-gradient-to-r from-blue-500/20 to-purple-600/20 hover:from-blue-500/30 hover:to-purple-600/30 border border-blue-500/30 text-blue-300 hover:text-white transition-all duration-200"
                     >
                       {!report.isAiPowered && <Download className="w-3 h-3 mr-1" />}
-                      {report.isAiPowered ? "Ver último envío" : "Descargar"}
+                      {report.isAiPowered ? "Generar" : "Descargar"}
                     </button>
 
                     <div className="relative" ref={(el) => (dropdownRefs.current[idx] = el)}>
