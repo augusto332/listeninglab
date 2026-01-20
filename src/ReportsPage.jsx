@@ -216,7 +216,7 @@ export default function ReportsPage({
               placeholder="Escribe un correo y presiona espacio o enter"
             />
             <p className="text-xs text-slate-500 mt-2">
-              Puedes agregar múltiples direcciones presionando espacio, enter o saliendo del campo.
+              Puedes agregar múltiples direcciones.
             </p>
             {reportEmailRecipients.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
