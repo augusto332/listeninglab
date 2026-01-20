@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useAuth } from "@/context/AuthContext"
 
 const WEEK_DAYS = [
   { value: "1", label: "Lunes" },
@@ -75,6 +77,7 @@ export default function ReportsPage({
   isEditingReport,
   onCancelEdit,
 }) {
+  const { planId, planLoading } = useAuth()
   const handlePlatformChange = (value) => {
     onReportPlatformChange(value)
   }
@@ -99,6 +102,7 @@ export default function ReportsPage({
   }
 
   const isAiReport = reportFormType === "ai"
+  const isAiPlanLocked = planLoading || !planId || Number(planId) < 4
 
   const scheduleFrequencies = isAiReport
     ? [
@@ -276,14 +280,36 @@ export default function ReportsPage({
             <p className="text-sm font-semibold text-white">Reporte estándar</p>
             <p className="text-xs text-slate-400 mt-1">Descargable y configurable con filtros completos.</p>
           </button>
-          <button
-            type="button"
-            onClick={() => onReportTypeSelect("ai")}
-            className="rounded-xl border border-purple-500/40 bg-purple-500/10 px-4 py-4 text-left text-slate-200 hover:bg-purple-500/20 transition"
-          >
-            <p className="text-sm font-semibold text-white">Reporte generado por IA</p>
-            <p className="text-xs text-slate-400 mt-1">Crea un informe basado en instrucciones personalizadas.</p>
-          </button>
+          {isAiPlanLocked ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="block">
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 px-4 py-4 text-left text-slate-500 opacity-70 cursor-not-allowed"
+                    >
+                      <p className="text-sm font-semibold text-slate-400">Reporte generado por IA</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Crea un informe basado en instrucciones personalizadas.
+                      </p>
+                    </button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>Funcionalidad exclusiva para planes Pro o superior</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onReportTypeSelect("ai")}
+              className="rounded-xl border border-purple-500/40 bg-purple-500/10 px-4 py-4 text-left text-slate-200 hover:bg-purple-500/20 transition"
+            >
+              <p className="text-sm font-semibold text-white">Reporte generado por IA</p>
+              <p className="text-xs text-slate-400 mt-1">Crea un informe basado en instrucciones personalizadas.</p>
+            </button>
+          )}
         </div>
       )}
 

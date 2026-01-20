@@ -7,6 +7,7 @@ const AuthContext = createContext({
   loading: true,
   plan: 'free',
   planLoading: true,
+  planId: null,
   role: 'contributor',
   accountId: undefined,
   subscriptionId: null,
@@ -20,6 +21,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [plan, setPlan] = useState('free')
   const [planLoading, setPlanLoading] = useState(true)
+  const [planId, setPlanId] = useState(null)
   const [role, setRole] = useState('contributor')
   const [accountId, setAccountId] = useState(undefined)
   const [subscriptionId, setSubscriptionId] = useState(null)
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }) => {
 
       if (profileError) {
         setPlan('free')
+        setPlanId(null)
         setRole('contributor')
         setAccountId(null)
         setSubscriptionId(null)
@@ -54,6 +57,7 @@ export const AuthProvider = ({ children }) => {
       const nextAccountId = profile?.account_id ?? null
 
       let nextPlan = 'free'
+      let nextPlanId = null
       let nextSubscriptionId = null
       let nextSubscriptionStatus = null
       let nextOnboardingCompleted = false
@@ -81,12 +85,14 @@ export const AuthProvider = ({ children }) => {
           }
         }
 
+        nextPlanId = account?.plan_id ?? null
         nextSubscriptionId = account?.subscription_id ?? null
         nextSubscriptionStatus = account?.subscription_status ?? null
         nextOnboardingCompleted = account?.is_onboarding_completed ?? false
       }
 
       setPlan(nextPlan)
+      setPlanId(nextPlanId)
       setRole(nextRole)
       setAccountId(nextAccountId)
       setSubscriptionId(nextSubscriptionId)
@@ -97,6 +103,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     setPlan('free')
+    setPlanId(null)
     setRole('contributor')
     setAccountId(null)
     setSubscriptionId(null)
@@ -139,6 +146,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         plan,
         planLoading,
+        planId,
         role,
         accountId,
         subscriptionId,
