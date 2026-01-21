@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { ChevronDown, Brain, Lock, Sparkles, Clock, Zap, RefreshCw } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/context/AuthContext"
 
@@ -11,7 +12,7 @@ export default function ModernAISummary() {
   const [summaryTimestamp, setSummaryTimestamp] = useState(null)
   const [loadingSummary, setLoadingSummary] = useState(false)
   const [generating, setGenerating] = useState(false)
-  const { session, user, plan, planLoading, accountId } = useAuth()
+  const { session, user, plan, planId, planLoading, accountId } = useAuth()
 
   // Cerrar el desplegable cuando se cambia de pestaña
   useEffect(() => {
@@ -87,6 +88,7 @@ export default function ModernAISummary() {
     }
   }
 
+  const isAiPlanLocked = planLoading || !planId || Number(planId) < 4
   const isSameDaySummary = summaryTimestamp
     ? (() => {
         const summaryDate = new Date(summaryTimestamp)
@@ -98,6 +100,7 @@ export default function ModernAISummary() {
         )
       })()
     : false
+  const isGenerateDisabled = generating || isSameDaySummary || isAiPlanLocked
 
   return (
     <div className="mb-8">
@@ -194,52 +197,108 @@ export default function ModernAISummary() {
 
                 {/* Generate Button */}
                 <div className="relative group">
-                  <button
-                    type="button"
-                    onClick={handleGenerateSummary}
-                    disabled={generating || isSameDaySummary}
-                    aria-describedby={isSameDaySummary ? "summary-day-tooltip" : undefined}
-                    className={`relative w-full overflow-hidden rounded-xl p-[1px] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
-                      isSameDaySummary
-                        ? "bg-slate-700/60"
-                        : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                    }`}
-                  >
-                    <div
-                      className={`relative flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-white transition-all duration-200 ${
-                        isSameDaySummary
-                          ? "bg-slate-700 text-slate-200"
-                          : "bg-gradient-to-r from-blue-500 to-purple-600 group-hover:from-blue-600 group-hover:to-purple-700"
+                  {isAiPlanLocked ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="block">
+                            <button
+                              type="button"
+                              onClick={handleGenerateSummary}
+                              disabled={isGenerateDisabled}
+                              className={`relative w-full overflow-hidden rounded-xl p-[1px] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                                isSameDaySummary || isAiPlanLocked
+                                  ? "bg-slate-700/60"
+                                  : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                              }`}
+                            >
+                              <div
+                                className={`relative flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-white transition-all duration-200 ${
+                                  isSameDaySummary || isAiPlanLocked
+                                    ? "bg-slate-700 text-slate-200"
+                                    : "bg-gradient-to-r from-blue-500 to-purple-600 group-hover:from-blue-600 group-hover:to-purple-700"
+                                }`}
+                              >
+                                {generating ? (
+                                  <>
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <span className="text-sm font-medium">Generando resumen AI...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    {summary ? (
+                                      <RefreshCw
+                                        className={`w-5 h-5 ${
+                                          isSameDaySummary ? "" : "group-hover:rotate-180 transition-transform duration-300"
+                                        }`}
+                                      />
+                                    ) : (
+                                      <Zap
+                                        className={`w-5 h-5 ${
+                                          isSameDaySummary
+                                            ? ""
+                                            : "group-hover:scale-110 transition-transform duration-200"
+                                        }`}
+                                      />
+                                    )}
+                                    <span className="text-sm font-medium">
+                                      {summary ? "Actualizar" : "Generar resumen AI"}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </button>
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>Funcionalidad exclusiva para planes Pro o superior</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleGenerateSummary}
+                      disabled={isGenerateDisabled}
+                      aria-describedby={isSameDaySummary ? "summary-day-tooltip" : undefined}
+                      className={`relative w-full overflow-hidden rounded-xl p-[1px] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-60 ${
+                        isSameDaySummary || isAiPlanLocked
+                          ? "bg-slate-700/60"
+                          : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                       }`}
                     >
-                      {generating ? (
-                        <>
-                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span className="text-sm font-medium">Generando resumen AI...</span>
-                        </>
-                      ) : (
-                        <>
-                          {summary ? (
-                            <RefreshCw
-                              className={`w-5 h-5 ${
-                                isSameDaySummary ? "" : "group-hover:rotate-180 transition-transform duration-300"
-                              }`}
-                            />
-                          ) : (
-                            <Zap
-                              className={`w-5 h-5 ${
-                                isSameDaySummary ? "" : "group-hover:scale-110 transition-transform duration-200"
-                              }`}
-                            />
-                          )}
-                          <span className="text-sm font-medium">
-                            {summary ? "Actualizar" : "Generar resumen AI"}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </button>
-                  {isSameDaySummary && (
+                      <div
+                        className={`relative flex items-center justify-center gap-3 rounded-xl px-6 py-4 text-white transition-all duration-200 ${
+                          isSameDaySummary || isAiPlanLocked
+                            ? "bg-slate-700 text-slate-200"
+                            : "bg-gradient-to-r from-blue-500 to-purple-600 group-hover:from-blue-600 group-hover:to-purple-700"
+                        }`}
+                      >
+                        {generating ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                            <span className="text-sm font-medium">Generando resumen AI...</span>
+                          </>
+                        ) : (
+                          <>
+                            {summary ? (
+                              <RefreshCw
+                                className={`w-5 h-5 ${
+                                  isSameDaySummary ? "" : "group-hover:rotate-180 transition-transform duration-300"
+                                }`}
+                              />
+                            ) : (
+                              <Zap
+                                className={`w-5 h-5 ${
+                                  isSameDaySummary ? "" : "group-hover:scale-110 transition-transform duration-200"
+                                }`}
+                              />
+                            )}
+                            <span className="text-sm font-medium">{summary ? "Actualizar" : "Generar resumen AI"}</span>
+                          </>
+                        )}
+                      </div>
+                    </button>
+                  )}
+                  {isSameDaySummary && !isAiPlanLocked && (
                     <span
                       id="summary-day-tooltip"
                       role="tooltip"
