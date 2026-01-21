@@ -74,6 +74,7 @@ export default function ReportsPage({
   onReportEmailRecipientsCommit,
   onRemoveReportEmailRecipient,
   onCreateReport,
+  reportMessage,
   isEditingReport,
   onCancelEdit,
 }) {
@@ -437,6 +438,19 @@ export default function ReportsPage({
               </div>
 
               {scheduleSection}
+            </div>
+          )}
+
+          {reportMessage?.text && (
+            <div
+              className={`rounded-lg border px-4 py-3 text-sm ${
+                reportMessage.type === "error"
+                  ? "border-red-500/40 bg-red-500/10 text-red-200"
+                  : "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+              }`}
+              role="status"
+            >
+              {reportMessage.text}
             </div>
           )}
 
