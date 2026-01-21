@@ -169,6 +169,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const [reportEmailRecipients, setReportEmailRecipients] = useState([])
   const [reportEmailRecipientInput, setReportEmailRecipientInput] = useState("")
   const [reportAiInstructions, setReportAiInstructions] = useState("")
+  const [reportMessage, setReportMessage] = useState(null)
   const [editingReportId, setEditingReportId] = useState(null)
   const { user, accountId, role } = useAuth()
   const isAdmin = role?.toLowerCase?.() === "admin"
@@ -925,6 +926,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
 
   const handleEditReport = (report) => {
     if (!report) return
+    setReportMessage(null)
     setEditingReportId(report.id)
     setShowReportForm(true)
     setReportFormType(report.isAiPowered ? "ai" : "standard")
@@ -953,11 +955,13 @@ export default function ModernSocialListeningApp({ onLogout }) {
   }
 
   const handleCreateReport = async () => {
+    setReportMessage(null)
     const { data: userData } = await supabase.auth.getUser()
     const { user } = userData || {}
     if (!user) return
     if (!accountId) {
       console.error("Missing account ID for current user")
+      setReportMessage({ type: "error", text: "No pudimos identificar tu cuenta." })
       return
     }
     const keywordObj = keywords.find((k) => k.keyword === reportKeyword)
@@ -1003,6 +1007,10 @@ export default function ModernSocialListeningApp({ onLogout }) {
       .select()
     if (error) {
       console.error("Error creating report", error)
+      const normalizedMessage = error.message?.includes("one_ai_report_per_account")
+        ? "Solo se permite un reporte generado por IA por cuenta."
+        : error.message || "Ocurrió un error al crear el reporte."
+      setReportMessage({ type: "error", text: normalizedMessage })
     } else if (data && data.length > 0) {
       const r = data[0]
       const isAiPowered = Boolean(r.is_ai_powered)
@@ -1031,11 +1039,13 @@ export default function ModernSocialListeningApp({ onLogout }) {
       }
       setSavedReports((prev) => [...prev, newRep])
       resetReportForm()
+      setReportMessage(null)
     }
   }
 
   const handleUpdateReport = async () => {
     if (!editingReportId) return
+    setReportMessage(null)
     const keywordObj = keywords.find((k) => k.keyword === reportKeyword)
     const isAiReport = reportFormType === "ai"
     const isDynamic = isAiReport ? true : reportDateOption !== "range"
@@ -1078,6 +1088,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       .select()
     if (error) {
       console.error("Error updating report", error)
+      setReportMessage({ type: "error", text: error.message || "Ocurrió un error al actualizar el reporte." })
       return
     }
     const updated = data?.[0]
@@ -1112,6 +1123,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       )
     )
     resetReportForm()
+    setReportMessage(null)
   }
 
   const handleDownloadReport = async (rep) => {
@@ -1428,6 +1440,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
                   onReportEmailRecipientsCommit={commitReportEmailRecipients}
                   onRemoveReportEmailRecipient={removeReportEmailRecipient}
                   onCreateReport={editingReportId ? handleUpdateReport : handleCreateReport}
+                  reportMessage={reportMessage}
                   isEditingReport={Boolean(editingReportId)}
                   onCancelEdit={resetReportForm}
                 />
