@@ -1007,7 +1007,9 @@ export default function ModernSocialListeningApp({ onLogout }) {
       .select()
     if (error) {
       console.error("Error creating report", error)
-      const normalizedMessage = error.message?.includes("one_ai_report_per_account")
+      const normalizedMessage = error.message?.includes(
+        'duplicate key value violates unique constraint "one_ai_report_per_account"'
+      )
         ? "Solo se permite un reporte generado por IA por cuenta."
         : error.message || "Ocurrió un error al crear el reporte."
       setReportMessage({ type: "error", text: normalizedMessage })
