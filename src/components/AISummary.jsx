@@ -113,7 +113,7 @@ export default function ModernAISummary() {
           <div className="w-8 h-8 bg-gradient-to-r from-purple-500/20 to-blue-600/20 rounded-lg flex items-center justify-center">
             <Brain className="w-4 h-4 text-purple-400" />
           </div>
-          <span className="text-sm font-semibold text-white">Resumen de AI</span>
+          <span className="text-sm font-semibold text-white">Resumen de IA</span>
         </div>
 
         <ChevronDown
@@ -242,7 +242,7 @@ export default function ModernAISummary() {
                                       />
                                     )}
                                     <span className="text-sm font-medium">
-                                      {summary ? "Actualizar" : "Generar resumen AI"}
+                                      {summary ? "Actualizar" : "Generar Resumen de IA"}
                                     </span>
                                   </>
                                 )}
@@ -292,7 +292,7 @@ export default function ModernAISummary() {
                                 }`}
                               />
                             )}
-                            <span className="text-sm font-medium">{summary ? "Actualizar" : "Generar resumen AI"}</span>
+                            <span className="text-sm font-medium">{summary ? "Actualizar" : "Generar Resumen de IA"}</span>
                           </>
                         )}
                       </div>
