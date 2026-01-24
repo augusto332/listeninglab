@@ -165,10 +165,14 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const [reportScheduleDay, setReportScheduleDay] = useState("1")
   const [reportScheduleTime, setReportScheduleTime] = useState("09:00")
   const DEFAULT_REPORT_TIMEZONE = "-05:00"
+  const AI_REPORT_NAME = "Resumen semanal"
+  const AI_REPORT_DATE_PRESET = "7"
+  const AI_REPORT_SCHEDULE = "weekly"
+  const AI_REPORT_SCHEDULE_DAY = 1
+  const AI_REPORT_SCHEDULE_TIME = "09:00"
   const [reportScheduleTimezone, setReportScheduleTimezone] = useState(DEFAULT_REPORT_TIMEZONE)
   const [reportEmailRecipients, setReportEmailRecipients] = useState([])
   const [reportEmailRecipientInput, setReportEmailRecipientInput] = useState("")
-  const [reportAiInstructions, setReportAiInstructions] = useState("")
   const [reportMessage, setReportMessage] = useState(null)
   const [editingReportId, setEditingReportId] = useState(null)
   const { user, accountId, role } = useAuth()
@@ -791,7 +795,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       createdAt: r.created_at,
     }
     })
-    setSavedReports(mapped)
+    setSavedReports(sortReports(mapped))
   }
 
   useEffect(() => {
@@ -870,6 +874,23 @@ export default function ModernSocialListeningApp({ onLogout }) {
     return { time, timezone }
   }
 
+  const formatScheduleTimeValue = (timeValue, timezoneValue) => {
+    if (!timeValue) return null
+    const tzValue = timezoneValue?.startsWith("+") || timezoneValue?.startsWith("-")
+      ? timezoneValue
+      : `+${timezoneValue}`
+    return `${timeValue.length === 5 ? `${timeValue}:00` : timeValue}${tzValue}`
+  }
+
+  const sortReports = (reports) => {
+    return [...reports].sort((a, b) => {
+      const aPinned = a.isAiPowered && a.isScheduled
+      const bPinned = b.isAiPowered && b.isScheduled
+      if (aPinned === bPinned) return 0
+      return aPinned ? -1 : 1
+    })
+  }
+
   const EMAIL_RECIPIENT_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i
 
   const commitReportEmailRecipients = (rawValue = reportEmailRecipientInput) => {
@@ -917,7 +938,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setReportScheduleTimezone(DEFAULT_REPORT_TIMEZONE)
     setReportEmailRecipients([])
     setReportEmailRecipientInput("")
-    setReportAiInstructions("")
     setReportFormType("standard")
     setShowReportForm(false)
     setShowReportTypeSelector(false)
@@ -951,7 +971,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setReportScheduleTimezone(timezone)
     setReportEmailRecipients(Array.isArray(report.emailRecipients) ? report.emailRecipients : [])
     setReportEmailRecipientInput("")
-    setReportAiInstructions(report.aiInstructions || "")
   }
 
   const handleCreateReport = async () => {
@@ -967,39 +986,44 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const keywordObj = keywords.find((k) => k.keyword === reportKeyword)
     const isAiReport = reportFormType === "ai"
     const isDynamic = isAiReport ? true : reportDateOption !== "range"
-    const scheduleTimeValue =
-      isReportScheduled && reportScheduleTime
-        ? `${reportScheduleTime.length === 5 ? `${reportScheduleTime}:00` : reportScheduleTime}${
-            reportScheduleTimezone.startsWith("+") || reportScheduleTimezone.startsWith("-")
-              ? reportScheduleTimezone
-              : `+${reportScheduleTimezone}`
-          }`
-        : null
-    const scheduleValue = isReportScheduled ? reportScheduleFrequency : null
+    const shouldScheduleReport = isAiReport ? true : isReportScheduled
+    const scheduleTimeValue = shouldScheduleReport
+      ? formatScheduleTimeValue(
+          isAiReport ? AI_REPORT_SCHEDULE_TIME : reportScheduleTime,
+          isAiReport ? DEFAULT_REPORT_TIMEZONE : reportScheduleTimezone
+        )
+      : null
+    const scheduleValue = shouldScheduleReport
+      ? isAiReport
+        ? AI_REPORT_SCHEDULE
+        : reportScheduleFrequency
+      : null
     const needsScheduleDay = ["weekly", "biweekly", "monthly"].includes(
-      reportScheduleFrequency
+      isAiReport ? AI_REPORT_SCHEDULE : reportScheduleFrequency
     )
     const scheduleDayValue =
-      isReportScheduled && needsScheduleDay
-        ? Number(reportScheduleDay)
+      shouldScheduleReport && needsScheduleDay
+        ? isAiReport
+          ? AI_REPORT_SCHEDULE_DAY
+          : Number(reportScheduleDay)
         : null
     const insertData = {
-      name: newReportName || `Reporte ${savedReports.length + 1}`,
-      platform: isAiReport ? null : reportPlatform,
+      name: isAiReport ? AI_REPORT_NAME : newReportName || `Reporte ${savedReports.length + 1}`,
+      platform: isAiReport ? "all" : reportPlatform,
       keyword_id: isAiReport ? null : reportKeyword === "all" ? null : keywordObj?.keyword_id || null,
       isdynamicdate: isDynamic,
       date_from: isAiReport ? null : isDynamic ? null : reportStartDate || null,
       date_to: isAiReport ? null : isDynamic ? null : reportEndDate || null,
-      last_x_days: isDynamic ? Number(reportDateOption) : null,
+      last_x_days: isDynamic ? Number(isAiReport ? AI_REPORT_DATE_PRESET : reportDateOption) : null,
       user_id: user.id,
       account_id: accountId,
-      is_scheduled: isReportScheduled,
+      is_scheduled: shouldScheduleReport,
       schedule: scheduleValue,
       schedule_day: scheduleDayValue,
       schedule_time: scheduleTimeValue,
       email_recipients: reportEmailRecipients,
       is_ai_powered: isAiReport,
-      ai_instructions: isAiReport ? reportAiInstructions : null,
+      ai_instructions: null,
     }
     const { data, error } = await supabase
       .from("user_reports_parameters")
@@ -1039,7 +1063,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
         aiInstructions: r.ai_instructions || "",
         createdAt: r.created_at,
       }
-      setSavedReports((prev) => [...prev, newRep])
+      setSavedReports((prev) => sortReports([...prev, newRep]))
       resetReportForm()
       setReportMessage(null)
     }
@@ -1051,37 +1075,42 @@ export default function ModernSocialListeningApp({ onLogout }) {
     const keywordObj = keywords.find((k) => k.keyword === reportKeyword)
     const isAiReport = reportFormType === "ai"
     const isDynamic = isAiReport ? true : reportDateOption !== "range"
-    const scheduleTimeValue =
-      isReportScheduled && reportScheduleTime
-        ? `${reportScheduleTime.length === 5 ? `${reportScheduleTime}:00` : reportScheduleTime}${
-            reportScheduleTimezone.startsWith("+") || reportScheduleTimezone.startsWith("-")
-              ? reportScheduleTimezone
-              : `+${reportScheduleTimezone}`
-          }`
-        : null
-    const scheduleValue = isReportScheduled ? reportScheduleFrequency : null
+    const shouldScheduleReport = isAiReport ? true : isReportScheduled
+    const scheduleTimeValue = shouldScheduleReport
+      ? formatScheduleTimeValue(
+          isAiReport ? AI_REPORT_SCHEDULE_TIME : reportScheduleTime,
+          isAiReport ? DEFAULT_REPORT_TIMEZONE : reportScheduleTimezone
+        )
+      : null
+    const scheduleValue = shouldScheduleReport
+      ? isAiReport
+        ? AI_REPORT_SCHEDULE
+        : reportScheduleFrequency
+      : null
     const needsScheduleDay = ["weekly", "biweekly", "monthly"].includes(
-      reportScheduleFrequency
+      isAiReport ? AI_REPORT_SCHEDULE : reportScheduleFrequency
     )
     const scheduleDayValue =
-      isReportScheduled && needsScheduleDay
-        ? Number(reportScheduleDay)
+      shouldScheduleReport && needsScheduleDay
+        ? isAiReport
+          ? AI_REPORT_SCHEDULE_DAY
+          : Number(reportScheduleDay)
         : null
     const updateData = {
-      name: newReportName || "Reporte",
-      platform: isAiReport ? null : reportPlatform,
+      name: isAiReport ? AI_REPORT_NAME : newReportName || "Reporte",
+      platform: isAiReport ? "all" : reportPlatform,
       keyword_id: isAiReport ? null : reportKeyword === "all" ? null : keywordObj?.keyword_id || null,
       isdynamicdate: isDynamic,
       date_from: isAiReport ? null : isDynamic ? null : reportStartDate || null,
       date_to: isAiReport ? null : isDynamic ? null : reportEndDate || null,
-      last_x_days: isDynamic ? Number(reportDateOption) : null,
-      is_scheduled: isReportScheduled,
+      last_x_days: isDynamic ? Number(isAiReport ? AI_REPORT_DATE_PRESET : reportDateOption) : null,
+      is_scheduled: shouldScheduleReport,
       schedule: scheduleValue,
       schedule_day: scheduleDayValue,
       schedule_time: scheduleTimeValue,
       email_recipients: reportEmailRecipients,
       is_ai_powered: isAiReport,
-      ai_instructions: isAiReport ? reportAiInstructions : null,
+      ai_instructions: null,
     }
     const { data, error } = await supabase
       .from("user_reports_parameters")
@@ -1102,26 +1131,28 @@ export default function ModernSocialListeningApp({ onLogout }) {
         ? "Todas"
         : keywords.find((k) => k.keyword_id === updated.keyword_id)?.keyword || ""
     setSavedReports((prev) =>
-      prev.map((rep) =>
-        rep.id === editingReportId
-          ? {
-              ...rep,
-              name: updated.name,
-              platform: updatedIsAi ? "all" : updated.platform,
-              keyword: updatedKeywordLabel,
-              keywordValue: updatedKeywordLabel === "Todas" ? "all" : updatedKeywordLabel,
-              startDate: updated.isdynamicdate ? "" : updated.date_from,
-              endDate: updated.isdynamicdate ? "" : updated.date_to,
-              datePreset: updated.isdynamicdate ? (updated.last_x_days ? String(updated.last_x_days) : "") : "",
-              isScheduled: updated.is_scheduled,
-              schedule: updated.schedule,
-              scheduleDay: updated.schedule_day,
-              scheduleTime: updated.schedule_time,
-              emailRecipients: updated.email_recipients || [],
-              isAiPowered: updatedIsAi,
-              aiInstructions: updated.ai_instructions || "",
-            }
-          : rep
+      sortReports(
+        prev.map((rep) =>
+          rep.id === editingReportId
+            ? {
+                ...rep,
+                name: updated.name,
+                platform: updatedIsAi ? "all" : updated.platform,
+                keyword: updatedKeywordLabel,
+                keywordValue: updatedKeywordLabel === "Todas" ? "all" : updatedKeywordLabel,
+                startDate: updated.isdynamicdate ? "" : updated.date_from,
+                endDate: updated.isdynamicdate ? "" : updated.date_to,
+                datePreset: updated.isdynamicdate ? (updated.last_x_days ? String(updated.last_x_days) : "") : "",
+                isScheduled: updated.is_scheduled,
+                schedule: updated.schedule,
+                scheduleDay: updated.schedule_day,
+                scheduleTime: updated.schedule_time,
+                emailRecipients: updated.email_recipients || [],
+                isAiPowered: updatedIsAi,
+                aiInstructions: updated.ai_instructions || "",
+              }
+            : rep
+        )
       )
     )
     resetReportForm()
@@ -1405,10 +1436,16 @@ export default function ModernSocialListeningApp({ onLogout }) {
                     setReportFormType(type)
                     setShowReportTypeSelector(false)
                     setShowReportForm(true)
-                    setReportAiInstructions("")
-                    setReportDateOption(type === "ai" ? "7" : "range")
+                    setReportDateOption(type === "ai" ? AI_REPORT_DATE_PRESET : "range")
                     if (type === "ai" && reportScheduleFrequency === "biweekly") {
                       setReportScheduleFrequency("weekly")
+                    }
+                    if (type === "ai") {
+                      setIsReportScheduled(true)
+                      setReportScheduleFrequency(AI_REPORT_SCHEDULE)
+                      setReportScheduleDay(String(AI_REPORT_SCHEDULE_DAY))
+                      setReportScheduleTime(AI_REPORT_SCHEDULE_TIME)
+                      setReportScheduleTimezone(DEFAULT_REPORT_TIMEZONE)
                     }
                   }}
                   newReportName={newReportName}
@@ -1424,8 +1461,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
                   reportEndDate={reportEndDate}
                   onReportEndDateChange={setReportEndDate}
                   activeKeywords={activeKeywords}
-                  reportAiInstructions={reportAiInstructions}
-                  onReportAiInstructionsChange={setReportAiInstructions}
                   isReportScheduled={isReportScheduled}
                   onReportScheduledChange={setIsReportScheduled}
                   reportScheduleFrequency={reportScheduleFrequency}

@@ -63,8 +63,6 @@ export default function ReportsPage({
   reportEndDate,
   onReportEndDateChange,
   activeKeywords,
-  reportAiInstructions,
-  onReportAiInstructionsChange,
   isReportScheduled,
   onReportScheduledChange,
   reportScheduleFrequency,
@@ -116,6 +114,44 @@ export default function ReportsPage({
     { value: "weekly", label: "Semanal" },
     { value: "monthly", label: "Mensual" },
   ]
+
+  const recipientsSection = (
+    <div>
+      <p className="text-sm font-medium mb-2 text-slate-300">Destinatarios del reporte</p>
+      <Input
+        type="email"
+        value={reportEmailRecipientInput}
+        onChange={(e) => onReportEmailRecipientInputChange(e.target.value)}
+        onKeyDown={handleRecipientKeyDown}
+        onBlur={onReportEmailRecipientsCommit}
+        className="bg-slate-800/50 border-slate-700/50 text-white"
+        placeholder="Escribe un correo y presiona espacio o enter"
+      />
+      <p className="text-xs text-slate-500 mt-2">
+        Puedes agregar múltiples direcciones.
+      </p>
+      {reportEmailRecipients.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {reportEmailRecipients.map((email) => (
+            <span
+              key={email}
+              className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
+            >
+              {email}
+              <button
+                type="button"
+                onClick={() => onRemoveReportEmailRecipient(email)}
+                className="text-slate-300 hover:text-white"
+                aria-label={`Eliminar ${email}`}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 
   const scheduleSection = (
     <div className="space-y-4">
@@ -216,41 +252,7 @@ export default function ReportsPage({
             </div>
           </div>
 
-          <div>
-            <p className="text-sm font-medium mb-2 text-slate-300">Destinatarios del reporte</p>
-            <Input
-              type="email"
-              value={reportEmailRecipientInput}
-              onChange={(e) => onReportEmailRecipientInputChange(e.target.value)}
-              onKeyDown={handleRecipientKeyDown}
-              onBlur={onReportEmailRecipientsCommit}
-              className="bg-slate-800/50 border-slate-700/50 text-white"
-              placeholder="Escribe un correo y presiona espacio o enter"
-            />
-            <p className="text-xs text-slate-500 mt-2">
-              Puedes agregar múltiples direcciones.
-            </p>
-            {reportEmailRecipients.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {reportEmailRecipients.map((email) => (
-                  <span
-                    key={email}
-                    className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
-                  >
-                    {email}
-                    <button
-                      type="button"
-                      onClick={() => onRemoveReportEmailRecipient(email)}
-                      className="text-slate-300 hover:text-white"
-                      aria-label={`Eliminar ${email}`}
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          {recipientsSection}
         </div>
       )}
     </div>
@@ -333,45 +335,29 @@ export default function ReportsPage({
                 : "Nuevo Reporte"}
           </h3>
 
-          <div>
-            <p className="text-sm font-medium mb-2 text-slate-300">Nombre del reporte</p>
-            <Input
-              className="bg-slate-800/50 border-slate-700/50 text-white"
-              value={newReportName}
-              onChange={(e) => onReportNameChange(e.target.value)}
-              placeholder="Ingresa un nombre para el reporte"
-            />
-          </div>
+          {!isEditingReport && isAiReport && (
+            <p className="text-sm text-slate-400">
+              Nuestro asistente de IA analizará las menciones de la última semana y generará automáticamente un reporte
+              detallado resumiendo insights y tendencias relevantes, para ser enviado por correo a los destinatarios
+              que elijas cada lunes al inicio de la semana.
+            </p>
+          )}
+
+          {!isAiReport && (
+            <div>
+              <p className="text-sm font-medium mb-2 text-slate-300">Nombre del reporte</p>
+              <Input
+                className="bg-slate-800/50 border-slate-700/50 text-white"
+                value={newReportName}
+                onChange={(e) => onReportNameChange(e.target.value)}
+                placeholder="Ingresa un nombre para el reporte"
+              />
+            </div>
+          )}
 
           {isAiReport ? (
             <div className="space-y-6">
-              <div>
-                <p className="text-sm font-medium mb-2 text-slate-300">Instrucciones</p>
-                <textarea
-                  value={reportAiInstructions}
-                  onChange={(e) => onReportAiInstructionsChange(e.target.value)}
-                  maxLength={200}
-                  rows={4}
-                  className="w-full rounded-md bg-slate-800/50 border border-slate-700/50 text-white px-3 py-2 text-sm"
-                  placeholder="Describe el enfoque del reporte en hasta 200 caracteres"
-                />
-                <p className="text-xs text-slate-500 mt-2">
-                  {reportAiInstructions.length}/200 caracteres
-                </p>
-              </div>
-              <div>
-                <p className="text-sm font-medium mb-2 text-slate-300">Rango de fechas</p>
-                <Select value={reportDateOption} onValueChange={onReportDateOptionChange}>
-                  <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                    <SelectValue placeholder="Seleccionar" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7">Últimos 7 días</SelectItem>
-                    <SelectItem value="15">Últimos 15 días</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {scheduleSection}
+              {recipientsSection}
             </div>
           ) : (
             <div className="space-y-6">

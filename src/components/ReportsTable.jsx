@@ -336,16 +336,17 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
 
                 <td className="p-4 text-right">
                   <div className="flex items-center justify-end gap-2">
-                    <button
-                      onClick={() => {
-                        if (report.isAiPowered) return
-                        onDownload && onDownload(report)
-                      }}
-                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md bg-gradient-to-r from-blue-500/20 to-purple-600/20 hover:from-blue-500/30 hover:to-purple-600/30 border border-blue-500/30 text-blue-300 hover:text-white transition-all duration-200"
-                    >
-                      {!report.isAiPowered && <Download className="w-3 h-3 mr-1" />}
-                      {report.isAiPowered ? "Generar" : "Descargar"}
-                    </button>
+                    {!report.isAiPowered && (
+                      <button
+                        onClick={() => {
+                          onDownload && onDownload(report)
+                        }}
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md bg-gradient-to-r from-blue-500/20 to-purple-600/20 hover:from-blue-500/30 hover:to-purple-600/30 border border-blue-500/30 text-blue-300 hover:text-white transition-all duration-200"
+                      >
+                        <Download className="w-3 h-3 mr-1" />
+                        Descargar
+                      </button>
+                    )}
 
                     <div className="relative" ref={(el) => (dropdownRefs.current[idx] = el)}>
                       <button
