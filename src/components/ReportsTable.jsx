@@ -256,7 +256,11 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
             {reports.map((report, idx) => (
               <tr
                 key={idx}
-                className="border-b border-slate-700/50 hover:bg-slate-800/50 transition-colors group"
+                className={`border-b border-slate-700/50 transition-colors group ${
+                  report.isAiPowered
+                    ? "bg-gradient-to-r from-purple-500/5 via-slate-900/0 to-cyan-500/5 hover:from-purple-500/10 hover:to-cyan-500/10"
+                    : "hover:bg-slate-800/50"
+                }`}
                 onMouseEnter={() => setHoveredRow(idx)}
                 onMouseLeave={() => setHoveredRow(null)}
               >
