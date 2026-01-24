@@ -23,6 +23,13 @@ const MONTH_DAYS = Array.from({ length: 31 }, (_, index) => {
   return { value: String(day), label: `Día ${day}` }
 })
 
+const REPORT_HOURS = Array.from({ length: 24 }, (_, index) => {
+  const hourValue = String(index).padStart(2, "0")
+  const hourNumber = index % 12 === 0 ? 12 : index % 12
+  const period = index < 12 ? "AM" : "PM"
+  return { value: `${hourValue}:00`, label: `${hourNumber}:00 ${period}` }
+})
+
 const TIMEZONE_OPTIONS = [
   { value: "-08:00", label: "UTC-8 (Pacífico)" },
   { value: "-06:00", label: "UTC-6 (Centroamérica)" },
@@ -105,16 +112,10 @@ export default function ReportsPage({
   const isAiReport = reportFormType === "ai"
   const isAiPlanLocked = planLoading || !planId || Number(planId) < 4
 
-  const scheduleFrequencies = isAiReport
-    ? [
-        { value: "weekly", label: "Semanal" },
-        { value: "monthly", label: "Mensual" },
-      ]
-    : [
-        { value: "weekly", label: "Semanal" },
-        { value: "biweekly", label: "Cada dos semanas" },
-        { value: "monthly", label: "Mensual" },
-      ]
+  const scheduleFrequencies = [
+    { value: "weekly", label: "Semanal" },
+    { value: "monthly", label: "Mensual" },
+  ]
 
   const scheduleSection = (
     <div className="space-y-4">
@@ -185,12 +186,18 @@ export default function ReportsPage({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium mb-2 text-slate-300">Hora de envío</p>
-              <Input
-                type="time"
-                value={reportScheduleTime}
-                onChange={(e) => onReportScheduleTimeChange(e.target.value)}
-                className="bg-slate-800/50 border-slate-700/50 text-white"
-              />
+              <Select value={reportScheduleTime} onValueChange={onReportScheduleTimeChange}>
+                <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
+                <SelectContent>
+                  {REPORT_HOURS.map((hour) => (
+                    <SelectItem key={hour.value} value={hour.value}>
+                      {hour.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <p className="text-sm font-medium mb-2 text-slate-300">Zona horaria</p>
@@ -361,7 +368,6 @@ export default function ReportsPage({
                   <SelectContent>
                     <SelectItem value="7">Últimos 7 días</SelectItem>
                     <SelectItem value="15">Últimos 15 días</SelectItem>
-                    <SelectItem value="30">Últimos 30 días</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
