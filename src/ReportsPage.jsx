@@ -24,8 +24,10 @@ const MONTH_DAYS = Array.from({ length: 31 }, (_, index) => {
 })
 
 const REPORT_HOURS = Array.from({ length: 24 }, (_, index) => {
-  const hour = String(index).padStart(2, "0")
-  return { value: `${hour}:00`, label: `${hour}:00` }
+  const hourValue = String(index).padStart(2, "0")
+  const hourNumber = index % 12 === 0 ? 12 : index % 12
+  const period = index < 12 ? "AM" : "PM"
+  return { value: `${hourValue}:00`, label: `${hourNumber}:00 ${period}` }
 })
 
 const TIMEZONE_OPTIONS = [
@@ -110,16 +112,10 @@ export default function ReportsPage({
   const isAiReport = reportFormType === "ai"
   const isAiPlanLocked = planLoading || !planId || Number(planId) < 4
 
-  const scheduleFrequencies = isAiReport
-    ? [
-        { value: "weekly", label: "Semanal" },
-        { value: "monthly", label: "Mensual" },
-      ]
-    : [
-        { value: "weekly", label: "Semanal" },
-        { value: "biweekly", label: "Cada dos semanas" },
-        { value: "monthly", label: "Mensual" },
-      ]
+  const scheduleFrequencies = [
+    { value: "weekly", label: "Semanal" },
+    { value: "monthly", label: "Mensual" },
+  ]
 
   const scheduleSection = (
     <div className="space-y-4">
