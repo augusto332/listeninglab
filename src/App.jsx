@@ -13,6 +13,7 @@ import ConfigPage from "./ConfigPage"
 import SidebarNavigation from "./components/SidebarNavigation"
 import DashboardPage from "./DashboardPage"
 import ReportsPage from "./ReportsPage"
+import AlertsPage from "./AlertsPage"
 import {
   Search,
   CircleUser,
@@ -182,6 +183,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const isConfigRoute = location.pathname.startsWith("/app/config")
   const isDashboardRoute = location.pathname.startsWith("/app/dashboard")
   const isReportsRoute = location.pathname.startsWith("/app/reportes")
+  const isAlertsRoute = location.pathname.startsWith("/app/alertas")
   const isMentionsRoute = location.pathname.startsWith("/app/mentions")
 
   const scrollInicioToTop = () => {
@@ -1483,9 +1485,10 @@ export default function ModernSocialListeningApp({ onLogout }) {
                 />
               }
             />
+            <Route path="alertas" element={<AlertsPage />} />
             <Route path="*" element={<Navigate to="mentions" replace />} />
           </Routes>
-          {!isConfigRoute && !isDashboardRoute && !isReportsRoute && (
+          {!isConfigRoute && !isDashboardRoute && !isReportsRoute && !isAlertsRoute && (
             <section className="p-8">
               <div className="flex items-start gap-8 min-h-screen">
                 <div className="flex-1">
