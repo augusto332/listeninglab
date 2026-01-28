@@ -1,4 +1,5 @@
-import { AlertTriangle, Calendar, BellRing } from "lucide-react"
+import { AlertTriangle, BellRing, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 
 const STATUS_STYLES = {
   activa: "bg-emerald-500/20 text-emerald-200 border border-emerald-500/30",
@@ -24,6 +25,24 @@ const formatPlatform = (platform) => {
 const formatStatus = (status) => status?.charAt(0).toUpperCase() + status?.slice(1)
 
 export default function AlertsTable({ alerts = [] }) {
+  const [openMenu, setOpenMenu] = useState(null)
+  const menuRefs = useRef([])
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openMenu === null) return
+      const currentMenu = menuRefs.current[openMenu]
+      if (currentMenu && !currentMenu.contains(event.target)) {
+        setOpenMenu(null)
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [openMenu])
+
   if (alerts.length === 0) {
     return (
       <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center">
@@ -49,19 +68,13 @@ export default function AlertsTable({ alerts = [] }) {
               <th className="text-left p-4 text-slate-300 font-medium">Tipo</th>
               <th className="text-left p-4 text-slate-300 font-medium">Plataforma</th>
               <th className="text-left p-4 text-slate-300 font-medium">Palabra clave</th>
-              <th className="text-left p-4 text-slate-300 font-medium">Frecuencia</th>
               <th className="text-left p-4 text-slate-300 font-medium">Estado</th>
-              <th className="text-left p-4 text-slate-300 font-medium">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Última actualización
-                </div>
-              </th>
+              <th className="text-right p-4 text-slate-300 font-medium"></th>
             </tr>
           </thead>
           <tbody>
             {alerts.map((alert) => (
-              <tr key={alert.id} className="border-b border-slate-700/40 last:border-b-0">
+              <tr key={alert.id} className="border-b border-slate-700/40 last:border-b-0 group">
                 <td className="p-4 text-slate-100">
                   <div className="font-medium">{alert.name}</div>
                   <p className="text-xs text-slate-500 mt-1">{alert.description}</p>
@@ -77,7 +90,6 @@ export default function AlertsTable({ alerts = [] }) {
                   </span>
                 </td>
                 <td className="p-4 text-slate-300">{alert.keyword}</td>
-                <td className="p-4 text-slate-300">{alert.frequency}</td>
                 <td className="p-4">
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs ${
@@ -87,7 +99,37 @@ export default function AlertsTable({ alerts = [] }) {
                     {formatStatus(alert.status)}
                   </span>
                 </td>
-                <td className="p-4 text-slate-300">{alert.updatedAt}</td>
+                <td className="p-4 text-right">
+                  <div className="relative inline-flex" ref={(el) => (menuRefs.current[alert.id] = el)}>
+                    <button
+                      type="button"
+                      onClick={() => setOpenMenu(openMenu === alert.id ? null : alert.id)}
+                      className="inline-flex items-center p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200"
+                      aria-label="Opciones"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </button>
+                    {openMenu === alert.id && (
+                      <div className="absolute right-0 top-full mt-2 w-40 bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-lg shadow-xl z-10">
+                        <button
+                          type="button"
+                          className="flex items-center w-full px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+                        >
+                          <Pencil className="w-4 h-4 mr-2" />
+                          Editar
+                        </button>
+                        <div className="border-t border-slate-700/50 my-1"></div>
+                        <button
+                          type="button"
+                          className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Eliminar
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
