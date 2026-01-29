@@ -101,7 +101,7 @@ export default function ReportsPage({
   }
 
   const handleRecipientKeyDown = (event) => {
-    if (event.key === "Enter" || event.key === " ") {
+    if (event.key === "Enter" || event.key === ",") {
       event.preventDefault()
       onReportEmailRecipientsCommit()
     }
@@ -125,7 +125,7 @@ export default function ReportsPage({
         onKeyDown={handleRecipientKeyDown}
         onBlur={onReportEmailRecipientsCommit}
         className="bg-slate-800/50 border-slate-700/50 text-white"
-        placeholder="Escribe un correo y presiona espacio o enter"
+        placeholder="Escribe un correo y presiona coma o enter"
       />
       <p className="text-xs text-slate-500 mt-2">
         Puedes agregar múltiples direcciones.

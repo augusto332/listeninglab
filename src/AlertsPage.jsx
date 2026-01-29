@@ -1,4 +1,4 @@
-import { HelpCircle, Plus } from "lucide-react"
+import { HelpCircle, Minus, Plus, X } from "lucide-react"
 import { useEffect, useMemo, useState } from "react"
 import AlertsTable from "@/components/AlertsTable"
 import MultiSelect from "@/components/MultiSelect"
@@ -24,6 +24,7 @@ export default function AlertsPage() {
   const [tableError, setTableError] = useState(null)
   const [saving, setSaving] = useState(false)
   const [editingAlert, setEditingAlert] = useState(null)
+  const [showAlertForm, setShowAlertForm] = useState(false)
 
   const [alertName, setAlertName] = useState("")
   const [isActive, setIsActive] = useState(true)
@@ -34,13 +35,17 @@ export default function AlertsPage() {
   const [volumeThreshold, setVolumeThreshold] = useState("")
   const [sentimentType, setSentimentType] = useState("negative")
   const [sentimentThreshold, setSentimentThreshold] = useState("")
-  const [criticalKeywords, setCriticalKeywords] = useState("")
+  const [criticalKeywordList, setCriticalKeywordList] = useState([])
+  const [criticalKeywordInput, setCriticalKeywordInput] = useState("")
   const [keywordMatchType, setKeywordMatchType] = useState("contains")
   const [keywordTrigger, setKeywordTrigger] = useState("once")
   const [keywordOccurrencesThreshold, setKeywordOccurrencesThreshold] = useState("")
   const [notificationsEnabled, setNotificationsEnabled] = useState(true)
-  const [emailRecipients, setEmailRecipients] = useState("")
+  const [emailRecipients, setEmailRecipients] = useState([])
+  const [emailRecipientInput, setEmailRecipientInput] = useState("")
   const [cooldownFrequency, setCooldownFrequency] = useState("instant")
+
+  const EMAIL_RECIPIENT_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i
 
   const keywordOptions = useMemo(
     () => [
@@ -63,7 +68,7 @@ export default function AlertsPage() {
     [keywords],
   )
 
-  const resetForm = () => {
+  const resetForm = ({ keepOpen = false } = {}) => {
     setAlertName("")
     setIsActive(true)
     setPlatform(DEFAULT_PLATFORM)
@@ -73,14 +78,21 @@ export default function AlertsPage() {
     setVolumeThreshold("")
     setSentimentType("negative")
     setSentimentThreshold("")
-    setCriticalKeywords("")
+    setCriticalKeywordList([])
+    setCriticalKeywordInput("")
     setKeywordMatchType("contains")
     setKeywordTrigger("once")
     setKeywordOccurrencesThreshold("")
     setNotificationsEnabled(true)
-    setEmailRecipients("")
+    setEmailRecipients([])
+    setEmailRecipientInput("")
     setCooldownFrequency("instant")
     setEditingAlert(null)
+    setFormError(null)
+    setFormSuccess(null)
+    if (!keepOpen) {
+      setShowAlertForm(false)
+    }
   }
 
   const fetchKeywords = async () => {
@@ -133,6 +145,7 @@ export default function AlertsPage() {
 
   const handleEdit = (alert) => {
     setEditingAlert(alert)
+    setShowAlertForm(true)
     setAlertName(alert.name ?? "")
     setIsActive(alert.is_active ?? false)
     setPlatform(alert.platform ?? DEFAULT_PLATFORM)
@@ -148,7 +161,8 @@ export default function AlertsPage() {
     setSentimentThreshold(
       alert.sentiment_threshold !== null && alert.sentiment_threshold !== undefined ? String(alert.sentiment_threshold) : "",
     )
-    setCriticalKeywords(alert.critical_keywords?.join(", ") ?? "")
+    setCriticalKeywordList(alert.critical_keywords ?? [])
+    setCriticalKeywordInput("")
     setKeywordMatchType(alert.keyword_match_type ?? "contains")
     if (alert.keyword_occurrences_threshold !== null && alert.keyword_occurrences_threshold !== undefined) {
       setKeywordTrigger("count")
@@ -158,7 +172,8 @@ export default function AlertsPage() {
       setKeywordOccurrencesThreshold("")
     }
     setNotificationsEnabled(alert.notify_enabled ?? true)
-    setEmailRecipients(alert.email_recipients?.join(", ") ?? "")
+    setEmailRecipients(alert.email_recipients ?? [])
+    setEmailRecipientInput("")
     setCooldownFrequency(alert.cooldown_hours === 24 ? "daily" : "instant")
     setFormError(null)
     setFormSuccess(null)
@@ -185,6 +200,76 @@ export default function AlertsPage() {
     setAlerts((prev) => prev.filter((item) => item.id !== alert.id))
   }
 
+  const commitEmailRecipients = (rawValue = emailRecipientInput) => {
+    const candidates = rawValue
+      .split(/[,\n]+/)
+      .map((value) => value.trim())
+      .filter(Boolean)
+    if (candidates.length === 0) return
+    const invalidRecipients = candidates.filter((value) => !EMAIL_RECIPIENT_REGEX.test(value))
+    const validRecipients = candidates.filter((value) => EMAIL_RECIPIENT_REGEX.test(value))
+    if (validRecipients.length > 0) {
+      setEmailRecipients((prev) => {
+        const existing = new Set(prev.map((email) => email.toLowerCase()))
+        const next = [...prev]
+        validRecipients.forEach((email) => {
+          const normalized = email.toLowerCase()
+          if (!existing.has(normalized)) {
+            existing.add(normalized)
+            next.push(email)
+          }
+        })
+        return next
+      })
+    }
+    if (invalidRecipients.length === 0) {
+      setEmailRecipientInput("")
+    }
+  }
+
+  const handleRecipientKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault()
+      commitEmailRecipients()
+    }
+  }
+
+  const removeEmailRecipient = (email) => {
+    setEmailRecipients((prev) => prev.filter((item) => item !== email))
+  }
+
+  const commitCriticalKeywords = (rawValue = criticalKeywordInput) => {
+    const candidates = rawValue
+      .split(/[,\n]+/)
+      .map((value) => value.trim())
+      .filter(Boolean)
+    if (candidates.length === 0) return
+    setCriticalKeywordList((prev) => {
+      const existing = new Set(prev.map((value) => value.toLowerCase()))
+      const next = [...prev]
+      candidates.forEach((word) => {
+        const normalized = word.toLowerCase()
+        if (!existing.has(normalized)) {
+          existing.add(normalized)
+          next.push(word)
+        }
+      })
+      return next
+    })
+    setCriticalKeywordInput("")
+  }
+
+  const handleCriticalKeywordKeyDown = (event) => {
+    if (event.key === "Enter" || event.key === ",") {
+      event.preventDefault()
+      commitCriticalKeywords()
+    }
+  }
+
+  const removeCriticalKeyword = (word) => {
+    setCriticalKeywordList((prev) => prev.filter((item) => item !== word))
+  }
+
   const buildPayload = () => {
     const trimmedName = alertName.trim()
     const keywordIds =
@@ -197,13 +282,7 @@ export default function AlertsPage() {
     const scopeType =
       keywordSelection.includes("all") || keywordSelection.length === 0 ? "all_keywords" : "specific_keywords"
     const recipients = emailRecipients
-      .split(",")
-      .map((email) => email.trim())
-      .filter(Boolean)
-    const criticalList = criticalKeywords
-      .split(/[,\n]/)
-      .map((word) => word.trim())
-      .filter(Boolean)
+    const criticalList = criticalKeywordList
 
     const base = {
       name: trimmedName,
@@ -281,7 +360,7 @@ export default function AlertsPage() {
       errors.push("Define un umbral de sentimiento para la alerta.")
     }
     if (alertType === "critical_keyword") {
-      if (!criticalKeywords.trim()) {
+      if (criticalKeywordList.length === 0) {
         errors.push("Ingresa al menos una palabra crítica.")
       }
       if (keywordTrigger === "count" && !keywordOccurrencesThreshold) {
@@ -289,11 +368,7 @@ export default function AlertsPage() {
       }
     }
     if (notificationsEnabled) {
-      const recipients = emailRecipients
-        .split(",")
-        .map((email) => email.trim())
-        .filter(Boolean)
-      if (recipients.length === 0) {
+      if (emailRecipients.length === 0) {
         errors.push("Agrega al menos un correo destinatario para notificaciones.")
       }
     }
@@ -324,6 +399,7 @@ export default function AlertsPage() {
         }
         setAlerts((prev) => prev.map((alert) => (alert.id === editingAlert.id ? data : alert)))
         setFormSuccess("Alerta actualizada correctamente.")
+        resetForm()
       } else {
         const { data, error } = await supabase
           .from("user_alerts_parameters")
@@ -374,15 +450,23 @@ export default function AlertsPage() {
         variant="outline"
         className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
         onClick={() => {
-          resetForm()
-          setFormError(null)
-          setFormSuccess(null)
+          if (editingAlert) {
+            resetForm()
+            return
+          }
+          if (showAlertForm) {
+            setShowAlertForm(false)
+            return
+          }
+          resetForm({ keepOpen: true })
+          setShowAlertForm(true)
         }}
       >
-        <Plus className="w-4 h-4 mr-2" />
-        Crear nueva alerta
+        {showAlertForm ? <Minus className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+        {editingAlert ? "Cancelar edición" : "Crear nueva alerta"}
       </Button>
 
+      {(showAlertForm || editingAlert) && (
       <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-6 space-y-6">
         <h3 className="text-lg font-semibold text-white">
           {editingAlert ? "Editar alerta" : "Nueva alerta"}
@@ -553,13 +637,34 @@ export default function AlertsPage() {
               <div className="space-y-3">
                 <div>
                   <p className="text-sm font-medium mb-2 text-slate-300">Palabras o frases críticas</p>
-                  <textarea
-                    className="w-full rounded-md bg-slate-800/50 border border-slate-700/50 text-white px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+                  <Input
+                    className="bg-slate-800/50 border-slate-700/50 text-white"
                     placeholder="Ej: estafa, fraude, denuncia"
-                    rows={3}
-                    value={criticalKeywords}
-                    onChange={(event) => setCriticalKeywords(event.target.value)}
+                    value={criticalKeywordInput}
+                    onChange={(event) => setCriticalKeywordInput(event.target.value)}
+                    onKeyDown={handleCriticalKeywordKeyDown}
+                    onBlur={() => commitCriticalKeywords()}
                   />
+                  {criticalKeywordList.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {criticalKeywordList.map((word) => (
+                        <span
+                          key={word}
+                          className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
+                        >
+                          {word}
+                          <button
+                            type="button"
+                            onClick={() => removeCriticalKeyword(word)}
+                            className="text-slate-300 hover:text-white"
+                            aria-label={`Eliminar ${word}`}
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -644,11 +749,33 @@ export default function AlertsPage() {
               <p className="text-sm font-medium mb-2 text-slate-300">Destinatarios</p>
               <Input
                 className="bg-slate-800/50 border-slate-700/50 text-white"
-                placeholder="correo@empresa.com"
-                value={emailRecipients}
-                onChange={(event) => setEmailRecipients(event.target.value)}
+                placeholder="Escribe un correo y presiona coma o enter"
+                value={emailRecipientInput}
+                onChange={(event) => setEmailRecipientInput(event.target.value)}
+                onKeyDown={handleRecipientKeyDown}
+                onBlur={commitEmailRecipients}
               />
-              <p className="text-xs text-slate-500 mt-2">Agrega múltiples correos separados por coma.</p>
+              <p className="text-xs text-slate-500 mt-2">Puedes agregar múltiples direcciones.</p>
+              {emailRecipients.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {emailRecipients.map((email) => (
+                    <span
+                      key={email}
+                      className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
+                    >
+                      {email}
+                      <button
+                        type="button"
+                        onClick={() => removeEmailRecipient(email)}
+                        className="text-slate-300 hover:text-white"
+                        aria-label={`Eliminar ${email}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -666,12 +793,13 @@ export default function AlertsPage() {
             {saving ? "Guardando..." : "Guardar alerta"}
           </Button>
           {editingAlert && (
-            <Button type="button" variant="ghost" className="text-slate-300" onClick={resetForm}>
+            <Button type="button" variant="ghost" className="text-slate-300" onClick={() => resetForm()}>
               Cancelar edición
             </Button>
           )}
         </div>
       </div>
+      )}
     </section>
   )
 }
