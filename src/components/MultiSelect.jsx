@@ -63,7 +63,16 @@ export default function MultiSelect({
     onChange(newVal);
   };
 
-  const display = value.includes("all") ? "Todas" : value.join(", ") || placeholder;
+  const optionMap = options.reduce((acc, option) => {
+    acc[String(option.value)] = option.label ?? option.value;
+    return acc;
+  }, {});
+
+  const selectedLabels = value
+    .map((val) => optionMap[String(val)] || val)
+    .filter(Boolean);
+
+  const display = value.includes("all") ? "Todas" : selectedLabels.join(", ") || placeholder;
 
   return (
     <>
