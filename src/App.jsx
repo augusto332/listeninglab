@@ -897,7 +897,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
 
   const commitReportEmailRecipients = (rawValue = reportEmailRecipientInput) => {
     const candidates = rawValue
-      .split(/[\s,]+/)
+      .split(/[,\n]+/)
       .map((value) => value.trim())
       .filter(Boolean)
     if (candidates.length === 0) return

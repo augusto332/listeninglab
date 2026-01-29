@@ -106,7 +106,7 @@ export default function AlertsTable({ alerts = [], keywordMap = {}, onEdit, onDe
 
   return (
     <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto overflow-y-visible">
         <table className="w-full">
           <thead>
             <tr className="border-b border-slate-700/50 bg-slate-800/50">
