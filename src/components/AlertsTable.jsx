@@ -24,7 +24,48 @@ const formatPlatform = (platform) => {
 
 const formatStatus = (status) => status?.charAt(0).toUpperCase() + status?.slice(1)
 
-export default function AlertsTable({ alerts = [] }) {
+const formatAlertType = (alertType) => {
+  switch (alertType) {
+    case "volume":
+      return "Volumen"
+    case "sentiment":
+      return "Sentimiento"
+    case "critical_keyword":
+      return "Keyword crítica"
+    default:
+      return "Sin definir"
+  }
+}
+
+const formatKeywordScope = (alert, keywordMap = {}) => {
+  if (alert.scope_type === "all_keywords") return "Todas"
+  if (!alert.keyword_ids || alert.keyword_ids.length === 0) return "Sin definir"
+  const mapped = alert.keyword_ids
+    .map((id) => keywordMap[id] || keywordMap[String(id)])
+    .filter(Boolean)
+  return mapped.length > 0 ? mapped.join(", ") : "Seleccionadas"
+}
+
+const formatAlertDescription = (alert) => {
+  switch (alert.alert_type) {
+    case "volume":
+      return `Se detecten ${alert.volume_threshold ?? "N/A"} menciones en ${alert.time_window_hours ?? "N/A"} h.`
+    case "sentiment": {
+      const sentimentLabel = alert.sentiment === "positive" ? "positivas" : "negativas"
+      return `Se detecten ${alert.sentiment_threshold ?? "N/A"} menciones ${sentimentLabel} en ${
+        alert.time_window_hours ?? "N/A"
+      } h.`
+    }
+    case "critical_keyword": {
+      const keywords = alert.critical_keywords?.length ? alert.critical_keywords.join(", ") : "Sin definir"
+      return `Detecta palabras críticas: ${keywords}.`
+    }
+    default:
+      return "Configuración personalizada."
+  }
+}
+
+export default function AlertsTable({ alerts = [], keywordMap = {}, onEdit, onDelete, loading = false }) {
   const [openMenu, setOpenMenu] = useState(null)
   const menuRefs = useRef([])
 
@@ -42,6 +83,16 @@ export default function AlertsTable({ alerts = [] }) {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [openMenu])
+
+  if (loading) {
+    return (
+      <div className="bg-slate-800/30 backdrop-blur-sm border border-slate-700/50 rounded-xl p-12 text-center">
+        <BellRing className="w-12 h-12 text-slate-600 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-slate-300 mb-2">Cargando alertas</h3>
+        <p className="text-slate-500">Estamos sincronizando tu información.</p>
+      </div>
+    )
+  }
 
   if (alerts.length === 0) {
     return (
@@ -73,13 +124,17 @@ export default function AlertsTable({ alerts = [] }) {
             </tr>
           </thead>
           <tbody>
-            {alerts.map((alert) => (
+            {alerts.map((alert) => {
+              const status = alert.is_active === null || alert.is_active === undefined ? "borrador" : alert.is_active
+                ? "activa"
+                : "pausada"
+              return (
               <tr key={alert.id} className="border-b border-slate-700/40 last:border-b-0 group">
                 <td className="p-4 text-slate-100">
                   <div className="font-medium">{alert.name}</div>
-                  <p className="text-xs text-slate-500 mt-1">{alert.description}</p>
+                  <p className="text-xs text-slate-500 mt-1">{formatAlertDescription(alert)}</p>
                 </td>
-                <td className="p-4 text-slate-300">{alert.type}</td>
+                <td className="p-4 text-slate-300">{formatAlertType(alert.alert_type)}</td>
                 <td className="p-4">
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs ${
@@ -89,14 +144,14 @@ export default function AlertsTable({ alerts = [] }) {
                     {formatPlatform(alert.platform)}
                   </span>
                 </td>
-                <td className="p-4 text-slate-300">{alert.keyword}</td>
+                <td className="p-4 text-slate-300">{formatKeywordScope(alert, keywordMap)}</td>
                 <td className="p-4">
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs ${
-                      STATUS_STYLES[alert.status] || STATUS_STYLES.borrador
+                      STATUS_STYLES[status] || STATUS_STYLES.borrador
                     }`}
                   >
-                    {formatStatus(alert.status)}
+                    {formatStatus(status)}
                   </span>
                 </td>
                 <td className="p-4 text-right">
@@ -114,6 +169,10 @@ export default function AlertsTable({ alerts = [] }) {
                         <button
                           type="button"
                           className="flex items-center w-full px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+                          onClick={() => {
+                            setOpenMenu(null)
+                            if (onEdit) onEdit(alert)
+                          }}
                         >
                           <Pencil className="w-4 h-4 mr-2" />
                           Editar
@@ -122,6 +181,10 @@ export default function AlertsTable({ alerts = [] }) {
                         <button
                           type="button"
                           className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                          onClick={() => {
+                            setOpenMenu(null)
+                            if (onDelete) onDelete(alert)
+                          }}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Eliminar
@@ -131,7 +194,8 @@ export default function AlertsTable({ alerts = [] }) {
                   </div>
                 </td>
               </tr>
-            ))}
+              )
+            })}
           </tbody>
         </table>
       </div>
