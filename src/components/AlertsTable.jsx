@@ -11,7 +11,6 @@ const STATUS_STYLES = {
 const ALERT_TYPE_STYLES = {
   volume: "bg-blue-500/20 text-blue-200 border border-blue-500/30",
   sentiment: "bg-purple-500/20 text-purple-200 border border-purple-500/30",
-  critical_keyword: "bg-rose-500/20 text-rose-200 border border-rose-500/30",
   default: "bg-slate-600/30 text-slate-200 border border-slate-500/40",
 }
 
@@ -38,8 +37,6 @@ const formatAlertType = (alertType) => {
       return "Volumen"
     case "sentiment":
       return "Sentimiento"
-    case "critical_keyword":
-      return "Keyword crítica"
     default:
       return "Sin definir"
   }
@@ -63,10 +60,6 @@ const formatAlertDescription = (alert) => {
       return `Se detecten ${alert.sentiment_threshold ?? "N/A"} menciones ${sentimentLabel} en ${
         alert.time_window_hours ?? "N/A"
       } h.`
-    }
-    case "critical_keyword": {
-      const keywords = alert.critical_keywords?.length ? alert.critical_keywords.join(", ") : "Sin definir"
-      return `Detecta palabras críticas: ${keywords}.`
     }
     default:
       return "Configuración personalizada."
