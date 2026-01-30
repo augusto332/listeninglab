@@ -35,11 +35,6 @@ export default function AlertsPage() {
   const [volumeThreshold, setVolumeThreshold] = useState("")
   const [sentimentType, setSentimentType] = useState("negative")
   const [sentimentThreshold, setSentimentThreshold] = useState("")
-  const [criticalKeywordList, setCriticalKeywordList] = useState([])
-  const [criticalKeywordInput, setCriticalKeywordInput] = useState("")
-  const [keywordMatchType, setKeywordMatchType] = useState("contains")
-  const [keywordTrigger, setKeywordTrigger] = useState("once")
-  const [keywordOccurrencesThreshold, setKeywordOccurrencesThreshold] = useState("")
   const [emailRecipients, setEmailRecipients] = useState([])
   const [emailRecipientInput, setEmailRecipientInput] = useState("")
   const [cooldownFrequency, setCooldownFrequency] = useState("instant")
@@ -77,11 +72,6 @@ export default function AlertsPage() {
     setVolumeThreshold("")
     setSentimentType("negative")
     setSentimentThreshold("")
-    setCriticalKeywordList([])
-    setCriticalKeywordInput("")
-    setKeywordMatchType("contains")
-    setKeywordTrigger("once")
-    setKeywordOccurrencesThreshold("")
     setEmailRecipients([])
     setEmailRecipientInput("")
     setCooldownFrequency("instant")
@@ -152,23 +142,14 @@ export default function AlertsPage() {
     } else {
       setKeywordSelection(["all"])
     }
-    setAlertType(alert.alert_type ?? "volume")
+    const nextAlertType = alert.alert_type === "sentiment" ? "sentiment" : "volume"
+    setAlertType(nextAlertType)
     setTimeWindowHours(alert.time_window_hours ? String(alert.time_window_hours) : DEFAULT_TIME_WINDOW)
     setVolumeThreshold(alert.volume_threshold !== null && alert.volume_threshold !== undefined ? String(alert.volume_threshold) : "")
     setSentimentType(alert.sentiment ?? "negative")
     setSentimentThreshold(
       alert.sentiment_threshold !== null && alert.sentiment_threshold !== undefined ? String(alert.sentiment_threshold) : "",
     )
-    setCriticalKeywordList(alert.critical_keywords ?? [])
-    setCriticalKeywordInput("")
-    setKeywordMatchType(alert.keyword_match_type ?? "contains")
-    if (alert.keyword_occurrences_threshold !== null && alert.keyword_occurrences_threshold !== undefined) {
-      setKeywordTrigger("count")
-      setKeywordOccurrencesThreshold(String(alert.keyword_occurrences_threshold))
-    } else {
-      setKeywordTrigger("once")
-      setKeywordOccurrencesThreshold("")
-    }
     setEmailRecipients(alert.email_recipients ?? [])
     setEmailRecipientInput("")
     setCooldownFrequency(alert.cooldown_hours === 24 ? "daily" : "instant")
@@ -235,38 +216,6 @@ export default function AlertsPage() {
     setEmailRecipients((prev) => prev.filter((item) => item !== email))
   }
 
-  const commitCriticalKeywords = (rawValue = criticalKeywordInput) => {
-    const candidates = rawValue
-      .split(/[,\n]+/)
-      .map((value) => value.trim())
-      .filter(Boolean)
-    if (candidates.length === 0) return
-    setCriticalKeywordList((prev) => {
-      const existing = new Set(prev.map((value) => value.toLowerCase()))
-      const next = [...prev]
-      candidates.forEach((word) => {
-        const normalized = word.toLowerCase()
-        if (!existing.has(normalized)) {
-          existing.add(normalized)
-          next.push(word)
-        }
-      })
-      return next
-    })
-    setCriticalKeywordInput("")
-  }
-
-  const handleCriticalKeywordKeyDown = (event) => {
-    if (event.key === "Enter" || event.key === ",") {
-      event.preventDefault()
-      commitCriticalKeywords()
-    }
-  }
-
-  const removeCriticalKeyword = (word) => {
-    setCriticalKeywordList((prev) => prev.filter((item) => item !== word))
-  }
-
   const buildPayload = () => {
     const trimmedName = alertName.trim()
     const keywordIds =
@@ -279,8 +228,6 @@ export default function AlertsPage() {
     const scopeType =
       keywordSelection.includes("all") || keywordSelection.length === 0 ? "all_keywords" : "specific_keywords"
     const recipients = emailRecipients
-    const criticalList = criticalKeywordList
-
     const base = {
       name: trimmedName,
       is_active: isActive,
@@ -294,38 +241,20 @@ export default function AlertsPage() {
       cooldown_hours: cooldownFrequency === "daily" ? 24 : 0,
     }
 
-    if (alertType === "volume") {
-      return {
-        ...base,
-        volume_threshold: volumeThreshold ? Number(volumeThreshold) : null,
-        sentiment: null,
-        sentiment_threshold: null,
-        critical_keywords: null,
-        keyword_match_type: null,
-        keyword_occurrences_threshold: null,
-      }
-    }
-
     if (alertType === "sentiment") {
       return {
         ...base,
         volume_threshold: null,
         sentiment: sentimentType,
         sentiment_threshold: sentimentThreshold ? Number(sentimentThreshold) : null,
-        critical_keywords: null,
-        keyword_match_type: null,
-        keyword_occurrences_threshold: null,
       }
     }
 
     return {
       ...base,
-      volume_threshold: null,
+      volume_threshold: volumeThreshold ? Number(volumeThreshold) : null,
       sentiment: null,
       sentiment_threshold: null,
-      critical_keywords: criticalList.length > 0 ? criticalList : null,
-      keyword_match_type: keywordMatchType,
-      keyword_occurrences_threshold: keywordTrigger === "count" ? Number(keywordOccurrencesThreshold) : null,
     }
   }
 
@@ -355,14 +284,6 @@ export default function AlertsPage() {
     }
     if (alertType === "sentiment" && !sentimentThreshold) {
       errors.push("Define un umbral de sentimiento para la alerta.")
-    }
-    if (alertType === "critical_keyword") {
-      if (criticalKeywordList.length === 0) {
-        errors.push("Ingresa al menos una palabra crítica.")
-      }
-      if (keywordTrigger === "count" && !keywordOccurrencesThreshold) {
-        errors.push("Define la cantidad mínima de apariciones.")
-      }
     }
     if (emailRecipients.length === 0) {
       errors.push("Agrega al menos un correo destinatario para notificaciones.")
@@ -530,10 +451,6 @@ export default function AlertsPage() {
                         Sentimiento: Se activa cuando se detecta una cantidad definida de menciones positivas o
                         negativas.
                       </p>
-                      <p>
-                        Keyword crítica: Se activa cuando aparecen palabras o frases sensibles definidas por el
-                        usuario.
-                      </p>
                     </div>
                   </TooltipContent>
                 </Tooltip>
@@ -546,7 +463,6 @@ export default function AlertsPage() {
               <SelectContent>
                 <SelectItem value="volume">Volumen de menciones</SelectItem>
                 <SelectItem value="sentiment">Sentimiento</SelectItem>
-                <SelectItem value="critical_keyword">Keyword crítica</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -628,92 +544,6 @@ export default function AlertsPage() {
               </div>
             )}
 
-            {alertType === "critical_keyword" && (
-              <div className="space-y-3">
-                <div>
-                  <p className="text-sm font-medium mb-2 text-slate-300">Palabras o frases críticas</p>
-                  <Input
-                    className="bg-slate-800/50 border-slate-700/50 text-white"
-                    placeholder="Ej: estafa, fraude, denuncia"
-                    value={criticalKeywordInput}
-                    onChange={(event) => setCriticalKeywordInput(event.target.value)}
-                    onKeyDown={handleCriticalKeywordKeyDown}
-                    onBlur={() => commitCriticalKeywords()}
-                  />
-                  {criticalKeywordList.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {criticalKeywordList.map((word) => (
-                        <span
-                          key={word}
-                          className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
-                        >
-                          {word}
-                          <button
-                            type="button"
-                            onClick={() => removeCriticalKeyword(word)}
-                            className="text-slate-300 hover:text-white"
-                            aria-label={`Eliminar ${word}`}
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">Tipo de coincidencia</p>
-                    <Select value={keywordMatchType} onValueChange={setKeywordMatchType}>
-                      <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                        <SelectValue placeholder="Seleccionar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="contains">Contiene</SelectItem>
-                        <SelectItem value="exact">Exacta</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">Disparo de alerta</p>
-                    <Select value={keywordTrigger} onValueChange={setKeywordTrigger}>
-                      <SelectTrigger className="w-full bg-slate-800/50 border-slate-700/50 text-white">
-                        <SelectValue placeholder="Seleccionar" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="once">Al menos una vez</SelectItem>
-                        <SelectItem value="count">Cantidad específica</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium mb-2 text-slate-300">Ventana temporal</p>
-                  <Select value={timeWindowHours} onValueChange={setTimeWindowHours}>
-                    <SelectTrigger className="w-full bg-slate-800/60 border-slate-700/50 text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 hora</SelectItem>
-                      <SelectItem value="6">6 horas</SelectItem>
-                      <SelectItem value="24">24 horas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {keywordTrigger === "count" && (
-                  <div>
-                    <p className="text-sm font-medium mb-2 text-slate-300">Cantidad mínima de apariciones</p>
-                    <Input
-                      type="number"
-                      className="bg-slate-800/50 border-slate-700/50 text-white"
-                      placeholder="Ej: 3"
-                      value={keywordOccurrencesThreshold}
-                      onChange={(event) => setKeywordOccurrencesThreshold(event.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           <div className="rounded-lg border border-slate-700/50 bg-slate-900/30 px-4 py-3">
