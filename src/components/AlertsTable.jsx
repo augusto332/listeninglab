@@ -8,6 +8,13 @@ const STATUS_STYLES = {
   borrador: "bg-slate-500/20 text-slate-300 border border-slate-500/30",
 }
 
+const ALERT_TYPE_STYLES = {
+  volume: "bg-blue-500/20 text-blue-200 border border-blue-500/30",
+  sentiment: "bg-purple-500/20 text-purple-200 border border-purple-500/30",
+  critical_keyword: "bg-rose-500/20 text-rose-200 border border-rose-500/30",
+  default: "bg-slate-600/30 text-slate-200 border border-slate-500/40",
+}
+
 const PLATFORM_STYLES = {
   youtube: "bg-red-500/20 text-red-300 border border-red-500/30",
   reddit: "bg-orange-500/20 text-orange-300 border border-orange-500/30",
@@ -38,13 +45,13 @@ const formatAlertType = (alertType) => {
   }
 }
 
-const formatKeywordScope = (alert, keywordMap = {}) => {
-  if (alert.scope_type === "all_keywords") return "Todas"
-  if (!alert.keyword_ids || alert.keyword_ids.length === 0) return "Sin definir"
+const getKeywordTags = (alert, keywordMap = {}) => {
+  if (alert.scope_type === "all_keywords") return ["Todas"]
+  if (!alert.keyword_ids || alert.keyword_ids.length === 0) return ["Sin definir"]
   const mapped = alert.keyword_ids
     .map((id) => keywordMap[id] || keywordMap[String(id)])
     .filter(Boolean)
-  return mapped.length > 0 ? mapped.join(", ") : "Seleccionadas"
+  return mapped.length > 0 ? mapped : ["Seleccionadas"]
 }
 
 const formatAlertDescription = (alert) => {
@@ -171,7 +178,15 @@ export default function AlertsTable({ alerts = [], keywordMap = {}, onEdit, onDe
                   <div className="font-medium">{alert.name}</div>
                   <p className="text-xs text-slate-500 mt-1">{formatAlertDescription(alert)}</p>
                 </td>
-                <td className="p-4 text-slate-300">{formatAlertType(alert.alert_type)}</td>
+                <td className="p-4">
+                  <span
+                    className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-medium ${
+                      ALERT_TYPE_STYLES[alert.alert_type] || ALERT_TYPE_STYLES.default
+                    }`}
+                  >
+                    {formatAlertType(alert.alert_type)}
+                  </span>
+                </td>
                 <td className="p-4">
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs ${
@@ -181,7 +196,18 @@ export default function AlertsTable({ alerts = [], keywordMap = {}, onEdit, onDe
                     {formatPlatform(alert.platform)}
                   </span>
                 </td>
-                <td className="p-4 text-slate-300">{formatKeywordScope(alert, keywordMap)}</td>
+                <td className="p-4">
+                  <div className="flex flex-wrap gap-1">
+                    {getKeywordTags(alert, keywordMap).map((keyword) => (
+                      <span
+                        key={`${alert.id}-${keyword}`}
+                        className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border border-slate-600/50 text-slate-300 bg-slate-700/30"
+                      >
+                        {keyword}
+                      </span>
+                    ))}
+                  </div>
+                </td>
                 <td className="p-4">
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs ${
