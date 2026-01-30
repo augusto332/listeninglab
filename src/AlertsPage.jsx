@@ -40,7 +40,6 @@ export default function AlertsPage() {
   const [keywordMatchType, setKeywordMatchType] = useState("contains")
   const [keywordTrigger, setKeywordTrigger] = useState("once")
   const [keywordOccurrencesThreshold, setKeywordOccurrencesThreshold] = useState("")
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true)
   const [emailRecipients, setEmailRecipients] = useState([])
   const [emailRecipientInput, setEmailRecipientInput] = useState("")
   const [cooldownFrequency, setCooldownFrequency] = useState("instant")
@@ -83,7 +82,6 @@ export default function AlertsPage() {
     setKeywordMatchType("contains")
     setKeywordTrigger("once")
     setKeywordOccurrencesThreshold("")
-    setNotificationsEnabled(true)
     setEmailRecipients([])
     setEmailRecipientInput("")
     setCooldownFrequency("instant")
@@ -171,7 +169,6 @@ export default function AlertsPage() {
       setKeywordTrigger("once")
       setKeywordOccurrencesThreshold("")
     }
-    setNotificationsEnabled(alert.notify_enabled ?? true)
     setEmailRecipients(alert.email_recipients ?? [])
     setEmailRecipientInput("")
     setCooldownFrequency(alert.cooldown_hours === 24 ? "daily" : "instant")
@@ -292,8 +289,8 @@ export default function AlertsPage() {
       keyword_ids: keywordIds,
       alert_type: alertType,
       time_window_hours: timeWindowHours ? Number(timeWindowHours) : null,
-      notify_enabled: notificationsEnabled,
-      email_recipients: notificationsEnabled ? recipients : [],
+      notify_enabled: true,
+      email_recipients: recipients,
       cooldown_hours: cooldownFrequency === "daily" ? 24 : 0,
     }
 
@@ -367,10 +364,8 @@ export default function AlertsPage() {
         errors.push("Define la cantidad mínima de apariciones.")
       }
     }
-    if (notificationsEnabled) {
-      if (emailRecipients.length === 0) {
-        errors.push("Agrega al menos un correo destinatario para notificaciones.")
-      }
+    if (emailRecipients.length === 0) {
+      errors.push("Agrega al menos un correo destinatario para notificaciones.")
     }
     return errors
   }
@@ -736,48 +731,38 @@ export default function AlertsPage() {
             </div>
             <Switch checked={isActive} onCheckedChange={setIsActive} />
           </div>
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-slate-300">Activar notificaciones</p>
-              <p className="text-xs text-slate-500">Recibe avisos por correo cuando la alerta se dispare.</p>
-            </div>
-            <Switch checked={notificationsEnabled} onCheckedChange={setNotificationsEnabled} />
-          </div>
-
-          {notificationsEnabled && (
-            <div>
-              <p className="text-sm font-medium mb-2 text-slate-300">Destinatarios</p>
-              <Input
-                className="bg-slate-800/50 border-slate-700/50 text-white"
-                placeholder="Escribe un correo y presiona coma o enter"
-                value={emailRecipientInput}
-                onChange={(event) => setEmailRecipientInput(event.target.value)}
-                onKeyDown={handleRecipientKeyDown}
-                onBlur={commitEmailRecipients}
-              />
-              <p className="text-xs text-slate-500 mt-2">Puedes agregar múltiples direcciones.</p>
-              {emailRecipients.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
-                  {emailRecipients.map((email) => (
-                    <span
-                      key={email}
-                      className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
+          <div>
+            <p className="text-sm font-medium mb-2 text-slate-300">Destinatarios</p>
+            <Input
+              className="bg-slate-800/50 border-slate-700/50 text-white"
+              placeholder="Escribe un correo y presiona coma o enter"
+              value={emailRecipientInput}
+              onChange={(event) => setEmailRecipientInput(event.target.value)}
+              onKeyDown={handleRecipientKeyDown}
+              onBlur={commitEmailRecipients}
+            />
+            <p className="text-xs text-slate-500 mt-2">Puedes agregar múltiples direcciones.</p>
+            {emailRecipients.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {emailRecipients.map((email) => (
+                  <span
+                    key={email}
+                    className="inline-flex items-center gap-2 rounded-full bg-slate-700/70 px-3 py-1 text-xs text-slate-100"
+                  >
+                    {email}
+                    <button
+                      type="button"
+                      onClick={() => removeEmailRecipient(email)}
+                      className="text-slate-300 hover:text-white"
+                      aria-label={`Eliminar ${email}`}
                     >
-                      {email}
-                      <button
-                        type="button"
-                        onClick={() => removeEmailRecipient(email)}
-                        className="text-slate-300 hover:text-white"
-                        aria-label={`Eliminar ${email}`}
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {formError && <p className="text-sm text-red-400">{formError}</p>}
