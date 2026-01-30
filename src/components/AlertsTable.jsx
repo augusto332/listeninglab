@@ -1,5 +1,6 @@
 import { AlertTriangle, BellRing, MoreHorizontal, Pencil, Trash2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import ReactDOM from "react-dom"
 
 const STATUS_STYLES = {
   activa: "bg-emerald-500/20 text-emerald-200 border border-emerald-500/30",
@@ -67,20 +68,56 @@ const formatAlertDescription = (alert) => {
 
 export default function AlertsTable({ alerts = [], keywordMap = {}, onEdit, onDelete, loading = false }) {
   const [openMenu, setOpenMenu] = useState(null)
+  const [openUp, setOpenUp] = useState(false)
+  const [menuRect, setMenuRect] = useState(null)
   const menuRefs = useRef([])
+  const dropdownMenuRef = useRef(null)
+
+  const closeMenu = () => {
+    setOpenMenu(null)
+    setMenuRect(null)
+  }
+
+  const toggleMenu = (alertId) => {
+    if (openMenu === alertId) {
+      closeMenu()
+      return
+    }
+    const ref = menuRefs.current[alertId]
+    if (ref) {
+      const rect = ref.getBoundingClientRect()
+      setMenuRect(rect)
+      const menuHeight = 160
+      setOpenUp(rect.bottom + menuHeight > window.innerHeight)
+    }
+    setOpenMenu(alertId)
+  }
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (openMenu === null) return
-      const currentMenu = menuRefs.current[openMenu]
-      if (currentMenu && !currentMenu.contains(event.target)) {
-        setOpenMenu(null)
+    if (openMenu === null) return
+
+    const handleMouseDown = (event) => {
+      if (
+        dropdownMenuRef.current &&
+        !dropdownMenuRef.current.contains(event.target) &&
+        menuRefs.current[openMenu] &&
+        !menuRefs.current[openMenu].contains(event.target)
+      ) {
+        closeMenu()
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside)
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        closeMenu()
+      }
+    }
+
+    document.addEventListener("mousedown", handleMouseDown)
+    document.addEventListener("keydown", handleKeyDown)
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("mousedown", handleMouseDown)
+      document.removeEventListener("keydown", handleKeyDown)
     }
   }, [openMenu])
 
@@ -158,39 +195,57 @@ export default function AlertsTable({ alerts = [], keywordMap = {}, onEdit, onDe
                   <div className="relative inline-flex" ref={(el) => (menuRefs.current[alert.id] = el)}>
                     <button
                       type="button"
-                      onClick={() => setOpenMenu(openMenu === alert.id ? null : alert.id)}
+                      onClick={() => toggleMenu(alert.id)}
                       className="inline-flex items-center p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-md opacity-0 group-hover:opacity-100 transition-all duration-200"
                       aria-label="Opciones"
                     >
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
-                    {openMenu === alert.id && (
-                      <div className="absolute right-0 top-full mt-2 w-40 bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-lg shadow-xl z-10">
-                        <button
-                          type="button"
-                          className="flex items-center w-full px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
-                          onClick={() => {
-                            setOpenMenu(null)
-                            if (onEdit) onEdit(alert)
+                    {openMenu === alert.id &&
+                      menuRect &&
+                      ReactDOM.createPortal(
+                        <div
+                          className="fixed z-50"
+                          style={{
+                            top: menuRect.top,
+                            left: menuRect.left,
+                            width: menuRect.width,
+                            height: menuRect.height,
                           }}
                         >
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Editar
-                        </button>
-                        <div className="border-t border-slate-700/50 my-1"></div>
-                        <button
-                          type="button"
-                          className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
-                          onClick={() => {
-                            setOpenMenu(null)
-                            if (onDelete) onDelete(alert)
-                          }}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Eliminar
-                        </button>
-                      </div>
-                    )}
+                          <div
+                            ref={dropdownMenuRef}
+                            className={`absolute right-0 w-40 bg-slate-800/95 backdrop-blur-xl border border-slate-700/50 rounded-lg shadow-xl ${
+                              openUp ? "bottom-full mb-2" : "top-full mt-2"
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              className="flex items-center w-full px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700/50 transition-colors"
+                              onClick={() => {
+                                closeMenu()
+                                if (onEdit) onEdit(alert)
+                              }}
+                            >
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Editar
+                            </button>
+                            <div className="border-t border-slate-700/50 my-1"></div>
+                            <button
+                              type="button"
+                              className="flex items-center w-full px-3 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                              onClick={() => {
+                                closeMenu()
+                                if (onDelete) onDelete(alert)
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Eliminar
+                            </button>
+                          </div>
+                        </div>,
+                        document.body,
+                      )}
                   </div>
                 </td>
               </tr>
