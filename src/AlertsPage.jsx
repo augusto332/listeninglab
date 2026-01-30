@@ -236,7 +236,6 @@ export default function AlertsPage() {
       keyword_ids: keywordIds,
       alert_type: alertType,
       time_window_hours: timeWindowHours ? Number(timeWindowHours) : null,
-      notify_enabled: true,
       email_recipients: recipients,
       cooldown_hours: cooldownFrequency === "daily" ? 24 : 0,
     }
