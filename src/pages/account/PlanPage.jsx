@@ -10,7 +10,8 @@ import { planConfig } from "./constants"
 import { ConfirmationModal } from "@/components/ConfirmationModal"
 
 export default function PlanPage() {
-  const { plan, planLoading, accountId, subscriptionId, subscriptionStatus } = useAuth()
+  const { plan, planLoading, accountId, subscriptionId, subscriptionStatus, customerPortalUrl } =
+    useAuth()
   const planTier = plan ?? "free"
   const isPaidPlan = planTier !== "free"
   const [showPlans, setShowPlans] = useState(false)
@@ -355,6 +356,18 @@ export default function PlanPage() {
                 }}
               >
                 {paymentDetails.actionLabel}
+              </Button>
+              <Button
+                variant="ghost"
+                className="text-blue-200 hover:text-blue-100 hover:bg-blue-500/10 border border-blue-500/30 bg-transparent"
+                disabled={!customerPortalUrl}
+                onClick={() => {
+                  if (customerPortalUrl) {
+                    window.location.href = customerPortalUrl
+                  }
+                }}
+              >
+                Portal de cliente
               </Button>
             </div>
           </div>
