@@ -32,7 +32,7 @@ export default function AccountLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const isAdmin = role?.toLowerCase?.() === "admin"
-  const canManageTeam = !planLoading && Number(planId) >= 3
+  const canManageTeam = isAdmin && !planLoading && Number(planId) >= 3
   const avatarDisplayName = user?.user_metadata?.display_name || user?.email || ""
   const avatarLabel = avatarDisplayName ? avatarDisplayName.charAt(0).toUpperCase() : "U"
   const [menuOpen, setMenuOpen] = useState(false)
