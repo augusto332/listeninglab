@@ -33,7 +33,6 @@ export default function AccountLayout() {
   const location = useLocation()
   const isAdmin = role?.toLowerCase?.() === "admin"
   const canManageTeam = !planLoading && Number(planId) >= 3
-  const canAccessTeam = isAdmin || canManageTeam
   const avatarDisplayName = user?.user_metadata?.display_name || user?.email || ""
   const avatarLabel = avatarDisplayName ? avatarDisplayName.charAt(0).toUpperCase() : "U"
   const [menuOpen, setMenuOpen] = useState(false)
@@ -96,7 +95,7 @@ export default function AccountLayout() {
       },
     ]
 
-    const items = canAccessTeam
+    const items = canManageTeam
       ? [
           ...baseItems,
           {
@@ -112,7 +111,7 @@ export default function AccountLayout() {
     }
 
     return items.filter((item) => item.id !== "plan")
-  }, [canAccessTeam, isAdmin])
+  }, [canManageTeam, isAdmin])
 
   const activeSection = location.pathname.split("/")[2] || "profile"
 
@@ -122,10 +121,10 @@ export default function AccountLayout() {
       return
     }
 
-    if (activeSection === "team" && !canAccessTeam) {
+    if (activeSection === "team" && !canManageTeam) {
       navigate(sectionRoutes.profile, { replace: true })
     }
-  }, [activeSection, canAccessTeam, isAdmin, navigate])
+  }, [activeSection, canManageTeam, isAdmin, navigate])
 
   const renderSidebarContent = (onItemSelect) => (
     <nav className="space-y-1 flex-1">
