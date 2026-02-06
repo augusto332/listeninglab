@@ -345,30 +345,32 @@ export default function PlanPage() {
                 </p>
               </div>
 
-              <Button
-                variant="outline"
-                className="border-slate-700 text-slate-200 hover:bg-slate-700/60"
-                disabled={paymentLoading || !paymentDetails.actionUrl}
-                onClick={() => {
-                  if (paymentDetails.actionUrl) {
-                    window.location.href = paymentDetails.actionUrl
-                  }
-                }}
-              >
-                {paymentDetails.actionLabel}
-              </Button>
-              <Button
-                variant="ghost"
-                className="text-blue-200 hover:text-blue-100 hover:bg-blue-500/10 border border-blue-500/30 bg-transparent"
-                disabled={!customerPortalUrl}
-                onClick={() => {
-                  if (customerPortalUrl) {
-                    window.location.href = customerPortalUrl
-                  }
-                }}
-              >
-                Portal de cliente
-              </Button>
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button
+                  variant="outline"
+                  className="border-slate-700 text-slate-200 hover:bg-slate-700/60"
+                  disabled={paymentLoading || !paymentDetails.actionUrl}
+                  onClick={() => {
+                    if (paymentDetails.actionUrl) {
+                      window.location.href = paymentDetails.actionUrl
+                    }
+                  }}
+                >
+                  {paymentDetails.actionLabel}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="text-blue-200 hover:text-blue-100 hover:bg-blue-500/10 border border-blue-500/30 bg-transparent"
+                  disabled={!customerPortalUrl}
+                  onClick={() => {
+                    if (customerPortalUrl) {
+                      window.location.href = customerPortalUrl
+                    }
+                  }}
+                >
+                  Ir al portal de cliente
+                </Button>
+              </div>
             </div>
           </div>
         </CardContent>
