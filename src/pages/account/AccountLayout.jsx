@@ -28,10 +28,12 @@ const sectionRoutes = {
 }
 
 export default function AccountLayout() {
-  const { user, role } = useAuth()
+  const { user, role, planId, planLoading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const isAdmin = role?.toLowerCase?.() === "admin"
+  const canManageTeam = !planLoading && Number(planId) >= 3
+  const canAccessTeam = isAdmin || canManageTeam
   const avatarDisplayName = user?.user_metadata?.display_name || user?.email || ""
   const avatarLabel = avatarDisplayName ? avatarDisplayName.charAt(0).toUpperCase() : "U"
   const [menuOpen, setMenuOpen] = useState(false)
@@ -76,7 +78,7 @@ export default function AccountLayout() {
   }
 
   const menuItems = useMemo(() => {
-    const items = [
+    const baseItems = [
       {
         id: "profile",
         title: "Mi Perfil",
@@ -92,27 +94,38 @@ export default function AccountLayout() {
         title: "Plan y Facturación",
         icon: CreditCard,
       },
-      {
-        id: "team",
-        title: "Gestionar equipo",
-        icon: Users,
-      },
     ]
+
+    const items = canAccessTeam
+      ? [
+          ...baseItems,
+          {
+            id: "team",
+            title: "Gestionar equipo",
+            icon: Users,
+          },
+        ]
+      : baseItems
 
     if (isAdmin) {
       return items
     }
 
-    return items.filter((item) => item.id !== "plan" && item.id !== "team")
-  }, [isAdmin])
+    return items.filter((item) => item.id !== "plan")
+  }, [canAccessTeam, isAdmin])
 
   const activeSection = location.pathname.split("/")[2] || "profile"
 
   useEffect(() => {
-    if (!isAdmin && (activeSection === "plan" || activeSection === "team")) {
+    if (!isAdmin && activeSection === "plan") {
+      navigate(sectionRoutes.profile, { replace: true })
+      return
+    }
+
+    if (activeSection === "team" && !canAccessTeam) {
       navigate(sectionRoutes.profile, { replace: true })
     }
-  }, [activeSection, isAdmin, navigate])
+  }, [activeSection, canAccessTeam, isAdmin, navigate])
 
   const renderSidebarContent = (onItemSelect) => (
     <nav className="space-y-1 flex-1">
