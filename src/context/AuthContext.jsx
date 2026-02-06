@@ -13,6 +13,7 @@ const AuthContext = createContext({
   subscriptionId: null,
   subscriptionStatus: null,
   onboardingCompleted: false,
+  customerPortalUrl: null,
   refreshAccount: async () => {},
 })
 
@@ -27,6 +28,7 @@ export const AuthProvider = ({ children }) => {
   const [subscriptionId, setSubscriptionId] = useState(null)
   const [subscriptionStatus, setSubscriptionStatus] = useState(null)
   const [onboardingCompleted, setOnboardingCompleted] = useState(false)
+  const [customerPortalUrl, setCustomerPortalUrl] = useState(null)
 
   const fetchUserPlan = useCallback(async (currentSession) => {
     if (currentSession?.user) {
@@ -49,6 +51,7 @@ export const AuthProvider = ({ children }) => {
         setSubscriptionId(null)
         setSubscriptionStatus(null)
         setOnboardingCompleted(false)
+        setCustomerPortalUrl(null)
         setPlanLoading(false)
         return
       }
@@ -61,6 +64,7 @@ export const AuthProvider = ({ children }) => {
       let nextSubscriptionId = null
       let nextSubscriptionStatus = null
       let nextOnboardingCompleted = false
+      let nextCustomerPortalUrl = null
 
       if (nextAccountId) {
         const {
@@ -69,7 +73,7 @@ export const AuthProvider = ({ children }) => {
         } = await supabase
           .from('accounts')
           .select(
-            'plan_id, subscription_id, subscription_status, is_onboarding_completed, plans(name)',
+            'plan_id, subscription_id, subscription_status, is_onboarding_completed, customer_portal_url, plans(name)',
           )
           .eq('id', nextAccountId)
           .single()
@@ -89,6 +93,7 @@ export const AuthProvider = ({ children }) => {
         nextSubscriptionId = account?.subscription_id ?? null
         nextSubscriptionStatus = account?.subscription_status ?? null
         nextOnboardingCompleted = account?.is_onboarding_completed ?? false
+        nextCustomerPortalUrl = account?.customer_portal_url ?? null
       }
 
       setPlan(nextPlan)
@@ -98,6 +103,7 @@ export const AuthProvider = ({ children }) => {
       setSubscriptionId(nextSubscriptionId)
       setSubscriptionStatus(nextSubscriptionStatus)
       setOnboardingCompleted(nextOnboardingCompleted)
+      setCustomerPortalUrl(nextCustomerPortalUrl)
       setPlanLoading(false)
       return
     }
@@ -109,6 +115,7 @@ export const AuthProvider = ({ children }) => {
     setSubscriptionId(null)
     setSubscriptionStatus(null)
     setOnboardingCompleted(false)
+    setCustomerPortalUrl(null)
     setPlanLoading(false)
   }, [])
 
@@ -152,6 +159,7 @@ export const AuthProvider = ({ children }) => {
         subscriptionId,
         subscriptionStatus,
         onboardingCompleted,
+        customerPortalUrl,
         refreshAccount,
       }}
     >
