@@ -299,6 +299,7 @@ export default function PlanPage() {
     const isCardPayment = Boolean(brand && lastFour)
 
     return {
+      isCardPayment,
       display: isCardPayment
         ? `${brand} •••• ${lastFour}`
         : paymentMethod
@@ -346,18 +347,20 @@ export default function PlanPage() {
               </div>
 
               <div className="flex flex-wrap justify-end gap-2">
-                <Button
-                  variant="outline"
-                  className="border-slate-700 text-slate-200 hover:bg-slate-700/60"
-                  disabled={paymentLoading || !paymentDetails.actionUrl}
-                  onClick={() => {
-                    if (paymentDetails.actionUrl) {
-                      window.location.href = paymentDetails.actionUrl
-                    }
-                  }}
-                >
-                  {paymentDetails.actionLabel}
-                </Button>
+                {paymentDetails.isCardPayment && (
+                  <Button
+                    variant="outline"
+                    className="border-slate-700 text-slate-200 hover:bg-slate-700/60"
+                    disabled={paymentLoading || !paymentDetails.actionUrl}
+                    onClick={() => {
+                      if (paymentDetails.actionUrl) {
+                        window.location.href = paymentDetails.actionUrl
+                      }
+                    }}
+                  >
+                    {paymentDetails.actionLabel}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   className="text-blue-200 hover:text-blue-100 hover:bg-blue-500/10 border border-blue-500/30 bg-transparent"
