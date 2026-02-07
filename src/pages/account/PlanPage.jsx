@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { CreditCard, Crown, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { planConfig } from "./constants"
 import { ConfirmationModal } from "@/components/ConfirmationModal"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function PlanPage() {
   const { plan, planLoading, accountId, subscriptionId, subscriptionStatus, customerPortalUrl } =
@@ -17,6 +18,9 @@ export default function PlanPage() {
   const [showPlans, setShowPlans] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState(null)
   const [paymentLoading, setPaymentLoading] = useState(false)
+  const [plansData, setPlansData] = useState([])
+  const [plansLoading, setPlansLoading] = useState(false)
+  const [plansError, setPlansError] = useState("")
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false,
     title: "",
@@ -32,12 +36,14 @@ export default function PlanPage() {
   )
   const isCancelledSubscription = subscriptionStatus === "cancelled"
 
-  // Mapping de planes a variant_id de Lemon Squeezy
-  const variantMapping = {
-    basic: 1121233,
-    team: 1123717,
-    pro: 1123719,
-  }
+  const plansById = useMemo(
+    () =>
+      plansData.reduce((acc, planItem) => {
+        acc[planItem.id] = planItem
+        return acc
+      }, {}),
+    [plansData]
+  )
 
   // Llamada a edge function create_checkout
   const handleCheckout = async (variantId) => {
@@ -143,10 +149,23 @@ export default function PlanPage() {
     closeConfirmationModal()
   }
 
-  const handlePlanSelection = (planId) => {
-    const variantId = variantMapping[planId]
+  const handlePlanSelection = (planItem) => {
+    if (plansLoading) {
+      setPlansError("Los planes aún se están cargando. Intentá de nuevo en unos segundos.")
+      return
+    }
 
-    if (!variantId) return
+    if (!planItem?.plan_id) {
+      setPlansError("Este plan no tiene un checkout disponible.")
+      return
+    }
+
+    const variantId = plansById[planItem.plan_id]?.variant_id
+
+    if (!variantId) {
+      setPlansError("No se encontró el identificador de pago para este plan.")
+      return
+    }
 
     if (hasActiveSubscription) {
       openConfirmationModal({
@@ -166,6 +185,7 @@ export default function PlanPage() {
   const availablePlans = [
     {
       id: "basic",
+      plan_id: 2,
       label: "Plan Básico",
       price: "$29",
       period: "/mes",
@@ -182,6 +202,7 @@ export default function PlanPage() {
     },
     {
       id: "team",
+      plan_id: 3,
       label: "Plan Team",
       price: "$79",
       period: "/mes",
@@ -199,6 +220,7 @@ export default function PlanPage() {
     },
     {
       id: "pro",
+      plan_id: 4,
       label: "Plan Pro",
       price: "$199",
       period: "/mes",
@@ -292,6 +314,43 @@ export default function PlanPage() {
 
     return () => controller.abort()
   }, [accountId])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const fetchPlans = async () => {
+      setPlansLoading(true)
+      setPlansError("")
+
+      try {
+        const { data, error } = await supabase.from("plans").select("id, variant_id")
+
+        if (error) {
+          throw error
+        }
+
+        if (isMounted) {
+          setPlansData(data ?? [])
+        }
+      } catch (error) {
+        console.error("Error cargando planes:", error)
+        if (isMounted) {
+          setPlansData([])
+          setPlansError("No se pudieron cargar los planes disponibles.")
+        }
+      } finally {
+        if (isMounted) {
+          setPlansLoading(false)
+        }
+      }
+    }
+
+    fetchPlans()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const paymentDetails = useMemo(() => {
     const brand = paymentMethod?.card_brand?.toUpperCase?.()
@@ -431,30 +490,36 @@ export default function PlanPage() {
           </div>
 
           {showPlans && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {availablePlans.map((planItem) => (
-                <Card
-                  key={planItem.id}
-                  className={`relative overflow-hidden transition-all hover:shadow-lg ${
-                    planTier === planItem.id
-                      ? "ring-2 ring-purple-500 bg-slate-800/50"
-                      : "bg-slate-800/30 hover:bg-slate-800/50"
-                  } border-slate-700/50 backdrop-blur-sm`}
-                >
-                  {planItem.popular && (
-                    <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">
-                      Popular
-                    </div>
-                  )}
+            <div className="space-y-4">
+              {plansError && (
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200">
+                  {plansError}
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {availablePlans.map((planItem) => (
+                  <Card
+                    key={planItem.id}
+                    className={`relative overflow-hidden transition-all hover:shadow-lg ${
+                      planTier === planItem.id
+                        ? "ring-2 ring-purple-500 bg-slate-800/50"
+                        : "bg-slate-800/30 hover:bg-slate-800/50"
+                    } border-slate-700/50 backdrop-blur-sm`}
+                  >
+                    {planItem.popular && (
+                      <div className="absolute top-0 right-0 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">
+                        Popular
+                      </div>
+                    )}
 
-                  <CardHeader>
-                    <CardTitle className="text-white text-lg">{planItem.label}</CardTitle>
-                    <CardDescription className="text-slate-400">{planItem.description}</CardDescription>
-                    <div className="pt-4">
-                      <span className="text-3xl font-bold text-white">{planItem.price}</span>
-                      {planItem.period && <span className="text-slate-400 text-sm">{planItem.period}</span>}
-                    </div>
-                  </CardHeader>
+                    <CardHeader>
+                      <CardTitle className="text-white text-lg">{planItem.label}</CardTitle>
+                      <CardDescription className="text-slate-400">{planItem.description}</CardDescription>
+                      <div className="pt-4">
+                        <span className="text-3xl font-bold text-white">{planItem.price}</span>
+                        {planItem.period && <span className="text-slate-400 text-sm">{planItem.period}</span>}
+                      </div>
+                    </CardHeader>
 
                     <CardContent className="space-y-6">
                       <div className="space-y-3">
@@ -474,8 +539,8 @@ export default function PlanPage() {
                               ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                               : "bg-slate-700 hover:bg-slate-600"
                         }`}
-                        disabled={planTier === planItem.id}
-                        onClick={() => handlePlanSelection(planItem.id)}
+                        disabled={planTier === planItem.id || plansLoading || !planItem.plan_id}
+                        onClick={() => handlePlanSelection(planItem)}
                       >
                         {planTier === planItem.id
                           ? "Plan actual"
@@ -485,11 +550,12 @@ export default function PlanPage() {
                       </Button>
                     </CardContent>
                   </Card>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
-          )}
+      )}
 
       <ConfirmationModal
         isOpen={confirmationModal.isOpen}
