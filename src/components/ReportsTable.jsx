@@ -300,7 +300,14 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                 </td>
 
                 <td className="p-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
+                  <div
+                    className={
+                      report.isAiPowered
+                        ? "grid grid-cols-[1fr_auto_1fr] items-center"
+                        : "flex items-center justify-end gap-2"
+                    }
+                  >
+                    {report.isAiPowered && <span aria-hidden="true" />}
                     {report.isAiPowered && (
                       <TooltipProvider>
                         <Tooltip>
