@@ -9,7 +9,6 @@ import {
   Eye,
   Edit,
   Copy,
-  Clock,
 } from "lucide-react"
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 
@@ -232,12 +231,6 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                   Período
                 </div>
               </th>
-              <th className="text-center p-4 text-slate-300 font-medium">
-                <div className="flex items-center justify-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Frecuencia
-                </div>
-              </th>
               <th className="text-right p-4 text-slate-300 font-medium"></th>
             </tr>
           </thead>
@@ -306,29 +299,33 @@ export default function ModernReportsTable({ reports = [], onDownload, onDelete,
                   <div className="text-sm text-slate-300">{formatDateRange(report)}</div>
                 </td>
 
-                <td className="p-4">
-                  <div className="flex justify-center">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span
-                            className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
-                              report.isScheduled
-                                ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
-                                : "bg-slate-700/40 text-slate-300 border border-slate-600/60"
-                            }`}
-                          >
-                            {getFrequencyLabel(report)}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>{getScheduleTooltip(report)}</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </td>
-
                 <td className="p-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
+                  <div
+                    className={
+                      report.isAiPowered
+                        ? "grid grid-cols-[1fr_auto_1fr] items-center"
+                        : "flex items-center justify-end gap-2"
+                    }
+                  >
+                    {report.isAiPowered && <span aria-hidden="true" />}
+                    {report.isAiPowered && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span
+                              className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${
+                                report.isScheduled
+                                  ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"
+                                  : "bg-slate-700/40 text-slate-300 border border-slate-600/60"
+                              }`}
+                            >
+                              {getFrequencyLabel(report)}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>{getScheduleTooltip(report)}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
                     {!report.isAiPowered && (
                       <button
                         onClick={() => {
