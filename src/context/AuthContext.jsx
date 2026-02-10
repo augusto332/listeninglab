@@ -7,6 +7,7 @@ const AuthContext = createContext({
   loading: true,
   plan: 'free',
   planLoading: true,
+  planRefreshing: false,
   planId: null,
   role: 'contributor',
   accountId: undefined,
@@ -22,6 +23,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
   const [plan, setPlan] = useState('free')
   const [planLoading, setPlanLoading] = useState(true)
+  const [planRefreshing, setPlanRefreshing] = useState(false)
+  const [hasLoadedPlan, setHasLoadedPlan] = useState(false)
   const [planId, setPlanId] = useState(null)
   const [role, setRole] = useState('contributor')
   const [accountId, setAccountId] = useState(undefined)
@@ -32,7 +35,11 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserPlan = useCallback(async (currentSession) => {
     if (currentSession?.user) {
-      setPlanLoading(true)
+      if (hasLoadedPlan) {
+        setPlanRefreshing(true)
+      } else {
+        setPlanLoading(true)
+      }
 
       const {
         data: profile,
@@ -53,6 +60,8 @@ export const AuthProvider = ({ children }) => {
         setOnboardingCompleted(false)
         setCustomerPortalUrl(null)
         setPlanLoading(false)
+        setPlanRefreshing(false)
+        setHasLoadedPlan(true)
         return
       }
 
@@ -105,6 +114,8 @@ export const AuthProvider = ({ children }) => {
       setOnboardingCompleted(nextOnboardingCompleted)
       setCustomerPortalUrl(nextCustomerPortalUrl)
       setPlanLoading(false)
+      setPlanRefreshing(false)
+      setHasLoadedPlan(true)
       return
     }
 
@@ -117,7 +128,9 @@ export const AuthProvider = ({ children }) => {
     setOnboardingCompleted(false)
     setCustomerPortalUrl(null)
     setPlanLoading(false)
-  }, [])
+    setPlanRefreshing(false)
+    setHasLoadedPlan(true)
+  }, [hasLoadedPlan])
 
   const refreshAccount = useCallback(async () => {
     await fetchUserPlan(session)
@@ -153,6 +166,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         plan,
         planLoading,
+        planRefreshing,
         planId,
         role,
         accountId,
