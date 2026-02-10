@@ -21,6 +21,7 @@ export default function PlanPage() {
   const [plansData, setPlansData] = useState([])
   const [plansLoading, setPlansLoading] = useState(false)
   const [plansError, setPlansError] = useState("")
+  const [lastKnownPlan, setLastKnownPlan] = useState(plan ?? "free")
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false,
     title: "",
@@ -260,18 +261,24 @@ export default function PlanPage() {
   const currentPlanConfig = useMemo(() => planConfig[planTier] ?? planConfig.free, [planTier])
 
   const planBadge = useMemo(() => {
-    if (planLoading) return null
-
-    const config = planConfig[plan] ?? planConfig.free
+    const planToDisplay = planLoading ? lastKnownPlan : plan
+    const config = planConfig[planToDisplay] ?? planConfig.free
     const PlanIcon = config.icon
 
     return (
       <Badge variant="secondary" className={`${config.color} flex items-center gap-1.5 px-3 py-1.5`}>
         <PlanIcon className="w-3 h-3" />
-        {config.label}
+        <span>{config.label}</span>
+        {planLoading && <span className="text-[11px] uppercase tracking-wide">Cargando</span>}
       </Badge>
     )
-  }, [plan, planLoading])
+  }, [lastKnownPlan, plan, planLoading])
+
+  useEffect(() => {
+    if (plan) {
+      setLastKnownPlan(plan)
+    }
+  }, [plan])
 
   useEffect(() => {
     if (!accountId) return

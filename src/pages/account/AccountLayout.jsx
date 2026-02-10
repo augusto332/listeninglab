@@ -28,11 +28,12 @@ const sectionRoutes = {
 }
 
 export default function AccountLayout() {
-  const { user, role, planId, planLoading } = useAuth()
+  const { user, role, planId, planLoading, planRefreshing } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const isAdmin = role?.toLowerCase?.() === "admin"
-  const canManageTeam = isAdmin && !planLoading && Number(planId) >= 3
+  const canManageTeam = isAdmin && Number(planId) >= 3
+  const isPlanStatusLoading = planLoading || planRefreshing
   const avatarDisplayName = user?.user_metadata?.display_name || user?.email || ""
   const avatarLabel = avatarDisplayName ? avatarDisplayName.charAt(0).toUpperCase() : "U"
   const [menuOpen, setMenuOpen] = useState(false)
@@ -95,23 +96,23 @@ export default function AccountLayout() {
       },
     ]
 
-    const items = canManageTeam
-      ? [
-          ...baseItems,
-          {
-            id: "team",
-            title: "Gestionar equipo",
-            icon: Users,
-          },
-        ]
-      : baseItems
+    const adminItems = [
+      ...baseItems,
+      {
+        id: "team",
+        title: "Gestionar equipo",
+        icon: Users,
+        disabled: !canManageTeam,
+        loading: isPlanStatusLoading && !canManageTeam,
+      },
+    ]
 
     if (isAdmin) {
-      return items
+      return adminItems
     }
 
-    return items.filter((item) => item.id !== "plan")
-  }, [canManageTeam, isAdmin])
+    return baseItems.filter((item) => item.id !== "plan")
+  }, [canManageTeam, isAdmin, isPlanStatusLoading])
 
   const activeSection = location.pathname.split("/")[2] || "profile"
 
@@ -121,16 +122,19 @@ export default function AccountLayout() {
       return
     }
 
-    if (activeSection === "team" && !canManageTeam) {
+    if (activeSection === "team" && !canManageTeam && !isPlanStatusLoading) {
       navigate(sectionRoutes.profile, { replace: true })
     }
-  }, [activeSection, canManageTeam, isAdmin, navigate])
+  }, [activeSection, canManageTeam, isAdmin, isPlanStatusLoading, navigate])
 
   const renderSidebarContent = (onItemSelect) => (
     <nav className="space-y-1 flex-1">
       {menuItems.map((item) => {
         const Icon = item.icon
         const handleClick = () => {
+          if (item.disabled) {
+            return
+          }
           navigate(sectionRoutes[item.id])
           if (onItemSelect) {
             onItemSelect()
@@ -141,15 +145,25 @@ export default function AccountLayout() {
           <button
             key={item.id}
             onClick={handleClick}
+            disabled={item.disabled}
+            aria-disabled={item.disabled}
             className={cn(
               "w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
               activeSection === item.id
                 ? "bg-gradient-to-r from-blue-500/20 to-purple-600/20 text-white border border-blue-500/30"
                 : "text-slate-400 hover:text-white hover:bg-slate-700/50",
+              item.disabled && "cursor-not-allowed opacity-60 hover:bg-transparent hover:text-slate-400",
             )}
           >
             <Icon className="w-4 h-4" />
-            {item.title}
+            <span className="flex items-center gap-2">
+              {item.title}
+              {item.loading && (
+                <span className="text-[11px] uppercase tracking-wide text-slate-400">
+                  Cargando
+                </span>
+              )}
+            </span>
           </button>
         )
       })}
