@@ -234,7 +234,8 @@ export default function useDashboardData({
       const { data, error } = await supabase.rpc("rpt_mentions_by_tag", {
         p_from: from,
         p_to: to,
-        p_sources: platforms,
+        p_platforms: platforms,
+        p_sources: null,
         p_keywords: keywordIds,
         p_ai_sentiment: sentiments,
         p_ai_classification_tags: aiTags,
