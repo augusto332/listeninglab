@@ -221,7 +221,13 @@ export default function useDashboardData({
         p_ai_classification_tags: aiTags,
       })
       if (error) throw error
-      setSourceTop((data || []).map((item) => ({ name: item.source, count: Number(item.cnt) })))
+      setSourceTop(
+        (data || []).map((item) => ({
+          source: item.source,
+          platform: item.platform,
+          count: Number(item.cnt),
+        })),
+      )
     } catch (err) {
       console.error("Error fetching top sources", err)
     }

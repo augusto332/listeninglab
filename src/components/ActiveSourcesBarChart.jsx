@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts"
 import ChartTooltip from "./ChartTooltip"
 
 export default function ActiveSourcesBarChart({
@@ -26,8 +26,9 @@ export default function ActiveSourcesBarChart({
     return data
       .map((item) => ({
         ...item,
-        fill: platformColors[item.name.toLowerCase()] || platformColors.default,
-        displayName: item.name.charAt(0).toUpperCase() + item.name.slice(1),
+        displayName: item.source,
+        tooltipLabel: `${item.platform || "Unknown"} - ${item.source}`,
+        fill: platformColors[item.platform?.toLowerCase()] || platformColors.default,
       }))
       .sort((a, b) => b.count - a.count)
   }, [data])
@@ -73,7 +74,11 @@ export default function ActiveSourcesBarChart({
             width={100}
           />
           <Tooltip content={<ChartTooltip />} />
-          <Bar dataKey="count" radius={[0, 4, 4, 0]} fill="#6366F1" />
+          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+            {processedData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={entry.fill} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
