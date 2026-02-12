@@ -135,7 +135,7 @@ export default function ReportsPage({
                       disabled
                       className="w-full rounded-xl border border-slate-700/60 bg-slate-900/60 px-4 py-4 text-left text-slate-500 opacity-70 cursor-not-allowed"
                     >
-                      <p className="text-sm font-semibold text-slate-400">Reporte Potenciado por IA</p>
+                      <p className="text-sm font-semibold text-slate-400">Reporte potenciado por IA</p>
                       <p className="text-xs text-slate-500 mt-1">
                         Informe semanal que utiliza IA para resumir insights y tendencias.
                       </p>
@@ -151,7 +151,7 @@ export default function ReportsPage({
               onClick={() => onReportTypeSelect("ai")}
               className="rounded-xl border border-purple-500/40 bg-purple-500/10 px-4 py-4 text-left text-slate-200 hover:bg-purple-500/20 transition"
             >
-              <p className="text-sm font-semibold text-white">Reporte Potenciado por IA</p>
+              <p className="text-sm font-semibold text-white">Reporte potenciado por IA</p>
               <p className="text-xs text-slate-400 mt-1">Informe semanal que utiliza IA para resumir insights y tendencias.</p>
             </button>
           )}
