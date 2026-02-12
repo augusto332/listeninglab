@@ -210,12 +210,11 @@ export default function useDashboardData({
 
   const fetchTopSources = useCallback(async () => {
     try {
-      const { from, to, keywordIds, sentiments, aiTags } = buildDashboardParams()
-      const p_sources = null
+      const { from, to, platforms, keywordIds, sentiments, aiTags } = buildDashboardParams()
       const { data, error } = await supabase.rpc("rpt_mentions_by_source", {
         p_from: from,
         p_to: to,
-        p_sources,
+        p_platforms: platforms,
         p_keywords: keywordIds,
         p_limit: 10,
         p_ai_sentiment: sentiments,
