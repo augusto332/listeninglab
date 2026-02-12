@@ -5,9 +5,13 @@ export default function ChartTooltip({ active, payload, label }) {
     return null;
   }
 
+  const row = payload[0]?.payload || {};
+  const hasSourceAndPlatform = row.source && row.platform;
+
   // Convertir timestamp → "YYYY-MM-DD"
-  const formattedLabel =
-    typeof label === "number"
+  const formattedLabel = hasSourceAndPlatform
+    ? `${row.platform} - ${row.source}`
+    : typeof label === "number"
       ? new Date(label).toISOString().slice(0, 10)
       : label;
 

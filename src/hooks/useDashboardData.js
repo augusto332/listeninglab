@@ -210,19 +210,24 @@ export default function useDashboardData({
 
   const fetchTopSources = useCallback(async () => {
     try {
-      const { from, to, keywordIds, sentiments, aiTags } = buildDashboardParams()
-      const p_sources = null
+      const { from, to, platforms, keywordIds, sentiments, aiTags } = buildDashboardParams()
       const { data, error } = await supabase.rpc("rpt_mentions_by_source", {
         p_from: from,
         p_to: to,
-        p_sources,
+        p_sources: platforms,
         p_keywords: keywordIds,
         p_limit: 10,
         p_ai_sentiment: sentiments,
         p_ai_classification_tags: aiTags,
       })
       if (error) throw error
-      setSourceTop((data || []).map((item) => ({ name: item.source, count: Number(item.cnt) })))
+      setSourceTop(
+        (data || []).map((item) => ({
+          source: item.source,
+          platform: item.platform,
+          count: Number(item.cnt),
+        })),
+      )
     } catch (err) {
       console.error("Error fetching top sources", err)
     }

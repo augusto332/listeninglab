@@ -26,8 +26,8 @@ export default function ActiveSourcesBarChart({
     return data
       .map((item) => ({
         ...item,
-        fill: platformColors[item.name.toLowerCase()] || platformColors.default,
-        displayName: item.name.charAt(0).toUpperCase() + item.name.slice(1),
+        fill: platformColors[(item.platform || "").toLowerCase()] || platformColors.default,
+        displayName: item.source,
       }))
       .sort((a, b) => b.count - a.count)
   }, [data])
