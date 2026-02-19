@@ -969,7 +969,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
       user_id: user.id,
       account_id: accountId,
       is_ai_powered: isAiReport,
-      ai_instructions: null,
       ...aiSchedulePayload,
     }
     const { data, error } = await supabase
@@ -1040,7 +1039,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
       date_to: isAiReport ? null : isDynamic ? null : reportEndDate || null,
       last_x_days: isDynamic ? Number(isAiReport ? AI_REPORT_DATE_PRESET : reportDateOption) : null,
       is_ai_powered: isAiReport,
-      ai_instructions: null,
       ...aiSchedulePayload,
     }
     const { data, error } = await supabase
