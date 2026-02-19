@@ -788,7 +788,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
         scheduleTime: isAiPowered ? r.schedule_time : null,
         emailRecipients: isAiPowered ? r.email_recipients || [] : [],
         isAiPowered,
-        aiInstructions: r.ai_instructions || "",
         createdAt: r.created_at,
       }
     })
@@ -969,7 +968,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
       user_id: user.id,
       account_id: accountId,
       is_ai_powered: isAiReport,
-      ai_instructions: null,
       ...aiSchedulePayload,
     }
     const { data, error } = await supabase
@@ -1007,7 +1005,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
         scheduleTime: isAiPowered ? r.schedule_time : null,
         emailRecipients: isAiPowered ? r.email_recipients || [] : [],
         isAiPowered,
-        aiInstructions: r.ai_instructions || "",
         createdAt: r.created_at,
       }
       setSavedReports((prev) => sortReports([...prev, newRep]))
@@ -1040,7 +1037,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
       date_to: isAiReport ? null : isDynamic ? null : reportEndDate || null,
       last_x_days: isDynamic ? Number(isAiReport ? AI_REPORT_DATE_PRESET : reportDateOption) : null,
       is_ai_powered: isAiReport,
-      ai_instructions: null,
       ...aiSchedulePayload,
     }
     const { data, error } = await supabase
@@ -1080,7 +1076,6 @@ export default function ModernSocialListeningApp({ onLogout }) {
                 scheduleTime: updatedIsAi ? updated.schedule_time : null,
                 emailRecipients: updatedIsAi ? updated.email_recipients || [] : [],
                 isAiPowered: updatedIsAi,
-                aiInstructions: updated.ai_instructions || "",
               }
             : rep
         )
