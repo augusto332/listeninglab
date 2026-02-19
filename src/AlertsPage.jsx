@@ -290,6 +290,20 @@ export default function AlertsPage() {
     return errors
   }
 
+  const getAlertSaveErrorMessage = (error) => {
+    const rawMessage = error?.message ?? ""
+    const errorMessageMap = {
+      'new row violates row-level security policy for table "user_alerts_parameters"':
+        "No tienes permisos para guardar alertas en esta cuenta.",
+    }
+
+    if (errorMessageMap[rawMessage]) {
+      return errorMessageMap[rawMessage]
+    }
+
+    return "Ocurrió un error al guardar la alerta. Si el problema continúa, contacta a soporte."
+  }
+
   const handleSave = async () => {
     setFormError(null)
     setFormSuccess(null)
@@ -334,7 +348,7 @@ export default function AlertsPage() {
       }
     } catch (error) {
       console.error("Error saving alert", error)
-      setFormError(`No se pudo guardar la alerta: ${error?.message || "Error desconocido"}`)
+      setFormError(getAlertSaveErrorMessage(error))
     } finally {
       setSaving(false)
     }
