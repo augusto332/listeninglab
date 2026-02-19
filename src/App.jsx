@@ -935,6 +935,21 @@ export default function ModernSocialListeningApp({ onLogout }) {
     setReportEmailRecipientInput("")
   }
 
+
+  const getReportFormErrorMessage = (error, { action = "crear" } = {}) => {
+    const rawMessage = error?.message ?? ""
+    const errorMessageMap = {
+      'duplicate key value violates unique constraint "one_ai_report_per_account"':
+        "Solo se permite un reporte generado por IA por cuenta.",
+    }
+
+    if (errorMessageMap[rawMessage]) {
+      return errorMessageMap[rawMessage]
+    }
+
+    return `Ocurrió un error al ${action} el reporte. Si el problema continúa, contacta a soporte.`
+  }
+
   const handleCreateReport = async () => {
     setReportMessage(null)
     const { data: userData } = await supabase.auth.getUser()
@@ -976,12 +991,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       .select()
     if (error) {
       console.error("Error creating report", error)
-      const normalizedMessage = error.message?.includes(
-        'duplicate key value violates unique constraint "one_ai_report_per_account"'
-      )
-        ? "Solo se permite un reporte generado por IA por cuenta."
-        : error.message || "Ocurrió un error al crear el reporte."
-      setReportMessage({ type: "error", text: normalizedMessage })
+      setReportMessage({ type: "error", text: getReportFormErrorMessage(error, { action: "crear" }) })
     } else if (data && data.length > 0) {
       const r = data[0]
       const isAiPowered = Boolean(r.is_ai_powered)
@@ -1046,7 +1056,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
       .select()
     if (error) {
       console.error("Error updating report", error)
-      setReportMessage({ type: "error", text: error.message || "Ocurrió un error al actualizar el reporte." })
+      setReportMessage({ type: "error", text: getReportFormErrorMessage(error, { action: "actualizar" }) })
       return
     }
     const updated = data?.[0]
