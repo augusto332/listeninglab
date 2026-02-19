@@ -228,6 +228,13 @@ export default function ConfigPage({
                         <SelectItem value="AR">Argentina</SelectItem>
                         <SelectItem value="CO">Colombia</SelectItem>
                         <SelectItem value="ES">España</SelectItem>
+                        <SelectItem value="PE">Perú</SelectItem>
+                        <SelectItem value="CL">Chile</SelectItem>
+                        <SelectItem value="UY">Uruguay</SelectItem>
+                        <SelectItem value="VE">Venezuela</SelectItem>
+                        <SelectItem value="EC">Ecuador</SelectItem>
+                        <SelectItem value="PY">Paraguay</SelectItem>
+                        <SelectItem value="BO">Bolivia</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
