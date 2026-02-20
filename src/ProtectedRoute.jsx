@@ -14,10 +14,10 @@ function FullScreenLoading() {
 }
 
 export default function ProtectedRoute({ children }) {
-  const { session, loading, planLoading, planRefreshing, onboardingCompleted } = useAuth()
+  const { session, loading, planLoading, onboardingCompleted } = useAuth()
   const location = useLocation()
 
-  if (loading || planLoading || planRefreshing) {
+  if (loading || planLoading) {
     return <FullScreenLoading />
   }
 
