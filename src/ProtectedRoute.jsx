@@ -8,13 +8,9 @@ export default function ProtectedRoute({ children }) {
   const location = useLocation()
 
   if (loading || planLoading) {
-    if (session) {
-      return children
-    }
-
     return (
       <AppShell>
-        <LoadingIndicator label="Verificando acceso..." />
+        <LoadingIndicator label="Preparando tu cuenta..." />
       </AppShell>
     )
   }
