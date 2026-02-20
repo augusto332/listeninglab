@@ -24,18 +24,13 @@ import BlogPage from './pages/BlogPage'
 import PrivacyPage from './pages/PrivacyPage'
 import TermsPage from './pages/TermsPage'
 import ResetPassword from './ResetPassword'
-import AppShell from './components/AppShell'
-import LoadingIndicator from './components/LoadingIndicator'
+import RouteLoadingSkeleton from './components/RouteLoadingSkeleton'
 
 function Root() {
   const { session, loading } = useAuth()
 
   if (loading && !session) {
-    return (
-      <AppShell>
-        <LoadingIndicator label="Cargando sesión..." />
-      </AppShell>
-    )
+    return <RouteLoadingSkeleton />
   }
 
   return (
