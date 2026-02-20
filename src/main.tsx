@@ -11,7 +11,8 @@ import Register from './Register'
 import ForgotPassword from './ForgotPassword'
 import './index.css'
 import { FavoritesProvider } from './context/FavoritesContext'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import ProtectedRoute from './ProtectedRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import OnboardingHome from './OnboardingHome'
@@ -29,91 +30,98 @@ import LoadingIndicator from './components/LoadingIndicator'
 import RouteFade from './components/RouteFade'
 
 function AnimatedAppRoutes({ session }) {
+  const location = useLocation()
+
   return (
-    <Routes>
-      {/* 👇 NUEVA RUTA PRINCIPAL */}
-      <Route
-        path="/"
-        element={session ? <Navigate to="/app/mentions" replace /> : <Landing />}
-      />
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        {/* 👇 NUEVA RUTA PRINCIPAL */}
+        <Route
+          path="/"
+          element={session ? <Navigate to="/app/mentions" replace /> : <Landing />}
+        />
 
-      <Route path="/sobre-nosotros" element={<AboutPage />} />
-      <Route path="/blog" element={<BlogPage />} />
-      <Route path="/privacidad" element={<PrivacyPage />} />
-      <Route path="/terminos-y-condiciones" element={<TermsPage />} />
+        <Route path="/sobre-nosotros" element={<AboutPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/privacidad" element={<PrivacyPage />} />
+        <Route path="/terminos-y-condiciones" element={<TermsPage />} />
 
-      <Route
-        path="/login"
-        element={
-          session ? (
-            <Navigate to="/app/mentions" replace />
-          ) : (
-            <RouteFade>
-              <Login />
-            </RouteFade>
-          )
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={session ? <Navigate to="/app/mentions" replace /> : <ForgotPassword />}
-      />
-      <Route
-        path="/register"
-        element={session ? <Navigate to="/app/mentions" replace /> : <Register />}
-      />
-      <Route path="/reset-password" element={<ResetPassword />} />
+        <Route
+          path="/login"
+          element={
+            session ? (
+              <Navigate to="/app/mentions" replace />
+            ) : (
+              <RouteFade>
+                <Login />
+              </RouteFade>
+            )
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={session ? <Navigate to="/app/mentions" replace /> : <ForgotPassword />}
+        />
+        <Route
+          path="/register"
+          element={session ? <Navigate to="/app/mentions" replace /> : <Register />}
+        />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
-      <Route
-        path="/app/*"
-        element={
-          <ProtectedRoute>
-            <SocialListeningApp />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/account"
-        element={
-          <ProtectedRoute>
-            <AccountLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="profile" replace />} />
-        <Route path="profile" element={<ProfilePage />} />
-        <Route path="security" element={<SecurityPage />} />
-        <Route path="plan" element={<PlanPage />} />
-        <Route path="team" element={<TeamPage />} />
-      </Route>
-      <Route
-        path="/app/support"
-        element={
-          <ProtectedRoute>
-            <Support />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/payment/success" element={<PaymentSuccess />} />
-      <Route path="/payment/cancelled" element={<PaymentCancelled />} />
-      <Route
-        path="/onboarding"
-        element={
-          <ProtectedRoute>
-            <OnboardingHome />
-          </ProtectedRoute>
-        }
-      />
+        <Route
+          path="/app/*"
+          element={
+            <ProtectedRoute>
+              <RouteFade>
+                <SocialListeningApp />
+              </RouteFade>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/account"
+          element={
+            <ProtectedRoute>
+              <AccountLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="profile" replace />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="security" element={<SecurityPage />} />
+          <Route path="plan" element={<PlanPage />} />
+          <Route path="team" element={<TeamPage />} />
+        </Route>
+        <Route
+          path="/app/support"
+          element={
+            <ProtectedRoute>
+              <Support />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/cancelled" element={<PaymentCancelled />} />
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <RouteFade>
+                <OnboardingHome />
+              </RouteFade>
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Cualquier otra ruta redirige según el estado de sesión */}
-      <Route
-        path="*"
-        element={<Navigate to={session ? '/app/mentions' : '/login'} replace />}
-      />
-    </Routes>
+        {/* Cualquier otra ruta redirige según el estado de sesión */}
+        <Route
+          path="*"
+          element={<Navigate to={session ? '/app/mentions' : '/login'} replace />}
+        />
+      </Routes>
+    </AnimatePresence>
   )
 }
-
 
 function Root() {
   const { session, loading } = useAuth()
