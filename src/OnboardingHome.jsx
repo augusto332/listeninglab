@@ -152,12 +152,7 @@ export default function ModernOnboardingHome() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className={`min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 font-sans flex flex-col`}
-    >
+    <div className={`min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 font-sans flex flex-col`}>
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl"></div>
@@ -480,6 +475,6 @@ export default function ModernOnboardingHome() {
           {step + 1}/3
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
