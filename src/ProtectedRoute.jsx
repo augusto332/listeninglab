@@ -1,13 +1,12 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import RouteLoadingSkeleton from '@/components/RouteLoadingSkeleton'
 
 export default function ProtectedRoute({ children }) {
   const { session, loading, planLoading, onboardingCompleted } = useAuth()
   const location = useLocation()
 
   if (loading || planLoading) {
-    return <RouteLoadingSkeleton />
+    return session ? children : null
   }
   if (!session) return <Navigate to="/login" replace />
 
