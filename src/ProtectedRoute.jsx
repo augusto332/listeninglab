@@ -4,14 +4,10 @@ import AppShell from '@/components/AppShell'
 import LoadingIndicator from '@/components/LoadingIndicator'
 
 export default function ProtectedRoute({ children }) {
-  const { session, loading, planLoading, onboardingCompleted } = useAuth()
+  const { session, loading, planLoading, planRefreshing, onboardingCompleted } = useAuth()
   const location = useLocation()
 
-  if (loading || planLoading) {
-    if (session) {
-      return children
-    }
-
+  if (loading || planLoading || planRefreshing) {
     return (
       <AppShell>
         <LoadingIndicator label="Verificando acceso..." />
