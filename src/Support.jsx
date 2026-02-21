@@ -4,6 +4,7 @@ import logo from "@/assets/logo.png"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
+import { supabase } from "@/lib/supabaseClient"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -11,11 +12,12 @@ import { ArrowLeft, Send, CheckCircle, Mail, MessageCircle, AlertCircle, HelpCir
 
 export default function Support() {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, accountId } = useAuth()
   const [category, setCategory] = useState("")
   const [message, setMessage] = useState("")
   const [submitted, setSubmitted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState("")
 
   const categories = [
     { value: "bug", label: "Reportar un error", icon: Bug },
@@ -27,10 +29,51 @@ export default function Support() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
+    const trimmedMessage = message.trim()
+
+    if (trimmedMessage.length < 10) {
+      setFormError("El mensaje debe tener al menos 10 caracteres.")
+      return
+    }
+
+    if (!category) {
+      setFormError("Selecciona una categoría para continuar.")
+      return
+    }
+
+    if (!user?.email) {
+      setFormError("No pudimos identificar tu correo de contacto. Vuelve a iniciar sesión e inténtalo de nuevo.")
+      return
+    }
+
+    setFormError("")
     setSubmitting(true)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    const { error } = await supabase.from("support_cases").insert({
+      user_id: user?.id ?? null,
+      account_id: accountId ?? null,
+      requester_email: user.email,
+      category,
+      message: trimmedMessage,
+      source: "web_form",
+      metadata: {
+        submitted_from: "support_page",
+      },
+    })
+
+    if (error) {
+      const isMinLengthError =
+        error.code === "23514" &&
+        (error.message?.includes("support_cases_message_check") || error.details?.includes("support_cases_message_check"))
+
+      setFormError(
+        isMinLengthError
+          ? "El mensaje debe tener al menos 10 caracteres."
+          : "No pudimos enviar tu mensaje en este momento. Inténtalo nuevamente.",
+      )
+      setSubmitting(false)
+      return
+    }
 
     setSubmitted(true)
     setSubmitting(false)
@@ -128,7 +171,16 @@ export default function Support() {
                     <AlertCircle className="w-4 h-4" />
                     ¿En qué podemos ayudarte?
                   </label>
-                  <Select value={category} onValueChange={setCategory} required>
+                  <Select
+                    value={category}
+                    onValueChange={(value) => {
+                      setCategory(value)
+                      if (formError) {
+                        setFormError("")
+                      }
+                    }}
+                    required
+                  >
                     <SelectTrigger className="bg-slate-800/50 border-slate-700/50 text-white focus:border-blue-500/50 focus:ring-blue-500/20">
                       <SelectValue placeholder="Selecciona una categoría" />
                     </SelectTrigger>
@@ -163,13 +215,24 @@ export default function Support() {
                     name="message"
                     rows={6}
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    onChange={(e) => {
+                      setMessage(e.target.value)
+                      if (formError) {
+                        setFormError("")
+                      }
+                    }}
                     placeholder="Describe tu consulta con el mayor detalle posible..."
                     className="w-full rounded-lg border border-slate-700/50 bg-slate-800/50 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-500/50 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none transition-all duration-200"
                     required
                   />
                   <p className="text-xs text-slate-500">Mínimo 10 caracteres</p>
                 </div>
+
+                {formError && (
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3">
+                    <p className="text-sm text-red-300">{formError}</p>
+                  </div>
+                )}
 
                 {/* Selected Category Preview */}
                 {selectedCategory && (
