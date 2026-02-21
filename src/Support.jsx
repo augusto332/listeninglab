@@ -220,30 +220,10 @@ export default function Support() {
           </Card>
 
           {/* Additional Help */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="bg-gradient-to-br from-slate-800/30 to-slate-800/20 border-slate-700/50 backdrop-blur-sm">
+          <div className="grid grid-cols-1 gap-4">
+            <Card className="bg-gradient-to-br from-slate-800/30 to-slate-800/20 border-slate-700/50 backdrop-blur-sm w-full">
               <CardContent className="p-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-white mb-1">Email Directo</h3>
-                    <p className="text-sm text-slate-400 mb-2">¿Prefieres escribirnos directamente?</p>
-                    <a
-                      href="mailto:soporte@listeninglab.com"
-                      className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      soporte@listeninglab.com
-                    </a>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-slate-800/30 to-slate-800/20 border-slate-700/50 backdrop-blur-sm">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-3">
+                <div className="flex flex-col items-center gap-3 text-center">
                   <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center flex-shrink-0">
                     <HelpCircle className="w-5 h-5 text-purple-400" />
                   </div>
