@@ -251,7 +251,7 @@ export default function ModernOnboardingHome() {
                     <div className="w-12 h-12 bg-gradient-to-r from-green-500/20 to-green-600/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                       <Bell className="w-6 h-6 text-green-400" />
                     </div>
-                    <h3 className="font-semibold text-white mb-2">3. Recibe reportes</h3>
+                    <h3 className="font-semibold text-white mb-2">3. Recibe alertas</h3>
                     <p className="text-sm text-slate-400">Mantente informado sobre menciones importantes</p>
                   </CardContent>
                 </Card>
