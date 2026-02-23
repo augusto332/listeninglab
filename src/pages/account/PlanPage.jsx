@@ -11,6 +11,8 @@ import { ConfirmationModal } from "@/components/ConfirmationModal"
 import { supabase } from "@/lib/supabaseClient"
 
 export default function PlanPage() {
+  const enterpriseSalesMailTo =
+    "mailto:ventas.listeninglab@gmail.com?subject=Consulta Plan Enterprise"
   const { plan, planLoading, accountId, subscriptionId, subscriptionStatus, customerPortalUrl } =
     useAuth()
   const planTier = plan ?? "free"
@@ -151,6 +153,11 @@ export default function PlanPage() {
   }
 
   const handlePlanSelection = (planItem) => {
+    if (planItem?.id === "enterprise") {
+      window.location.href = enterpriseSalesMailTo
+      return
+    }
+
     if (plansLoading) {
       setPlansError("Los planes aún se están cargando. Intentá de nuevo en unos segundos.")
       return
@@ -549,10 +556,12 @@ export default function PlanPage() {
                               ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                               : "bg-slate-700 hover:bg-slate-600"
                         }`}
-                        disabled={planTier === planItem.id || plansLoading || !planItem.plan_id}
+                        disabled={planTier === planItem.id || (plansLoading && planItem.id !== "enterprise") || (!planItem.plan_id && planItem.id !== "enterprise")}
                         onClick={() => handlePlanSelection(planItem)}
                       >
-                        {planTier === planItem.id
+                        {planItem.id === "enterprise"
+                          ? "Contactar Ventas"
+                          : planTier === planItem.id
                           ? "Plan actual"
                           : hasActiveSubscription
                             ? `Cambiar a ${planItem.label}`

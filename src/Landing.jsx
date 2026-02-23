@@ -684,7 +684,8 @@ export default function Landing() {
                             }`}
                             onClick={() => {
                               if (plan.name === "Enterprise") {
-                                window.location.href = "mailto:ventas@listeninglab.com?subject=Consulta Plan Enterprise"
+                                window.location.href =
+                                  "mailto:ventas.listeninglab@gmail.com?subject=Consulta Plan Enterprise"
                               } else {
                                 handleRegister()
                               }
