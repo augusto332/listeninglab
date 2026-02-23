@@ -680,7 +680,8 @@ export default function Landing() {
                             className="w-full mb-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                             onClick={() => {
                               if (plan.name === "Enterprise") {
-                                window.location.href = "mailto:ventas@listeninglab.com?subject=Consulta Plan Enterprise"
+                                window.location.href =
+                                  "mailto:ventas.listeninglab@gmail.com?subject=Consulta%20Plan%20Enterprise"
                               } else {
                                 handleRegister()
                               }

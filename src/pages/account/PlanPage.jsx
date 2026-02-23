@@ -151,6 +151,11 @@ export default function PlanPage() {
   }
 
   const handlePlanSelection = (planItem) => {
+    if (planItem?.id === "enterprise") {
+      window.location.href = "mailto:ventas.listeninglab@gmail.com?subject=Consulta%20Plan%20Enterprise"
+      return
+    }
+
     if (plansLoading) {
       setPlansError("Los planes aún se están cargando. Intentá de nuevo en unos segundos.")
       return
@@ -547,11 +552,13 @@ export default function PlanPage() {
                             ? "bg-emerald-600 hover:bg-emerald-700"
                             : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                         }`}
-                        disabled={planTier === planItem.id || plansLoading || !planItem.plan_id}
+                        disabled={planTier === planItem.id || plansLoading || (!planItem.plan_id && planItem.id !== "enterprise")}
                         onClick={() => handlePlanSelection(planItem)}
                       >
                         {planTier === planItem.id
                           ? "Plan actual"
+                          : planItem.id === "enterprise"
+                            ? "Contactar Ventas"
                           : hasActiveSubscription
                             ? `Cambiar a ${planItem.label}`
                             : planItem.cta}
