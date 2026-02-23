@@ -545,9 +545,7 @@ export default function PlanPage() {
                         className={`w-full ${
                           planTier === planItem.id
                             ? "bg-emerald-600 hover:bg-emerald-700"
-                            : planItem.popular
-                              ? "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                              : "bg-slate-700 hover:bg-slate-600"
+                            : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
                         }`}
                         disabled={planTier === planItem.id || plansLoading || !planItem.plan_id}
                         onClick={() => handlePlanSelection(planItem)}
