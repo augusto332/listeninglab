@@ -233,9 +233,14 @@ export default function Landing() {
 
   const faqs = [
     {
-      question: "¿Qué plataformas soportan?",
+      question: "¿Qué plataformas monitorean?",
       answer:
-        "Actualmente soportamos YouTube, Reddit, Twitter, Instagram, Facebook y TikTok. Estamos agregando nuevas plataformas constantemente.",
+        "Actualmente nuestro sistema monitorea YouTube, Reddit, Twitter, Instagram, Facebook y TikTok. Estamos agregando nuevas plataformas constantemente.",
+    },
+    {
+      question: "¿Puedo monitorear únicamente una red social en particular?",
+      answer:
+        "Sí, en nuestra plataforma podés elegir qué redes sociales querés monitorear, en caso de que quieras seguir solo algunas en particular, siempre y cuando se encuentren entre las que soportamos actualmente.",
     },
     {
       question: "¿Cómo utilizan inteligencia artificial?",
