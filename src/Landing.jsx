@@ -677,11 +677,7 @@ export default function Landing() {
 
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                           <Button
-                            className={`w-full mb-6 ${
-                              plan.highlighted
-                                ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                                : "bg-slate-700 hover:bg-slate-600"
-                            }`}
+                            className="w-full mb-6 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                             onClick={() => {
                               if (plan.name === "Enterprise") {
                                 window.location.href = "mailto:ventas@listeninglab.com?subject=Consulta Plan Enterprise"
