@@ -1219,7 +1219,7 @@ export default function ModernSocialListeningApp({ onLogout }) {
           </div>
 
           <div className="flex items-center gap-4">
-            <NotificationsMenu />
+            <NotificationsMenu isEnabled={isAdmin} />
 
             <div className="relative" ref={helpMenuRef}>
               <Button
