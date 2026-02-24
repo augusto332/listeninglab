@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabaseClient"
 import { useAuth } from "@/context/AuthContext"
 import { AlertCircle, Bell, CreditCard, MessageSquare } from "lucide-react"
 
-export default function NotificationsMenu() {
+export default function NotificationsMenu({ isEnabled = true }) {
   const [open, setOpen] = useState(false)
   const menuRef = useRef(null)
   const [notifications, setNotifications] = useState([])
@@ -35,7 +35,7 @@ export default function NotificationsMenu() {
   }
 
   const fetchNotifications = useCallback(async () => {
-    if (!user) {
+    if (!isEnabled || !user) {
       setNotifications([])
       return
     }
@@ -59,11 +59,17 @@ export default function NotificationsMenu() {
     }
 
     setNotifications(data ?? [])
-  }, [accountId, user])
+  }, [accountId, isEnabled, user])
 
   useEffect(() => {
+    if (!isEnabled) {
+      setOpen(false)
+      setNotifications([])
+      return
+    }
+
     fetchNotifications()
-  }, [fetchNotifications])
+  }, [fetchNotifications, isEnabled])
 
   const unreadCount = notifications.filter((notification) => !notification.is_read).length
 
@@ -118,6 +124,10 @@ export default function NotificationsMenu() {
   }
 
   const handleToggleMenu = () => {
+    if (!isEnabled) {
+      return
+    }
+
     const nextOpen = !open
     setOpen(nextOpen)
     if (!open) {
@@ -144,11 +154,18 @@ export default function NotificationsMenu() {
         variant="ghost"
         size="icon"
         onClick={handleToggleMenu}
-        className="text-slate-300 hover:text-white relative"
+        disabled={!isEnabled}
+        className={cn(
+          "relative",
+          isEnabled
+            ? "text-slate-300 hover:text-white"
+            : "text-slate-500 opacity-60 cursor-not-allowed hover:text-slate-500"
+        )}
         aria-label="Abrir notificaciones"
+        aria-disabled={!isEnabled}
       >
         <Bell className="w-4 h-4" />
-        {unreadCount > 0 && (
+        {isEnabled && unreadCount > 0 && (
           <span className="absolute -top-1.5 -right-0.5 w-5 h-5 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-[11px] font-semibold text-white flex items-center justify-center shadow-lg">
             {unreadCount}
           </span>
