@@ -1139,12 +1139,23 @@ export default function ModernSocialListeningApp({ onLogout }) {
   const handleDeleteReport = async (index) => {
     const rep = savedReports[index]
     if (!rep) return
-    const { error } = await supabase
+    if (!accountId) {
+      alert("No pudimos identificar tu cuenta.")
+      return
+    }
+    const { data, error } = await supabase
       .from("user_reports_parameters")
       .delete()
+      .select("id")
       .eq("id", rep.id)
+      .eq("account_id", accountId)
     if (error) {
       console.error("Error deleting report", error)
+      alert("No pudimos eliminar el reporte. Intenta nuevamente.")
+      return
+    }
+    if (!data || data.length === 0) {
+      alert("No tienes permisos para eliminar este reporte.")
       return
     }
     setSavedReports((prev) => prev.filter((_, i) => i !== index))

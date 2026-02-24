@@ -165,14 +165,19 @@ export default function AlertsPage() {
     const confirmed = window.confirm("¿Estás seguro de eliminar esta alerta?")
     if (!confirmed) return
     setTableError(null)
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("user_alerts_parameters")
       .delete()
+      .select("id")
       .eq("id", alert.id)
       .eq("account_id", accountId)
     if (error) {
       console.error("Error deleting alert", error)
       setTableError("No pudimos eliminar la alerta. Intenta nuevamente.")
+      return
+    }
+    if (!data || data.length === 0) {
+      setTableError("No tienes permisos para eliminar esta alerta.")
       return
     }
     setAlerts((prev) => prev.filter((item) => item.id !== alert.id))
