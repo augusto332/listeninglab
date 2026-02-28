@@ -40,6 +40,7 @@ import {
 // REMOVIDO: const inter = Inter({...})
 
 export default function ModernOnboardingHome() {
+  const MAX_ONBOARDING_KEYWORDS = 1
   const [keywords, setKeywords] = useState([])
   const [newKeyword, setNewKeyword] = useState("")
   const [saving, setSaving] = useState(false)
@@ -61,6 +62,10 @@ export default function ModernOnboardingHome() {
 
   const addKeyword = () => {
     const kw = newKeyword.trim()
+    if (keywords.length >= MAX_ONBOARDING_KEYWORDS) {
+      return
+    }
+
     if (kw && !keywords.includes(kw)) {
       setKeywords([...keywords, kw])
       setNewKeyword("")
@@ -231,8 +236,8 @@ export default function ModernOnboardingHome() {
                     <div className="w-12 h-12 bg-gradient-to-r from-blue-500/20 to-blue-600/20 rounded-lg flex items-center justify-center mx-auto mb-4">
                       <Hash className="w-6 h-6 text-blue-400" />
                     </div>
-                    <h3 className="font-semibold text-white mb-2">1. Carga tus keywords</h3>
-                    <p className="text-sm text-slate-400">Define las palabras clave que quieres monitorear</p>
+                    <h3 className="font-semibold text-white mb-2">1. Carga tu keyword</h3>
+                    <p className="text-sm text-slate-400">Define la palabra clave que quieres monitorear</p>
                   </CardContent>
                 </Card>
 
@@ -271,9 +276,9 @@ export default function ModernOnboardingHome() {
               <Card className="bg-slate-800/30 backdrop-blur-sm border-slate-700/50">
                 <CardContent className="p-8">
                   <div className="mb-8">
-                    <h2 className="text-2xl font-semibold text-white mb-2">Configura tus palabras clave</h2>
+                    <h2 className="text-2xl font-semibold text-white mb-2">Configura tu palabra clave</h2>
                     <p className="text-slate-400">
-                      Agrega las palabras clave que quieres monitorear en redes sociales. Puedes incluir nombres de marca, productos, competidores o cualquier término relevante.
+                      Agrega la palabra clave que quieras monitorear en redes sociales. En cuentas gratuitas puedes comenzar con 1 palabra clave y, cuando lo necesites, podrás ampliar ese límite al actualizar tu plan.
                     </p>
                   </div>
 
@@ -287,12 +292,13 @@ export default function ModernOnboardingHome() {
                           onChange={(e) => setNewKeyword(e.target.value)}
                           onKeyPress={handleKeyPress}
                           placeholder="Escribe una palabra clave..."
+                          disabled={keywords.length >= MAX_ONBOARDING_KEYWORDS}
                           className="pl-11 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-400 focus:border-blue-500/50 focus:ring-blue-500/20 h-12"
                         />
                       </div>
                       <Button
                         onClick={addKeyword}
-                        disabled={!newKeyword.trim()}
+                        disabled={!newKeyword.trim() || keywords.length >= MAX_ONBOARDING_KEYWORDS}
                         className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 h-12 px-6"
                       >
                         <Plus className="w-4 h-4 mr-2" />
@@ -306,7 +312,7 @@ export default function ModernOnboardingHome() {
                     <div className="mb-8">
                       <h3 className="text-lg font-medium text-white mb-4 flex items-center gap-2">
                         <Zap className="w-5 h-5 text-blue-400" />
-                        Palabras clave agregadas ({keywords.length})
+                        Palabra clave agregada
                       </h3>
                       <div className="flex flex-wrap gap-3">
                         {keywords.map((kw) => (
@@ -344,7 +350,7 @@ export default function ModernOnboardingHome() {
                         ) : (
                           <>
                             <CheckCircle className="w-4 h-4 mr-2" />
-                            Guardar y continuar ({keywords.length} keywords)
+                            Guardar y continuar
                           </>
                         )}
                       </Button>
@@ -352,7 +358,7 @@ export default function ModernOnboardingHome() {
                       <div className="space-y-4">
                         <div className="flex items-center justify-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
                           <CheckCircle className="w-5 h-5 text-green-400" />
-                          <span className="text-green-400 font-medium">¡Keywords guardadas exitosamente!</span>
+                          <span className="text-green-400 font-medium">¡Palabra clave guardada exitosamente!</span>
                         </div>
                         <Button
                           onClick={() => setStep(2)}
@@ -369,7 +375,15 @@ export default function ModernOnboardingHome() {
                   {keywords.length === 0 && (
                     <div className="mt-6 p-4 bg-slate-700/30 border border-slate-600/30 rounded-lg">
                       <p className="text-sm text-slate-400 text-center">
-                        💡 <strong>Tip:</strong> Comienza agregando 3-5 palabras clave relacionadas con tu marca o industria para obtener mejores resultados.
+                        💡 <strong>Tip:</strong> Las cuentas gratuitas permiten 1 palabra clave en onboarding. Puedes ampliar este límite al actualizar tu plan.
+                      </p>
+                    </div>
+                  )}
+
+                  {keywords.length >= MAX_ONBOARDING_KEYWORDS && (
+                    <div className="mt-6 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                      <p className="text-sm text-amber-300 text-center">
+                        Ya agregaste tu palabra clave inicial. Si necesitas monitorear más términos, puedes ampliar el límite con un plan superior.
                       </p>
                     </div>
                   )}
