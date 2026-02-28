@@ -86,6 +86,28 @@ export default function ModernOnboardingHome() {
   useEffect(() => {
     if (!accountId) return
 
+    const fetchKeywords = async () => {
+      const { data, error } = await supabase
+        .from("dim_keywords")
+        .select("keyword")
+        .eq("account_id", accountId)
+        .eq("active", true)
+
+      if (error) {
+        console.error("Error fetching account keywords", error)
+        return
+      }
+
+      const activeKeywords = (data ?? [])
+        .map(({ keyword }) => keyword?.trim())
+        .filter(Boolean)
+
+      if (activeKeywords.length > 0) {
+        setKeywords(activeKeywords)
+        setSaved(true)
+      }
+    }
+
     const fetchLanguage = async () => {
       const { data, error } = await supabase
         .from("account_settings")
@@ -103,6 +125,7 @@ export default function ModernOnboardingHome() {
       }
     }
 
+    fetchKeywords()
     fetchLanguage()
   }, [accountId])
 
