@@ -136,16 +136,31 @@ export default function ModernOnboardingHome() {
       return
     }
     setSavingLanguage(true)
-    const { error } = await supabase
+    const { error: languageError } = await supabase
       .from("account_settings")
       .update({ language })
       .eq("account_id", accountId)
-    setSavingLanguage(false)
-    if (!error) {
-      navigate("/app/mentions")
-    } else {
-      console.error("Error saving language", error)
+
+    if (languageError) {
+      console.error("Error saving language", languageError)
+      setSavingLanguage(false)
+      return
     }
+
+    const { error: onboardingError } = await supabase
+      .from("accounts")
+      .update({ is_onboarding_completed: true })
+      .eq("id", accountId)
+
+    if (onboardingError) {
+      console.error("Error updating onboarding status", onboardingError)
+      setSavingLanguage(false)
+      return
+    }
+
+    await refreshAccount()
+    setSavingLanguage(false)
+    navigate("/app/mentions")
   }
 
   const saveKeywords = async () => {
