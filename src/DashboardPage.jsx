@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import DashboardSection from "./components/DashboardSection"
 import useDashboardData from "./hooks/useDashboardData"
 import { supabase } from "./lib/supabaseClient"
@@ -9,8 +9,6 @@ export default function DashboardPage({ embedded = false }) {
   const [keywords, setKeywords] = useState([])
   const [allAiTagOptions, setAllAiTagOptions] = useState([])
   const [allSentimentOptions, setAllSentimentOptions] = useState([])
-
-  const activeKeywords = useMemo(() => keywords.filter((k) => k.active), [keywords])
 
   const {
     startDate,
@@ -112,7 +110,7 @@ export default function DashboardPage({ embedded = false }) {
 
   const content = (
     <DashboardSection
-      activeKeywords={activeKeywords}
+      keywords={keywords}
       startDate={startDate}
       endDate={endDate}
       setStartDate={setStartDate}

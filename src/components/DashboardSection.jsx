@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import SentimentKPI from "@/components/SentimentKPI"
 
 export default function DashboardSection({
-  activeKeywords,
+  keywords,
   startDate,
   endDate,
   setStartDate,
@@ -53,9 +53,9 @@ export default function DashboardSection({
             className="w-full"
             options={[
               { value: "all", label: "Todas" },
-              ...activeKeywords.map((k) => ({
+              ...keywords.map((k) => ({
                 value: k.keyword,
-                label: k.keyword,
+                label: k.active ? k.keyword : `${k.keyword} (inactiva)`,
               })),
             ]}
             value={selectedDashboardKeywords}

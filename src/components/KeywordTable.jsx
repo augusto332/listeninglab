@@ -12,7 +12,7 @@ export default function KeywordTable({ keywords, onToggle, onDelete }) {
 
   const handleDelete = async (keyword) => {
     if (!onDelete) return
-    const confirmed = window.confirm("¿Estás seguro de eliminar esta keyword?")
+    const confirmed = window.confirm("¿Seguro que quieres eliminar esta keyword? Esta acción borrará también todos los datos almacenados asociados a ella y no se puede deshacer.")
     if (!confirmed) return
     const { error } = await onDelete(keyword)
     if (error) {
