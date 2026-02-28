@@ -138,8 +138,8 @@ export default function ModernOnboardingHome() {
     setSavingLanguage(true)
     const { error } = await supabase
       .from("account_settings")
-      .upsert({ account_id: accountId, language })
-      .select()
+      .update({ language })
+      .eq("account_id", accountId)
     setSavingLanguage(false)
     if (!error) {
       navigate("/app/mentions")
