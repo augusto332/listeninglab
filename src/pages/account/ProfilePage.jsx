@@ -174,7 +174,7 @@ export default function ProfilePage() {
             <div className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/50">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-purple-400" />
-                <span className="text-sm text-slate-400">Menciones obtenidas (30 días)</span>
+                <span className="text-sm text-slate-400">Menciones en el mes</span>
               </div>
               <p className="text-lg font-semibold text-white">{stats.mentions}</p>
             </div>
