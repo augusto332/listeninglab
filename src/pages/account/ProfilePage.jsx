@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Mail, User, Calendar, TrendingUp, Sparkles, AlertTriangle, Check } from "lucide-react"
+import { Mail, User, Calendar, TrendingUp, Sparkles, AlertTriangle, Check, ShieldAlert } from "lucide-react"
 import { roleConfig } from "./constants"
 
 export default function ProfilePage() {
@@ -15,7 +15,7 @@ export default function ProfilePage() {
   const [originalAccountName, setOriginalAccountName] = useState("")
   const [nameMessage, setNameMessage] = useState(null)
   const [accountCreatedAt, setAccountCreatedAt] = useState(null)
-  const [stats, setStats] = useState({ mentions: 0, keywords: 0 })
+  const [stats, setStats] = useState({ mentions: 0, keywords: 0, monthlyLimit: null })
   const [savingName, setSavingName] = useState(false)
 
   useEffect(() => {
@@ -60,9 +60,23 @@ export default function ProfilePage() {
         .select("*", { count: "exact", head: true })
         .gte("created_at", thirtyDaysAgo.toISOString())
 
+      let monthlyLimit = null
+
+      if (accountId) {
+        const { data: accountData } = await supabase
+          .from("accounts")
+          .select("plans(mentions_monthly_limit)")
+          .eq("id", accountId)
+          .single()
+
+        const planData = Array.isArray(accountData?.plans) ? accountData.plans[0] : accountData?.plans
+        monthlyLimit = planData?.mentions_monthly_limit ?? null
+      }
+
       setStats({
         keywords: keywordsCount,
         mentions: mentionsCount || 0,
+        monthlyLimit,
       })
     }
 
@@ -140,7 +154,7 @@ export default function ProfilePage() {
         <CardContent>
           <div className="w-full h-px bg-slate-700/50 mb-6" />
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
             <div className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/50">
               <div className="flex items-center gap-2 mb-2">
                 <Calendar className="w-4 h-4 text-slate-400" />
@@ -160,9 +174,17 @@ export default function ProfilePage() {
             <div className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/50">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-4 h-4 text-purple-400" />
-                <span className="text-sm text-slate-400">Menciones (30 días)</span>
+                <span className="text-sm text-slate-400">Menciones obtenidas (30 días)</span>
               </div>
               <p className="text-lg font-semibold text-white">{stats.mentions}</p>
+            </div>
+
+            <div className="p-4 rounded-lg bg-slate-800/30 border border-slate-700/50">
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldAlert className="w-4 h-4 text-amber-400" />
+                <span className="text-sm text-slate-400">Límite mensual</span>
+              </div>
+              <p className="text-lg font-semibold text-white">{stats.monthlyLimit ?? "-"}</p>
             </div>
           </div>
 
