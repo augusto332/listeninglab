@@ -81,15 +81,20 @@ export default function SentimentContextBar({ filters }) {
   return (
     <div className="mt-3" aria-label="Distribución total de sentimientos">
       <TooltipProvider>
-        <div className="h-1.5 w-full rounded-full overflow-hidden bg-slate-700/40 flex">
+        <div className="w-full rounded-full overflow-hidden bg-slate-700/40 flex h-4">
           {normalizedSegments.map((segment) => (
             <Tooltip key={segment.key}>
               <TooltipTrigger asChild>
-                <div
-                  className={`${SENTIMENT_COLORS[segment.key]} h-full`}
+                <button
+                  type="button"
+                  className="relative h-full"
                   style={{ width: `${segment.width}%` }}
                   aria-label={`${SENTIMENT_LABELS[segment.key]} ${segment.pct.toFixed(1)}%`}
-                />
+                >
+                  <span
+                    className={`${SENTIMENT_COLORS[segment.key]} absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2`}
+                  />
+                </button>
               </TooltipTrigger>
               <TooltipContent>
                 {SENTIMENT_LABELS[segment.key]}: {segment.pct.toFixed(1)}%
