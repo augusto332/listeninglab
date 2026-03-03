@@ -82,6 +82,13 @@ export default function DashboardSection({
     fetchSentimentDistribution()
   }, [sentimentKpiFilters])
 
+
+  const formatSegmentPercentage = (value) => {
+    if (value == null || Number.isNaN(value)) return "0%"
+    const rounded = Math.abs(value) >= 1 ? value.toFixed(0) : value.toFixed(1)
+    return `${Number.parseFloat(rounded)}%`
+  }
+
   return (
     <section className="p-8">
       <div className="mb-8">
@@ -201,11 +208,40 @@ export default function DashboardSection({
                 <SentimentKPI sentiment="positive" icon={Smile} color="green" filters={sentimentKpiFilters} />
                 <SentimentKPI sentiment="negative" icon={Frown} color="red" filters={sentimentKpiFilters} />
               </div>
-              <div className="h-1 w-full bg-slate-700/50 rounded-full overflow-hidden flex" aria-hidden="true">
-                <div className="h-full bg-green-500/80" style={{ width: `${sentimentDistribution.positive}%` }} />
-                <div className="h-full bg-red-500/80" style={{ width: `${sentimentDistribution.negative}%` }} />
-                <div className="h-full bg-slate-300/60" style={{ width: `${sentimentDistribution.neutral}%` }} />
-              </div>
+              <TooltipProvider>
+                <div className="h-1 w-full bg-slate-700/50 rounded-full overflow-hidden flex">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="h-full bg-green-500/80"
+                        style={{ width: `${sentimentDistribution.positive}%` }}
+                        aria-label={`Sentimiento positivo: ${formatSegmentPercentage(sentimentDistribution.positive)}`}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>{`Positivo: ${formatSegmentPercentage(sentimentDistribution.positive)}`}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="h-full bg-red-500/80"
+                        style={{ width: `${sentimentDistribution.negative}%` }}
+                        aria-label={`Sentimiento negativo: ${formatSegmentPercentage(sentimentDistribution.negative)}`}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>{`Negativo: ${formatSegmentPercentage(sentimentDistribution.negative)}`}</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="h-full bg-slate-300/60"
+                        style={{ width: `${sentimentDistribution.neutral}%` }}
+                        aria-label={`Sentimiento neutral: ${formatSegmentPercentage(sentimentDistribution.neutral)}`}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent>{`Neutral: ${formatSegmentPercentage(sentimentDistribution.neutral)}`}</TooltipContent>
+                  </Tooltip>
+                </div>
+              </TooltipProvider>
             </div>
           </div>
 
