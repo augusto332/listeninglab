@@ -223,37 +223,39 @@ export default function DashboardSection({
                 <SentimentKPI sentiment="negative" icon={Frown} color="red" filters={sentimentKpiFilters} />
               </div>
               <TooltipProvider>
-                <div className="h-1 w-full bg-slate-700/50 rounded-full overflow-hidden flex">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        className="h-full bg-green-500/80"
-                        style={{ width: `${sentimentDistribution.positive}%` }}
-                        aria-label={`Sentimiento positivo: ${formatSegmentPercentage(sentimentDistribution.positive)}`}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>{`Positivo: ${formatSegmentPercentage(sentimentDistribution.positive)}`}</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        className="h-full bg-red-500/80"
-                        style={{ width: `${sentimentDistribution.negative}%` }}
-                        aria-label={`Sentimiento negativo: ${formatSegmentPercentage(sentimentDistribution.negative)}`}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>{`Negativo: ${formatSegmentPercentage(sentimentDistribution.negative)}`}</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div
-                        className="h-full bg-slate-300/60"
-                        style={{ width: `${sentimentDistribution.neutral}%` }}
-                        aria-label={`Sentimiento neutral: ${formatSegmentPercentage(sentimentDistribution.neutral)}`}
-                      />
-                    </TooltipTrigger>
-                    <TooltipContent>{`Neutral: ${formatSegmentPercentage(sentimentDistribution.neutral)}`}</TooltipContent>
-                  </Tooltip>
+                <div className="relative h-4 w-full" aria-hidden="true">
+                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-1 bg-slate-700/50 rounded-full overflow-hidden flex">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="h-full cursor-default bg-green-500/80"
+                          style={{ width: `${sentimentDistribution.positive}%` }}
+                          aria-label={`Sentimiento positivo: ${formatSegmentPercentage(sentimentDistribution.positive)}`}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>{`Sentimiento positivo: ${formatSegmentPercentage(sentimentDistribution.positive)}`}</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="h-full cursor-default bg-red-500/80"
+                          style={{ width: `${sentimentDistribution.negative}%` }}
+                          aria-label={`Sentimiento negativo: ${formatSegmentPercentage(sentimentDistribution.negative)}`}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>{`Sentimiento negativo: ${formatSegmentPercentage(sentimentDistribution.negative)}`}</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          className="h-full cursor-default bg-slate-300/60"
+                          style={{ width: `${sentimentDistribution.neutral}%` }}
+                          aria-label={`Sentimiento neutral: ${formatSegmentPercentage(sentimentDistribution.neutral)}`}
+                        />
+                      </TooltipTrigger>
+                      <TooltipContent>{`Sentimiento neutral: ${formatSegmentPercentage(sentimentDistribution.neutral)}`}</TooltipContent>
+                    </Tooltip>
+                  </div>
                 </div>
               </TooltipProvider>
             </div>
