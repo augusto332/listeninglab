@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Loader2, MessageSquare, Smile, Frown } from "lucide-react"
 import DatePickerInput from "@/components/DatePickerInput"
 import MentionsLineChart from "@/components/MentionsLineChart"
@@ -44,11 +44,17 @@ export default function DashboardSection({
     negative: 0,
     neutral: 0,
   })
+  const sentimentRequestSeqRef = useRef(0)
 
   useEffect(() => {
+    let isCurrent = true
+    const requestSeq = sentimentRequestSeqRef.current + 1
+    sentimentRequestSeqRef.current = requestSeq
     const fetchSentimentDistribution = async () => {
       if (!sentimentKpiFilters) {
-        setSentimentDistribution({ positive: 0, negative: 0, neutral: 0 })
+        if (isCurrent && requestSeq === sentimentRequestSeqRef.current) {
+          setSentimentDistribution({ positive: 0, negative: 0, neutral: 0 })
+        }
         return
       }
 
@@ -68,18 +74,26 @@ export default function DashboardSection({
             (data || []).find((item) => item.ai_sentiment?.toLowerCase() === sentiment)?.pct
           ) || 0
 
-        setSentimentDistribution({
-          positive: getPct("positive"),
-          negative: getPct("negative"),
-          neutral: getPct("neutral"),
-        })
+        if (isCurrent && requestSeq === sentimentRequestSeqRef.current) {
+          setSentimentDistribution({
+            positive: getPct("positive"),
+            negative: getPct("negative"),
+            neutral: getPct("neutral"),
+          })
+        }
       } catch (error) {
-        console.error("Error fetching sentiment distribution:", error)
-        setSentimentDistribution({ positive: 0, negative: 0, neutral: 0 })
+        if (isCurrent && requestSeq === sentimentRequestSeqRef.current) {
+          console.error("Error fetching sentiment distribution:", error)
+          setSentimentDistribution({ positive: 0, negative: 0, neutral: 0 })
+        }
       }
     }
 
     fetchSentimentDistribution()
+
+    return () => {
+      isCurrent = false
+    }
   }, [sentimentKpiFilters])
 
 
