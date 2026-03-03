@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import MultiSelect from "@/components/MultiSelect"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import SentimentKPI from "@/components/SentimentKPI"
+import SentimentContextBar from "@/components/SentimentContextBar"
 
 export default function DashboardSection({
   keywords,
@@ -151,9 +152,13 @@ export default function DashboardSection({
               </CardContent>
             </Card>
 
-            <SentimentKPI sentiment="positive" icon={Smile} color="green" filters={sentimentKpiFilters} />
-
-            <SentimentKPI sentiment="negative" icon={Frown} color="red" filters={sentimentKpiFilters} />
+            <div className="md:col-span-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <SentimentKPI sentiment="positive" icon={Smile} color="green" filters={sentimentKpiFilters} />
+                <SentimentKPI sentiment="negative" icon={Frown} color="red" filters={sentimentKpiFilters} />
+              </div>
+              <SentimentContextBar filters={sentimentKpiFilters} />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
