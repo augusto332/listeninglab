@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react"
 import { Loader2, MessageSquare, Smile, Frown } from "lucide-react"
 import DatePickerInput from "@/components/DatePickerInput"
 import MentionsLineChart from "@/components/MentionsLineChart"
@@ -10,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import MultiSelect from "@/components/MultiSelect"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import SentimentKPI from "@/components/SentimentKPI"
+import { supabase } from "@/lib/supabaseClient"
 
 export default function DashboardSection({
   keywords,
@@ -37,6 +39,49 @@ export default function DashboardSection({
   sourceTop,
   series,
 }) {
+  const [sentimentDistribution, setSentimentDistribution] = useState({
+    positive: 0,
+    negative: 0,
+    neutral: 0,
+  })
+
+  useEffect(() => {
+    const fetchSentimentDistribution = async () => {
+      if (!sentimentKpiFilters) {
+        setSentimentDistribution({ positive: 0, negative: 0, neutral: 0 })
+        return
+      }
+
+      try {
+        const { data, error } = await supabase.rpc("rpt_mentions_by_sentiment", {
+          p_from: sentimentKpiFilters.p_from,
+          p_to: sentimentKpiFilters.p_to,
+          p_platforms: sentimentKpiFilters.p_platforms,
+          p_keywords: sentimentKpiFilters.p_keywords,
+          p_ai_classification_tags: sentimentKpiFilters.p_ai_classification_tags,
+        })
+
+        if (error) throw error
+
+        const getPct = (sentiment) =>
+          Number.parseFloat(
+            (data || []).find((item) => item.ai_sentiment?.toLowerCase() === sentiment)?.pct
+          ) || 0
+
+        setSentimentDistribution({
+          positive: getPct("positive"),
+          negative: getPct("negative"),
+          neutral: getPct("neutral"),
+        })
+      } catch (error) {
+        console.error("Error fetching sentiment distribution:", error)
+        setSentimentDistribution({ positive: 0, negative: 0, neutral: 0 })
+      }
+    }
+
+    fetchSentimentDistribution()
+  }, [sentimentKpiFilters])
+
   return (
     <section className="p-8">
       <div className="mb-8">
@@ -151,9 +196,17 @@ export default function DashboardSection({
               </CardContent>
             </Card>
 
-            <SentimentKPI sentiment="positive" icon={Smile} color="green" filters={sentimentKpiFilters} />
-
-            <SentimentKPI sentiment="negative" icon={Frown} color="red" filters={sentimentKpiFilters} />
+            <div className="md:col-span-2 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <SentimentKPI sentiment="positive" icon={Smile} color="green" filters={sentimentKpiFilters} />
+                <SentimentKPI sentiment="negative" icon={Frown} color="red" filters={sentimentKpiFilters} />
+              </div>
+              <div className="h-1 w-full bg-slate-700/50 rounded-full overflow-hidden flex" aria-hidden="true">
+                <div className="h-full bg-green-500/80" style={{ width: `${sentimentDistribution.positive}%` }} />
+                <div className="h-full bg-red-500/80" style={{ width: `${sentimentDistribution.negative}%` }} />
+                <div className="h-full bg-slate-300/60" style={{ width: `${sentimentDistribution.neutral}%` }} />
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
